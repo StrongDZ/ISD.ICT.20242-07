@@ -1,0 +1,33 @@
+package com.example.aims.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.Date;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "Product")
+public class Product {
+    
+    @Id
+    private String productID;
+    
+    private String category;
+    private String title;
+    private Float value;
+    private Float price;
+    private Integer quantity;
+    private String description;
+    private String barcode;
+    
+    @Temporal(TemporalType.DATE)
+    private Date warehouseEntryDate;
+    
+    private String dimensions;
+    private Float weight;
+    private String imageURL;
+}

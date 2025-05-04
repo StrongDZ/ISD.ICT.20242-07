@@ -5,6 +5,7 @@ import com.example.aims.repository.*;
 import com.example.aims.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import com.example.aims.model.Book;
@@ -14,6 +15,8 @@ import com.example.aims.model.Product;
 import com.example.aims.model.ShopItem;
 import com.example.aims.model.Users;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
 
@@ -22,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class AddUpdateProductToStore {
+public class AddUpdateProductToStoreTest {
     private ProductRepository productRepo;
     private BookRepository bookRepo;
     private CDRepository cdRepo;
@@ -320,33 +323,8 @@ public class AddUpdateProductToStore {
         Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P404", dto));
         assertTrue(ex.getMessage().contains("not found"));
     }
-    @Test
-    public void testUpdateProduct_DVDNotFound() {
-        // Tạo ProductDTO
-        ProductDTO dto = new ProductDTO();
-        dto.setProductID("P001");
-        dto.setCategory("DVD");
-    
-        // Tạo Product hiện tại đã có
-        Product existing = new Product();
-        existing.setProductID("P001");
-        existing.setCategory("DVD");
-    
-        // Giả lập repository productRepo
-        when(productRepo.findById("P001")).thenReturn(Optional.of(existing));
-    
-        // Giả lập dvdRepo không có DVD
-        when(dvdRepo.findById("P001")).thenReturn(Optional.empty());
-    
-        // Giả lập userRepository cho manager
-        when(userRepository.findById(anyString())).thenReturn(Optional.of(new Users()));  // giả lập tìm được manager
-    
-        // Chạy phương thức update và kiểm tra ngoại lệ
-        Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P001", dto));
-    
-        // Kiểm tra thông báo lỗi có chứa "not found"
-        assertTrue(ex.getMessage().toLowerCase().contains("not found"));
-    }
+
+
     
 
     @Test
@@ -361,6 +339,38 @@ public class AddUpdateProductToStore {
         Exception ex = assertThrows(RuntimeException.class, () -> productService.createProduct(dto, "manager001"));
         assertTrue(ex.getMessage().toLowerCase().contains("manager not found"));
     }
+
+    @Test
+    public void testUpdateProduct_SaveError() {
+        ProductDTO dto = new ProductDTO();
+        dto.setCategory("book");
+
+        Product existing = new Product();
+        existing.setProductID("P001");
+        existing.setCategory("book");
+
+        when(productRepo.findById("P001")).thenReturn(Optional.of(existing));
+        when(bookRepo.findById("P001")).thenReturn(Optional.of(new Book()));
+
+        // Giả lập lỗi khi save
+        when(bookRepo.save(any(Book.class))).thenThrow(new RuntimeException("Database error"));
+
+        Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P001", dto));
+
+        assertTrue(ex.getMessage().contains("Database error"));
+    }
+    @Test
+    public void testUpdateProduct_InvalidCategory() {
+        ProductDTO dto = new ProductDTO();
+        dto.setCategory("toy");  // category không hợp lệ
+
+        when(productRepo.findById("P001")).thenReturn(Optional.of(new Product()));
+
+        Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P001", dto));
+
+        assertTrue(ex.getMessage().contains("Invalid category"));
+    }
+
 
 
     

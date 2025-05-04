@@ -75,6 +75,13 @@ public class ProductService {
         if (productDTO.getProductID() == null || productDTO.getProductID().isEmpty()) {
             productDTO.setProductID(UUID.randomUUID().toString());
         }
+        if (productDTO.getProductID() != null && productRepository.existsById(productDTO.getProductID())) {
+            throw new RuntimeException("Product with ID " + productDTO.getProductID() + " already exists.");
+        }
+        String category = productDTO.getCategory().toLowerCase();
+        if (!category.equals("book") && !category.equals("cd") && !category.equals("dvd")) {
+            throw new RuntimeException("Invalid category: " + category);
+        }
         
         // Create the base product
         Product product = new Product();
@@ -153,6 +160,12 @@ public class ProductService {
     public ProductDTO updateProduct(String id, ProductDTO productDTO) {         //Update product to 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+          // Kiểm tra category hợp lệ
+    if (!"book".equalsIgnoreCase(productDTO.getCategory()) &&
+        !"cd".equalsIgnoreCase(productDTO.getCategory()) &&
+        !"dvd".equalsIgnoreCase(productDTO.getCategory())) {
+        throw new RuntimeException("Invalid category: " + productDTO.getCategory());
+    }
         
         // Update the base product
         product.setCategory(productDTO.getCategory());

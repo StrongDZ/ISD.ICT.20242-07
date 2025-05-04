@@ -5,6 +5,7 @@ target/
 .idea/
 *.iml
 *.iws
+*.xml
 out/
 
 # VSCode files

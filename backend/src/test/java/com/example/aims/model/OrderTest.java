@@ -37,7 +37,7 @@ class OrderTest {
     @Test
     void checkOrderStatus() {
         testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "ABCXYZ", "Bắc Ninh", "Thị Cầu, Bắc Ninh", 345.000);
-        assertEquals("PENDING", testthisOrder.getStatus());
+        assertEquals("PENDING", testthisOrder.checkOrderStatus());
         assertEquals("Wrong input if Status", testthisOrder.getStatus());
     }
 

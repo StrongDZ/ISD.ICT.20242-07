@@ -31,4 +31,19 @@ public class Product {
     private Double weight;
     private String imageURL;
     private boolean rushEligible;
+    public boolean isRushEligible() {
+        return rushEligible;
+    }
+
+    public void setProductID(String productID) {
+        this.productID = productID;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setRushEligible(boolean rushEligible) {
+        this.rushEligible = rushEligible;
+    }
 }

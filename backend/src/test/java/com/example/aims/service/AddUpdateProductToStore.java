@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class AddUpdateProductToStore {
@@ -95,7 +96,6 @@ public class AddUpdateProductToStore {
     }
     
 
-    
     @Test
     public void testAddProductDuplicateId() {
         // Setup DTO với ID trùng lặp
@@ -109,13 +109,15 @@ public class AddUpdateProductToStore {
         dto.setAuthors("John Doe");
         dto.setPublisher("TechBooks");
         dto.setGenre("Programming");
-    
+
         // Giả lập product đã tồn tại
         when(productRepo.existsById("P001")).thenReturn(true);
-    
+
         // Gọi phương thức và kiểm tra ngoại lệ
-        Exception ex = assertThrows(RuntimeException.class, () -> productService.createProduct(dto, "manager001"));
-    
+        Exception ex = assertThrows(RuntimeException.class, () ->
+            productService.createProduct(dto, "manager001")
+        );
+
         // Kiểm tra thông báo lỗi
         assertTrue(ex.getMessage().toLowerCase().contains("already exists"));
     }
@@ -131,13 +133,16 @@ public class AddUpdateProductToStore {
         dto.setQuantity(5);
         dto.setValue(20000d);
         dto.setPrice(30000d);
-    
-        // Giả lập: chưa tồn tại trong productRepo
+
+        // Giả lập: chưa tồn tại product
         when(productRepo.existsById("P002")).thenReturn(false);
-    
+        when(userRepository.findById("manager001")).thenReturn(Optional.of(new Users()));
+
         // Gọi phương thức và bắt lỗi
-        Exception ex = assertThrows(RuntimeException.class, () -> productService.createProduct(dto, "manager001"));
-    
+        Exception ex = assertThrows(RuntimeException.class, () ->
+            productService.createProduct(dto, "manager001")
+        );
+
         // Kiểm tra thông báo lỗi
         assertTrue(ex.getMessage().toLowerCase().contains("invalid category"));
     }
@@ -327,10 +332,13 @@ public class AddUpdateProductToStore {
 
         when(productRepo.findById("P001")).thenReturn(Optional.of(existing));
         when(dvdRepo.findById("P001")).thenReturn(Optional.empty());
+        when(userRepository.findById(anyString())).thenReturn(Optional.of(new Users()));  // nếu service có phần này
 
         Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P001", dto));
+
         assertTrue(ex.getMessage().toLowerCase().contains("not found"));
     }
+
     @Test
     public void testCreateProduct_ManagerNotFound() {
         ProductDTO dto = new ProductDTO();

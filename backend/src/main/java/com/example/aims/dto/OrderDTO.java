@@ -14,5 +14,5 @@ public class OrderDTO {
     private String status;
     private List<OrderItemDTO> items;
     private DeliveryInfoDTO deliveryInfo;
-    private Float totalPrice;
+    private Double totalPrice;
 }

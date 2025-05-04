@@ -20,11 +20,11 @@ public class Order {
 
     @Id
     private String id;
-    
+
     @ManyToOne
     @JoinColumn(name = "customerID")
     private Users customer;
-    
+
     private String customerName;
     private String phoneNumber;
     private String status;
@@ -35,10 +35,17 @@ public class Order {
     private Double totalAmount;
 
     public String checkOrderStatus(){
-        if(!Objects.equals(this.status, "PENDING") || !Objects.equals(this.status, "REJECT") || !Objects.equals(this.status, "APPROVE")){
-           return "Wrong input if Status";
+        if(!Objects.equals(this.status, "PENDING") && !Objects.equals(this.status, "REJECTED") && !Objects.equals(this.status, "APPROVED")){
+            return "Wrong input if Status";
         }
         else return this.status;
+    }
+    public void changeRejectOrder(){
+        this.status = "REJECTED";
+    }
+
+    public void changeApproveOrder(){
+        this.status = "APPROVED";
     }
 
 }

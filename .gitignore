@@ -1,5 +1,32 @@
-.qodo
-frontend\node_modules\
-/frontend/node_modules
-/backend/target
-/backend/.idea
+# Maven build directory
+target/
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+out/
+
+# VSCode files
+.vscode/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment / secret files
+.env
+.env.*
+
+# Compiled class files
+*.class
+
+# Temporary files
+*.swp
+*.tmp
+
+# Package-lock
+package-lock.json

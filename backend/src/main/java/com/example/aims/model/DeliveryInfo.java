@@ -29,4 +29,8 @@ public class DeliveryInfo {
     public String getProvince() {
         return province;
     }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
 }

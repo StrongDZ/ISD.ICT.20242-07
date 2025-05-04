@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class PlaceRushOrderService {
-
     private static final Set<String> INNER_CITY_DISTRICTS = Set.of(
             "Ba Dinh", "Hoan Kiem", "Dong Da", "Hai Ba Trung"
     );
@@ -50,8 +49,9 @@ public class PlaceRushOrderService {
                 .collect(Collectors.toList());
     }
 
-    private double calculateFee(List<Product> products, boolean isRush) {
+    private float calculateFee(List<Product> products, boolean isRush) {
         if (products.isEmpty()) return 0;
         return isRush ? 20000f : 15000f;
     }
+
 }

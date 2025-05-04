@@ -36,7 +36,7 @@ public class Order {
 
     public String checkOrderStatus(){
         if(!Objects.equals(this.status, "PENDING") && !Objects.equals(this.status, "REJECTED") && !Objects.equals(this.status, "APPROVED")){
-            return "Wrong input if Status";
+            return "Wrong input of Status";
         }
         else return this.status;
     }

@@ -3,6 +3,9 @@ package com.example.aims.service;
 import com.example.aims.dto.ProductDTO;
 import com.example.aims.model.*;
 import com.example.aims.repository.*;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
@@ -21,16 +25,6 @@ public class ProductService {
     private final ShopItemRepository shopItemRepository;
     private final UsersRepository userRepository;
 
-    public ProductService(ProductRepository productRepository, BookRepository bookRepository,
-                         CDRepository cdRepository, DVDRepository dvdRepository,
-                         ShopItemRepository shopItemRepository, UsersRepository userRepository) {
-        this.productRepository = productRepository;
-        this.bookRepository = bookRepository;
-        this.cdRepository = cdRepository;
-        this.dvdRepository = dvdRepository;
-        this.shopItemRepository = shopItemRepository;
-        this.userRepository = userRepository;
-    }
 
     public List<ProductDTO> getAllProducts() {
         List<Product> products = productRepository.findAll();
@@ -76,7 +70,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO createProduct(ProductDTO productDTO, String managerID) {
+    public ProductDTO createProduct(ProductDTO productDTO, String managerID) {   //Add product ro Store
         // Generate a new product ID if not provided
         if (productDTO.getProductID() == null || productDTO.getProductID().isEmpty()) {
             productDTO.setProductID(UUID.randomUUID().toString());
@@ -156,7 +150,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO updateProduct(String id, ProductDTO productDTO) {
+    public ProductDTO updateProduct(String id, ProductDTO productDTO) {         //Update product to 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         

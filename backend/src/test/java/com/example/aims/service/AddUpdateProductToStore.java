@@ -65,8 +65,8 @@ public class AddUpdateProductToStore {
         dto.setCategory("book");
         dto.setTitle("Java Basics");
         dto.setQuantity(5);
-        dto.setValue(120000f);
-        dto.setPrice(150000f);
+        dto.setValue(120000d);
+        dto.setPrice(150000d);
         dto.setAuthors("John Doe");
         dto.setPublisher("TechBooks");
         dto.setGenre("Programming");
@@ -104,8 +104,8 @@ public class AddUpdateProductToStore {
         dto.setCategory("book");
         dto.setTitle("Java Basics");
         dto.setQuantity(5);
-        dto.setValue(120000f);
-        dto.setPrice(150000f);
+        dto.setValue(120000d);
+        dto.setPrice(150000d);
         dto.setAuthors("John Doe");
         dto.setPublisher("TechBooks");
         dto.setGenre("Programming");
@@ -129,8 +129,8 @@ public class AddUpdateProductToStore {
         dto.setCategory("toy");  // Không nằm trong "book", "cd", "dvd"
         dto.setTitle("Rubik");
         dto.setQuantity(5);
-        dto.setValue(20000f);
-        dto.setPrice(30000f);
+        dto.setValue(20000d);
+        dto.setPrice(30000d);
     
         // Giả lập: chưa tồn tại trong productRepo
         when(productRepo.existsById("P002")).thenReturn(false);
@@ -151,8 +151,8 @@ public class AddUpdateProductToStore {
         dto.setCategory("DVD");
         dto.setTitle("Avengers");
         dto.setQuantity(8);
-        dto.setValue(150000f);
-        dto.setPrice(200000f);
+        dto.setValue(150000d);
+        dto.setPrice(200000d);
         dto.setDirector("Russo");
         dto.setGenre("Action");
         dto.setRuntime("120 minutes");
@@ -164,8 +164,8 @@ public class AddUpdateProductToStore {
         existing.setCategory("DVD");
         existing.setTitle("Avengers");
         existing.setQuantity(5);
-        existing.setValue(100000f);
-        existing.setPrice(180000f);
+        existing.setValue(100000d);
+        existing.setPrice(180000d);
     
         when(productRepo.findById("P001")).thenReturn(Optional.of(existing));
     
@@ -181,8 +181,8 @@ public class AddUpdateProductToStore {
     
         // Kiểm tra kết quả cập nhật Product
         assertEquals(8, updated.getQuantity());
-        assertEquals(150000f, updated.getValue());
-        assertEquals(200000f, updated.getPrice());
+        assertEquals(150000d, updated.getValue());
+        assertEquals(200000d, updated.getPrice());
         assertEquals("Avengers", updated.getTitle());
     
         // Kiểm tra thông tin DVD đã được cập nhật đúng
@@ -204,8 +204,8 @@ public class AddUpdateProductToStore {
         dto.setCategory("CD");
         dto.setTitle("Greatest Hits");
         dto.setQuantity(7);
-        dto.setValue(80000f);
-        dto.setPrice(100000f);
+        dto.setValue(80000d);
+        dto.setPrice(100000d);
         dto.setArtist("Queen");
         dto.setRecordLabel("EMI");
         dto.setTracklist("Bohemian Rhapsody, Don't Stop Me Now");
@@ -218,8 +218,8 @@ public class AddUpdateProductToStore {
         existing.setCategory("CD");
         existing.setTitle("Old CD");
         existing.setQuantity(3);
-        existing.setValue(50000f);
-        existing.setPrice(70000f);
+        existing.setValue(50000d);
+        existing.setPrice(70000d);
 
         when(productRepo.findById("C001")).thenReturn(Optional.of(existing));
 
@@ -236,8 +236,8 @@ public class AddUpdateProductToStore {
         // Kiểm tra kết quả cập nhật Product
         assertEquals("Greatest Hits", updated.getTitle());
         assertEquals(7, updated.getQuantity());
-        assertEquals(80000f, updated.getValue());
-        assertEquals(100000f, updated.getPrice());
+        assertEquals(80000d, updated.getValue());
+        assertEquals(100000d, updated.getPrice());
 
         // Kiểm tra thông tin CD cập nhật đúng
         assertEquals("Queen", existingCD.getArtist());
@@ -258,8 +258,8 @@ public class AddUpdateProductToStore {
         dto.setCategory("Book");
         dto.setTitle("Clean Code");
         dto.setQuantity(10);
-        dto.setValue(120000f);
-        dto.setPrice(150000f);
+        dto.setValue(120000d);
+        dto.setPrice(150000d);
         dto.setCoverType("Hardcover");
         dto.setAuthors("Robert C. Martin");
         dto.setPublisher("Prentice Hall");
@@ -305,8 +305,8 @@ public class AddUpdateProductToStore {
         dto.setCategory("DVD");
         dto.setTitle("Ghost");
         dto.setQuantity(1);
-        dto.setValue(10000f);
-        dto.setPrice(12000f);
+        dto.setValue(10000d);
+        dto.setPrice(12000d);
     
         // Giả lập không tìm thấy sản phẩm trong kho
         when(productRepo.findById("P404")).thenReturn(Optional.empty());

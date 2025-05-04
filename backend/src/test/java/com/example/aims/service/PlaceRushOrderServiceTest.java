@@ -12,7 +12,7 @@ class PlaceRushOrderServiceTest {
     private PlaceRushOrderService service;
 
     @BeforeEach
-    public void setup() {
+    void setUp() {
         service = new PlaceRushOrderService();
     }
 

@@ -12,7 +12,7 @@ class PlaceRushOrderServiceTest {
     private PlaceRushOrderService service;
 
     @BeforeEach
-    void setUp() {
+    public void setup() {
         service = new PlaceRushOrderService();
     }
 
@@ -29,8 +29,6 @@ class PlaceRushOrderServiceTest {
         assertTrue(response.isSupported());
         assertEquals(2, response.getRushProducts().size());
         assertEquals(0, response.getRegularProducts().size());
-        assertEquals(20000f, response.getRushFee());
-        assertEquals(0f, response.getRegularFee());
         assertNull(response.getPromptMessage());
     }
 
@@ -47,8 +45,6 @@ class PlaceRushOrderServiceTest {
         assertTrue(response.isSupported());
         assertEquals(1, response.getRushProducts().size());
         assertEquals(1, response.getRegularProducts().size());
-        assertEquals(20000f, response.getRushFee());
-        assertEquals(15000f, response.getRegularFee());
         assertNull(response.getPromptMessage());
     }
 
@@ -64,8 +60,6 @@ class PlaceRushOrderServiceTest {
 
         assertFalse(response.isSupported());
         assertEquals("Rush order not available. Please update your delivery address or product selection.", response.getPromptMessage());
-        assertEquals(20000f, response.getRushFee());
-        assertEquals(0f, response.getRegularFee());
     }
 
     @Test
@@ -79,8 +73,6 @@ class PlaceRushOrderServiceTest {
         PlaceRushOrderResponse response = service.evaluateRushOrder(info, products);
 
         assertFalse(response.isSupported());
-        assertEquals(0f, response.getRushFee());
-        assertEquals(15000f, response.getRegularFee());
         assertEquals("Rush order not available. Please update your delivery address or product selection.", response.getPromptMessage());
     }
 

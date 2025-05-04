@@ -9,10 +9,8 @@ public class PlaceRushOrderResponse {
     private List<Product> rushProducts;
     private List<Product> regularProducts;
     private String promptMessage;
-    private double rushFee;
-    private double regularFee;
-    // Getters and setters
 
+    // Getters and setters
     public boolean isSupported() {
         return supported;
     }
@@ -43,21 +41,5 @@ public class PlaceRushOrderResponse {
 
     public void setPromptMessage(String promptMessage) {
         this.promptMessage = promptMessage;
-    }
-
-    public double getRushFee() {
-        return rushFee;
-    }
-
-    public void setRushFee(double rushFee) {
-        this.rushFee = rushFee;
-    }
-
-    public double getRegularFee() {
-        return regularFee;
-    }
-
-    public void setRegularFee(double regularFee) {
-        this.regularFee = regularFee;
     }
 }

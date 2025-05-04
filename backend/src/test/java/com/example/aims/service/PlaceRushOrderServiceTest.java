@@ -54,7 +54,7 @@ class PlaceRushOrderServiceTest {
 
     @Test
     public void testRushOrderNotSupported_AddressOutsideInnerCity() {
-        DeliveryInfo info = createDeliveryInfo("Ha Dong");
+        DeliveryInfo info = createDeliveryInfo("Hung Yen");
         List<Product> products = List.of(
                 createProduct("1", true),
                 createProduct("2", true)

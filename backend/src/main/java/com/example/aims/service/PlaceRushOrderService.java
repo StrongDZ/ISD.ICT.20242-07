@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Service
 public class PlaceRushOrderService {
     private static final Set<String> INNER_CITY_DISTRICTS = Set.of(
-            "Ba Dinh", "Hoan Kiem", "Dong Da", "Hai Ba Trung"
+            "Ba Dinh", "Hoan Kiem", "Dong Da", "Hai Ba Trung", "Thanh Xuan", "Hoang Mai", "Ha Dong", "Long Bien"
     );
 
     public PlaceRushOrderResponse evaluateRushOrder(DeliveryInfo deliveryInfo, List<Product> products) {

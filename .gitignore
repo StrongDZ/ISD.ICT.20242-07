@@ -30,3 +30,4 @@ Thumbs.db
 
 # Package-lock
 package-lock.json
+/frontend/node_modules

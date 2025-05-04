@@ -322,22 +322,32 @@ public class AddUpdateProductToStore {
     }
     @Test
     public void testUpdateProduct_DVDNotFound() {
+        // Tạo ProductDTO
         ProductDTO dto = new ProductDTO();
         dto.setProductID("P001");
         dto.setCategory("DVD");
-
+    
+        // Tạo Product hiện tại đã có
         Product existing = new Product();
         existing.setProductID("P001");
         existing.setCategory("DVD");
-
+    
+        // Giả lập repository productRepo
         when(productRepo.findById("P001")).thenReturn(Optional.of(existing));
+    
+        // Giả lập dvdRepo không có DVD
         when(dvdRepo.findById("P001")).thenReturn(Optional.empty());
-        when(userRepository.findById(anyString())).thenReturn(Optional.of(new Users()));  // nếu service có phần này
-
+    
+        // Giả lập userRepository cho manager
+        when(userRepository.findById(anyString())).thenReturn(Optional.of(new Users()));  // giả lập tìm được manager
+    
+        // Chạy phương thức update và kiểm tra ngoại lệ
         Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P001", dto));
-
+    
+        // Kiểm tra thông báo lỗi có chứa "not found"
         assertTrue(ex.getMessage().toLowerCase().contains("not found"));
     }
+    
 
     @Test
     public void testCreateProduct_ManagerNotFound() {

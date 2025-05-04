@@ -27,7 +27,7 @@ public class PayOrderService {
     }
 
     public Optional<PaymentTransaction> findPaymentTransactionByOrderId(String orderId) {
-        if (currentPaymentTransaction != null && currentPaymentTransaction.getOrder().getid().equals(orderId)) {
+        if (currentPaymentTransaction != null && currentPaymentTransaction.getOrder().getId().equals(orderId)) {
             return Optional.of(currentPaymentTransaction);
         }
         return Optional.empty();

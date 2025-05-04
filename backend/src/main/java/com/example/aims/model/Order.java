@@ -35,7 +35,7 @@ public class Order {
     private Double totalAmount;
 
     public String checkOrderStatus(){
-        if(!Objects.equals(this.status, "PENDING") || !Objects.equals(this.status, "REJECT") || !Objects.equals(this.status, "APPROVE")){
+        if(!Objects.equals(this.status, "PENDING") || !Objects.equals(this.status, "REJECTED") || !Objects.equals(this.status, "APPROVED")){
            return "Wrong input if Status";
         }
         else return this.status;

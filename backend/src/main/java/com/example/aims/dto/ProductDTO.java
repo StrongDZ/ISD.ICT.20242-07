@@ -12,14 +12,14 @@ public class ProductDTO {
     private String productID;
     private String category;
     private String title;
-    private Float value;
-    private Float price;
+    private Double value;
+    private Double price;
     private Integer quantity;
     private String description;
     private String barcode;
     private Date warehouseEntryDate;
     private String dimensions;
-    private Float weight;
+    private Double weight;
     private String imageURL;
     
     // Additional fields for specific product types

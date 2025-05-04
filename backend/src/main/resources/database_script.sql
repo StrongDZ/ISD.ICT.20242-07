@@ -3,14 +3,14 @@ CREATE TABLE Product (
     productID VARCHAR PRIMARY KEY,
     category VARCHAR,
     title VARCHAR,
-    value FLOAT,
-    price FLOAT,
+    value DOUBLE,
+    price DOUBLE,
     quantity INT,
     description VARCHAR,
     barcode VARCHAR,
     warehouseEntryDate DATE,
     dimensions VARCHAR,
-    weight FLOAT,
+    weight DOUBLE,
     imageURL VARCHAR
 );
 
@@ -107,7 +107,7 @@ CREATE TABLE PaymentTransaction (
 -- Bảng Invoice
 CREATE TABLE Invoice (
     orderID VARCHAR PRIMARY KEY REFERENCES OrderAccount(id),
-    productPriceExcludingVAT FLOAT,
-    productPriceIncludingVAT FLOAT,
-    deliveryFee FLOAT
+    productPriceExcludingVAT DOUBLE,
+    productPriceIncludingVAT DOUBLE,
+    deliveryFee DOUBLE
 );

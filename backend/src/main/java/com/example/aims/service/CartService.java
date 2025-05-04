@@ -9,6 +9,9 @@ import com.example.aims.model.Users;
 import com.example.aims.repository.CartItemRepository;
 import com.example.aims.repository.ProductRepository;
 import com.example.aims.repository.UsersRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,18 +20,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CartService {
 
     private final CartItemRepository cartItemRepository;
     private final UsersRepository userRepository;
     private final ProductRepository productRepository;
-
-    public CartService(CartItemRepository cartItemRepository, UsersRepository userRepository, 
-                      ProductRepository productRepository) {
-        this.cartItemRepository = cartItemRepository;
-        this.userRepository = userRepository;
-        this.productRepository = productRepository;
-    }
 
     public List<CartItemDTO> getCartItems(String customerId) {
         Users customer = userRepository.findById(customerId)

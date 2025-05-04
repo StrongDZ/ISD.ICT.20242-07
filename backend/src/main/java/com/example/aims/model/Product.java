@@ -18,8 +18,8 @@ public class Product {
     
     private String category;
     private String title;
-    private Float value;
-    private Float price;
+    private Double value;
+    private Double price;
     private Integer quantity;
     private String description;
     private String barcode;
@@ -28,7 +28,7 @@ public class Product {
     private Date warehouseEntryDate;
     
     private String dimensions;
-    private Float weight;
+    private Double weight;
     private String imageURL;
     private boolean rushEligible;
 }

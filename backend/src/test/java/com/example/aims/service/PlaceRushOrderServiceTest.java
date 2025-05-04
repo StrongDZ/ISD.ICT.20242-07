@@ -3,13 +3,21 @@ package com.example.aims.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.example.aims.dto.PlaceRushOrderResponse;
+import com.example.aims.model.DeliveryInfo;
+import com.example.aims.model.Product;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-class PlaceRushOrderServiceTest {
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
+class PlaceRushOrderServiceTest {
+    PlaceRushOrderService service;
     @BeforeEach
     void setUp() {
-        service = new RushOrderService();
+        PlaceRushOrderService service = new PlaceRushOrderService();
     }
     private Product createProduct(String id, boolean rushEligible) {
     Product p = new Product();

@@ -35,20 +35,20 @@ class OrderTest {
 
     @Test
     void checkOrderStatus() {
-        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "ABCXYZ", 345.000, "Bắc Ninh", "Thị Cầu, Bắc Ninh");
+        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "ABCXYZ", "Bắc Ninh", "Thị Cầu, Bắc Ninh", 345.000);
         assertEquals("PENDING", testthisOrder.checkOrderStatus());
         assertEquals("Wrong input if Status", testthisOrder.checkOrderStatus());
     }
 
     @Test
     void changeRejectOrder() {
-        testthisOrder.changeRejectOrder();
+        testthisOrder.setStatus("REJECTED");
         assertEquals("REJECTED", testthisOrder.checkOrderStatus()); // Giả sử có phương thức checkOrderStatus
     }
 
     @Test
     void changeApproveOrder() {
-        testthisOrder.changeApproveOrder();
+        testthisOrder.setStatus("APPROVED");
         assertEquals("APPROVED", testthisOrder.checkOrderStatus()); // Giả sử có phương thức checkOrderStatus
     }
 }

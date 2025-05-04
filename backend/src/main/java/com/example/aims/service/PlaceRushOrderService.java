@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class PlaceRushOrderService {
+
     private static final Set<String> INNER_CITY_DISTRICTS = Set.of(
             "Ba Dinh", "Hoan Kiem", "Dong Da", "Hai Ba Trung", "Thanh Xuan", "Hoang Mai", "Ha Dong", "Long Bien"
     );
@@ -33,9 +34,6 @@ public class PlaceRushOrderService {
             result.setPromptMessage("Rush order not available. Please update your delivery address or product selection.");
         }
 
-        result.setRushFee(calculateFee(rushProducts, true));
-        result.setRegularFee(calculateFee(regularProducts, false));
-
         return result;
     }
 
@@ -48,10 +46,4 @@ public class PlaceRushOrderService {
                 .filter(Product::isRushEligible)
                 .collect(Collectors.toList());
     }
-
-    private float calculateFee(List<Product> products, boolean isRush) {
-        if (products.isEmpty()) return 0;
-        return isRush ? 20000f : 15000f;
-    }
-
 }

@@ -35,70 +35,70 @@ public class PayOrderService {
     }
 
     // Get payment URL using VNPay subsystem
-    public String getPaymentUrl(String orderId){
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderId));
-        System.out.println(vnpay.getPaymentUrl(order));
-        return vnpay.getPaymentUrl(order);
-    }
-
-    public PaymentTransaction getTransactionInfo(Map<String, String> transactionInfo){
-        return vnpay.getTransactionInfo(transactionInfo, orderRepository, transactionInfoRepository);
-    }
-
-    public void sendMail(String transactionID){
-    }
-
-    public Integer saveTransaction(PaymentTransaction transactionInfo){
-        PaymentTransaction savedTransaction = transactionInfoRepository.save(transactionInfo);
-        return savedTransaction.getId();
-    }
-
-    // Get transaction history
-    public TransactionDto getTransactionHistory(Integer transactionId){
-        PaymentTransaction transactionInfo = transactionInfoRepository.findById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaction not found with ID: " + transactionId));
-        Order order = transactionInfo.getOrder();
-        TransactionDto transactionDto = new TransactionDto();
-        return transactionDto;
-    }
-
-    // Get order info
-    public OrderDTO getOrderInfo(Integer transactionId) {
-        PaymentTransaction transactionInfo = transactionInfoRepository.findById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaction not found with ID: " + transactionId));
-        Order order = transactionInfo.getOrder();
-        DeliveryInfo deliveryInfo = order.getDeliveryInfo();
-//        List<ProductOrderEntity> productDtos = new ArrayList<>();
-//        productDtos = productOrderRepository.findByOrderId(order.getId());
-        OrderDTO orderInfoDto = new OrderDTO();
-        System.out.println(orderInfoDto);
-        return orderInfoDto;
-    }
-
-    // Get product info
-    public List<ProductDTO> getProductInfo(Integer orderId){
-        List<OrderItem> productOrderEntities = OrderItemRepository.findByOrderId(orderId);
-        List<ProductDTO> productDtos = new ArrayList<>();
-        return productDtos;
-    }
-
-    // Cancel order
-    public String cancelOrder(Integer transactionId){
-        // Refund transaction
-        PaymentTransaction transactionInfo = transactionInfoRepository.findById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaction not found with ID: " + transactionId));
-        Order order = transactionInfo.getOrder();
-        orderRepository.save(order);
-        String response = vnpay.refundTransaction(transactionInfo);
-//        // Delete delivery info & order
-//        OrderEntity order = transactionInfo.getOrder();
-//        // Delete delivery info
-//        deliveryInfoRepository.delete(order.getDeliveryInfo());
-//        // Delete order
-//        orderRepository.delete(order);
-//        // Delete transaction info
-//        transactionInfoRepository.delete(transactionInfo);
-        return response;
-    }
+//    public String getPaymentUrl(String orderId){
+//        Order order = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderId));
+//        System.out.println(vnpay.getPaymentUrl(order));
+//        return vnpay.getPaymentUrl(order);
+//    }
+//
+//    public PaymentTransaction getTransactionInfo(Map<String, String> transactionInfo){
+//        return vnpay.getTransactionInfo(transactionInfo, orderRepository, transactionInfoRepository);
+//    }
+//
+//    public void sendMail(String transactionID){
+//    }
+//
+//    public Integer saveTransaction(PaymentTransaction transactionInfo){
+//        PaymentTransaction savedTransaction = transactionInfoRepository.save(transactionInfo);
+//        return savedTransaction.getId();
+//    }
+//
+//    // Get transaction history
+//    public TransactionDto getTransactionHistory(Integer transactionId){
+//        PaymentTransaction transactionInfo = transactionInfoRepository.findById(transactionId)
+//                .orElseThrow(() -> new IllegalArgumentException("Transaction not found with ID: " + transactionId));
+//        Order order = transactionInfo.getOrder();
+//        TransactionDto transactionDto = new TransactionDto();
+//        return transactionDto;
+//    }
+//
+//    // Get order info
+//    public OrderDTO getOrderInfo(Integer transactionId) {
+//        PaymentTransaction transactionInfo = transactionInfoRepository.findById(transactionId)
+//                .orElseThrow(() -> new IllegalArgumentException("Transaction not found with ID: " + transactionId));
+//        Order order = transactionInfo.getOrder();
+//        DeliveryInfo deliveryInfo = order.getDeliveryInfo();
+////        List<ProductOrderEntity> productDtos = new ArrayList<>();
+////        productDtos = productOrderRepository.findByOrderId(order.getId());
+//        OrderDTO orderInfoDto = new OrderDTO();
+//        System.out.println(orderInfoDto);
+//        return orderInfoDto;
+//    }
+//
+//    // Get product info
+//    public List<ProductDTO> getProductInfo(Integer orderId){
+//        List<OrderItem> productOrderEntities = OrderItemRepository.findByOrderId(orderId);
+//        List<ProductDTO> productDtos = new ArrayList<>();
+//        return productDtos;
+//    }
+//
+//    // Cancel order
+//    public String cancelOrder(Integer transactionId){
+//        // Refund transaction
+//        PaymentTransaction transactionInfo = transactionInfoRepository.findById(transactionId)
+//                .orElseThrow(() -> new IllegalArgumentException("Transaction not found with ID: " + transactionId));
+//        Order order = transactionInfo.getOrder();
+//        orderRepository.save(order);
+//        String response = vnpay.refundTransaction(transactionInfo);
+////        // Delete delivery info & order
+////        OrderEntity order = transactionInfo.getOrder();
+////        // Delete delivery info
+////        deliveryInfoRepository.delete(order.getDeliveryInfo());
+////        // Delete order
+////        orderRepository.delete(order);
+////        // Delete transaction info
+////        transactionInfoRepository.delete(transactionInfo);
+//        return response;
+//    }
 }

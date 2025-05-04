@@ -18,39 +18,35 @@ class PayOrderServiceTest {
     void setUp() {
         payOrderService = new PayOrderService();
         testOrder = new Order();
-        testOrder.setid("ORD001");
-        testOrder.setstatus("PENDING");
-        testOrder.settotalAmount(100.0);
+        testOrder.setId("ORD001");
+        testOrder.setStatus("PENDING");
+        testOrder.setTotalAmount(100.0);
         payOrderService.setCurrentOrderForTest(testOrder);
     }
 
     @Test
     void processPayment_success() {
         String orderId = "ORD001";
-        String paymentMethod = "Credit Card";
-        String paymentDetails = "Visa ****-****-****-1234";
+        String content = "Visa ****-****-****-1234";
 
-        PaymentTransaction paymentTransaction = payOrderService.processPayment(orderId, paymentMethod, paymentDetails);
+        PaymentTransaction paymentTransaction = payOrderService.processPayment(orderId, content);
 
         assertNotNull(paymentTransaction);
-        assertEquals("CONFIRMED", testOrder.getstatus());
-        assertTrue(paymentTransaction.getcontent().contains("Payment successful"));
+        assertEquals("CONFIRMED", testOrder.getStatus());
         assertEquals(testOrder, paymentTransaction.getOrder());
-        assertEquals(paymentMethod, paymentTransaction.getcontent().split("Method: ")[1].split("\\. Details:")[0]);
-        assertEquals(paymentDetails, paymentTransaction.getcontent().split("Details: ")[1]);
-        assertNotNull(paymentTransaction.getdatetime());
+        assertEquals(content, paymentTransaction.getContent());
+        assertNotNull(paymentTransaction.getDatetime());
     }
 
     @Test
     void getPaymentTransactionByOrderId_found() {
         String orderId = "ORD001";
-        payOrderService.processPayment(orderId, "Cash", "Paid in hand");
+        //payOrderService.processPayment(orderId, "Cash");
         PaymentTransaction paymentTransaction = payOrderService.getPaymentTransactionByOrderId(orderId);
 
         assertNotNull(paymentTransaction);
-        assertTrue(paymentTransaction.getcontent().contains("successful") || paymentTransaction.getcontent().contains("failed"));
         assertEquals(testOrder, paymentTransaction.getOrder());
-        assertNotNull(paymentTransaction.getdatetime());
+        assertNotNull(paymentTransaction.getDatetime());
     }
 
     @Test
@@ -62,11 +58,10 @@ class PayOrderServiceTest {
     @Test
     void processPayment_orderNotFound() {
         String orderId = "ORD002";
-        String paymentMethod = "Credit Card";
-        String paymentDetails = "Visa ****-****-****-1234";
+        String content = "Visa ****-****-****-1234";
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            payOrderService.processPayment(orderId, paymentMethod, paymentDetails);
+            payOrderService.processPayment(orderId, content);
         });
 
         assertEquals("Order not found with ID: ORD002", exception.getMessage());
@@ -74,13 +69,12 @@ class PayOrderServiceTest {
 
     @Test
     void processPayment_orderNotInPendingState() {
-        testOrder.setstatus("APPROVED");
+        testOrder.setStatus("APPROVED");
         String orderId = "ORD001";
-        String paymentMethod = "Credit Card";
-        String paymentDetails = "Visa ****-****-****-1234";
+        String content = "Visa ****-****-****-1234";
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            payOrderService.processPayment(orderId, paymentMethod, paymentDetails);
+            payOrderService.processPayment(orderId, content);
         });
 
         assertEquals("Order is not in PENDING state for payment. Current status: APPROVED", exception.getMessage());

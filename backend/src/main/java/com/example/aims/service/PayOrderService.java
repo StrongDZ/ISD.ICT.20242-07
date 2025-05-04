@@ -20,7 +20,7 @@ public class PayOrderService {
     }
 
     public Optional<Order> findOrderById(String orderId) {
-        if (currentOrder != null && currentOrder.getid().equals(orderId)) {
+        if (currentOrder != null && currentOrder.getId().equals(orderId)) {
             return Optional.of(currentOrder);
         }
         return Optional.empty();
@@ -34,14 +34,14 @@ public class PayOrderService {
     }
 
     @Transactional
-    public PaymentTransaction processPayment(String orderId, String paymentMethod, String paymentDetails) {
+    public PaymentTransaction processPayment(String orderId, String content) {
         Optional<Order> orderOptional = findOrderById(orderId);
         if (orderOptional.isEmpty()) {
             throw new IllegalArgumentException("Order not found with ID: " + orderId);
         }
         Order order = orderOptional.get();
 
-        if (!"PENDING".equals(order.getstatus())) {
+        if (!"PENDING".equals(order.getStatus())) {
             throw new IllegalStateException("Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
 
@@ -50,22 +50,22 @@ public class PayOrderService {
 
         if (paymentSuccessful) {
             // 2. Cập nhật trạng thái đơn hàng thành CONFIRMED
-            order.setstatus("CONFIRMED");
+            order.setStatus("CONFIRMED");
             // Không cần "lưu" vào store nữa
 
             // 3. Tạo bản ghi giao dịch thanh toán
             currentPaymentTransaction = new PaymentTransaction();
             currentPaymentTransaction.setOrder(order); // Thiết lập mối quan hệ với Order
-            currentPaymentTransaction.setcontent("Payment successful. Method: " + paymentMethod + ". Details: " + paymentDetails);
-            currentPaymentTransaction.setdatetime(new Date());
+            currentPaymentTransaction.setContent(content);
+            currentPaymentTransaction.setDatetime(new Date());
 
             return currentPaymentTransaction;
         } else {
             // Xử lý trường hợp thanh toán thất bại
             currentPaymentTransaction = new PaymentTransaction();
-            currentPaymentTransaction.setorder(order);
-            currentPaymentTransaction.setcontent("Payment failed. Method: " + paymentMethod + ". Details: " + paymentDetails);
-            currentPaymentTransaction.setdatetime(new Date());
+            currentPaymentTransaction.setOrder(order);
+            currentPaymentTransaction.setContent(content);
+            currentPaymentTransaction.setDatetime(new Date());
 
             throw new RuntimeException("Payment processing failed for order ID: " + orderId);
         }

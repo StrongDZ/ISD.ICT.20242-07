@@ -1,5 +1,9 @@
 package com.example.aims.dto;
 
+import com.example.aims.model.Product;
+
+import java.util.List;
+
 public class PlaceRushOrderResponse {
     private boolean supported;
     private List<Product> rushProducts;

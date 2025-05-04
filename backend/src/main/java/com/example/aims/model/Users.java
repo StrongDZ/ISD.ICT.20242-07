@@ -6,12 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+//@NoArgsConstructor
+//@AllArgsConstructor
 @Entity
 @Table(name = "Users")
 public class Users {
-    
+
+
+
+
     @Id
     private String id;
     
@@ -21,4 +24,10 @@ public class Users {
     private String username;
     
     private String password;
+    public Users(String id, String username, String role, String password) {
+        this.id = id;
+        this.username = username;
+        this.role = role;
+        this.password = password;
+    }
 }

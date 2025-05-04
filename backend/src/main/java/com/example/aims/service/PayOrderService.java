@@ -27,7 +27,7 @@ public class PayOrderService {
     private final OrderItemRepository orderItemRepository;
     @Autowired
 
-    public PayOrderService(OrderRepository orderRepository, TransactionInfoRepository transactionInfoRepository, DeliveryInfoRepository deliveryInfoRepository, OrderItemRepository orderItemRepository, JavaMailSender javaMailSender) {
+    public PayOrderService(OrderRepository orderRepository, TransactionInfoRepository transactionInfoRepository, DeliveryInfoRepository deliveryInfoRepository, OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
         this.transactionInfoRepository = transactionInfoRepository;
         this.deliveryInfoRepository = deliveryInfoRepository;

@@ -76,7 +76,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO createProduct(ProductDTO productDTO, String managerID) {
+    public ProductDTO createProduct(ProductDTO productDTO, String managerID) {   //Add product ro Store
         // Generate a new product ID if not provided
         if (productDTO.getProductID() == null || productDTO.getProductID().isEmpty()) {
             productDTO.setProductID(UUID.randomUUID().toString());
@@ -156,7 +156,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDTO updateProduct(String id, ProductDTO productDTO) {
+    public ProductDTO updateProduct(String id, ProductDTO productDTO) {         //Update product to 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         

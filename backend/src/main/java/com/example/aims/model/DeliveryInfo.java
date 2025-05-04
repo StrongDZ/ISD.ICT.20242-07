@@ -25,4 +25,8 @@ public class DeliveryInfo {
     private String recipientName;
     private String mail;
     private String province;
+
+    public String getProvince() {
+        return province;
+    }
 }

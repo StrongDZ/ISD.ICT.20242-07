@@ -30,4 +30,5 @@ public class Product {
     private String dimensions;
     private Float weight;
     private String imageURL;
+    private boolean rushEligible;
 }

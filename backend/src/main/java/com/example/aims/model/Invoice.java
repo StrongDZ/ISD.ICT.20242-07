@@ -20,7 +20,7 @@ public class Invoice {
     @JoinColumn(name = "orderID")
     private Order order;
     
-    private Float productPriceExcludingVAT;
-    private Float productPriceIncludingVAT;
-    private Float deliveryFee;
+    private Double productPriceExcludingVAT;
+    private Double productPriceIncludingVAT;
+    private Double deliveryFee;
 }

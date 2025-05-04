@@ -50,7 +50,7 @@ public class PlaceRushOrderService {
                 .collect(Collectors.toList());
     }
 
-    private float calculateFee(List<Product> products, boolean isRush) {
+    private double calculateFee(List<Product> products, boolean isRush) {
         if (products.isEmpty()) return 0;
         return isRush ? 20000f : 15000f;
     }

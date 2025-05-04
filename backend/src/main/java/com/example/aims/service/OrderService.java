@@ -95,7 +95,7 @@ public class OrderService {
         orderRepository.save(order);
         
         // Create order items
-        float totalPrice = 0.0f;
+        double totalPrice = 0.0f;
         
         for (CartItem cartItem : cartItems) {
             OrderItem orderItem = new OrderItem();
@@ -137,8 +137,8 @@ public class OrderService {
         paymentTransactionRepository.save(paymentTransaction);
         
         // Create invoice
-        float vat = 0.1f; // 10% VAT
-        float deliveryFee = 5.0f; // Fixed delivery fee
+        double vat = 0.1f; // 10% VAT
+        double deliveryFee = 5.0f; // Fixed delivery fee
         
         Invoice invoice = new Invoice();
         invoice.setOrderID(orderId);

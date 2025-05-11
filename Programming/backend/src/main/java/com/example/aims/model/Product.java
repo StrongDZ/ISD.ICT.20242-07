@@ -12,7 +12,10 @@ import java.util.Date;
 @Entity
 @Table(name = "Product")
 public class Product {
-    
+    // Cohesion: High – all fields/methods relate to product representation.
+    // SRP: Mild violation – includes both data and rush eligibility logic.
+    // Suggestion: move isRushEligible() to a separate RushEligibilityPolicy if logic grows.
+
     @Id
     private String productID;
     

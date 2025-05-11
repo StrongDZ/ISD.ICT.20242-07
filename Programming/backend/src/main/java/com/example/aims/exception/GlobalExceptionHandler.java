@@ -17,6 +17,14 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    // COHESION: Logical Cohesion — each method handles a different kind of exception independently.
+    // SRP VIOLATION: While the class is focused on exception handling, it also mixes response formatting logic.
+    // Some methods return ApiException, others return a Map or raw messages. This violates SRP at the formatting level.
+
+    // SOLUTION:
+    // - Move formatting logic (ApiException creation) to an ApiExceptionMapper or factory class.
+    // - Keep this class as a thin controller that delegates formatting and construction logic.
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiException> handleResourceNotFoundException(ResourceNotFoundException e) {
         HttpStatus notFound = HttpStatus.NOT_FOUND;
@@ -63,6 +71,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException e) {
+        // SRP VIOLATION: This method returns a different response structure (Map<String, String>).
+        // This deviates from the ApiException standard and mixes responsibilities (validation error formatting).
+        // SOLUTION: Extract this logic into a ValidationErrorFormatter or separate handler class.
+
         Map<String, String> errors = new HashMap<>();
         e.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -74,6 +86,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiException> handleException(Exception e) {
+        // Catch-all — acceptable, but formatting logic could be centralized.
+
         HttpStatus internalServerError = HttpStatus.INTERNAL_SERVER_ERROR;
         ApiException apiException = new ApiException(
                 "An unexpected error occurred: " + e.getMessage(),

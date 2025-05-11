@@ -9,8 +9,28 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
+// Communicational Cohesion – Methods share common data and purpose (processing payments), 
+// but test logic reduces clarity of single-purpose design
+// ❌ SRP violated – Class handles both business logic and testing setup
+// 🔧 Improvement: move test-related code (currentOrder, currentPaymentTransaction) to a separate test/mock class 
+// to make PayOrderService responsible only for real payment processing
+
+// 🔧 Improvement suggestions:
+// - Extract test logic (e.g. currentOrder, setCurrentOrderForTest) into a separate mock or test utility class
+// - Use proper dependency injection (e.g. repository) to get Order and PaymentTransaction
+//   instead of using instance-level test data
+// - Keep PayOrderService focused only on real payment logic → move test-specific state out
+
 @Service
 public class PayOrderService {
+
+    // 🔗 Coupling:
+    // Stamp Coupling – This class depends on whole Order and PaymentTransaction
+    // objects,
+    // even though only specific fields (e.g., order.getId(), order.getStatus()) are
+    // used.
+    // → Suggestion: In future, pass only necessary fields (e.g., orderId,
+    // totalAmount) to reduce coupling to Data level.
 
     private Order currentOrder; // Biến instance để giữ đơn hàng hiện tại (chỉ dùng cho test)
     private PaymentTransaction currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
@@ -42,7 +62,8 @@ public class PayOrderService {
         Order order = orderOptional.get();
 
         if (!"PENDING".equals(order.getStatus())) {
-            throw new IllegalStateException("Order is not in PENDING state for payment. Current status: " + order.getStatus());
+            throw new IllegalStateException(
+                    "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
 
         // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)

@@ -11,10 +11,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class PlaceRushOrderService {
-
+     // Cohesion: High – all methods are related to evaluating rush orders.
+    // SRP: Violated – this class is handling multiple responsibilities:
+    //   - Checking if the delivery district supports rush delivery,
+    //   - Filtering rush-eligible products,
+    //   - Constructing the response object.
+    // Suggested improvement: Split into separate services or helper classes, one for each responsibility.
     private static final Set<String> INNER_CITY_DISTRICTS = Set.of(
             "Ba Dinh", "Hoan Kiem", "Dong Da", "Hai Ba Trung", "Thanh Xuan", "Hoang Mai", "Ha Dong", "Long Bien"
     );
+      // OCP Violation: This hardcoded list prevents extensibility.
+    // Suggestion: Move the list to a config file or external service.
 
     public PlaceRushOrderResponse evaluateRushOrder(DeliveryInfo deliveryInfo, List<Product> products) {
         String addressDistrict = deliveryInfo.getProvince();

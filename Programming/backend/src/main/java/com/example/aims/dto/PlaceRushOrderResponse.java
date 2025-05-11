@@ -5,6 +5,8 @@ import com.example.aims.model.Product;
 import java.util.List;
 
 public class PlaceRushOrderResponse {
+     // Cohesion: High – all fields directly relate to rush order results.
+    // SRP: Not violated – this class only holds data and contains no business logic.
     private boolean supported;
     private List<Product> rushProducts;
     private List<Product> regularProducts;

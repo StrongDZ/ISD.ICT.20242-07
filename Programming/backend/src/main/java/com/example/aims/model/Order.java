@@ -16,11 +16,6 @@ import java.util.Objects;
 @Setter
 @Entity
 @Table(name = "Orders")
-
-// Functional Cohesion – All methods and fields are related to the single
-// responsibility: managing an order
-// SRP respected – The class handles only order-related logic
-
 public class Order {
 
     @Id
@@ -31,8 +26,8 @@ public class Order {
     private Users customer;
     private String customerName;
     private String status;
-    private DeliveryInfo deliveryInfo;
     private Double totalAmount;
+    private DeliveryInfo deliveryInfo;
 
     public String checkOrderStatus() {
         if (!Objects.equals(this.status, "PENDING") && !Objects.equals(this.status, "REJECTED")
@@ -48,6 +43,18 @@ public class Order {
 
     public void changeApproveOrder() {
         this.status = "APPROVED";
+    }
+
+    public Order(String id, Users customer, String customerName, String phoneNumber, String status,
+            String shippingAddress, String province, Double totalAmount) {
+        this.id = id;
+        this.customer = customer;
+        this.customerName = customerName;
+        this.phoneNumber = phoneNumber;
+        this.status = status;
+        this.shippingAddress = shippingAddress;
+        this.province = province;
+        this.totalAmount = totalAmount;
     }
 
 }

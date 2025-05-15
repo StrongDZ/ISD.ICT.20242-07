@@ -16,6 +16,45 @@ import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.ProductOrderRepository;
 import com.example.aims.repository.ProductRepository;
 
+//***Cohesion: low to medium
+// In the case of the PlaceOrderService class:
+//
+// It handles several different tasks:
+//
+// - Creating orders (e.g., saving new order entities with delivery info)
+// - Calculating total amount (subtotal + VAT + delivery fee)
+// - Saving delivery information
+// - Linking products to orders (ProductOrderEntity creation)
+// - Supporting rush order checking based on address and product property
+//
+// These tasks are all related to placing an order, but they represent distinct responsibilities.
+// So the class has low to medium cohesion because it blends different concerns (order placement logic, pricing logic, delivery logic, and business rule checking for rush orders).
+
+//***SRP Violation:
+// This class violates the Single Responsibility Principle (SRP) by handling multiple responsibilities:
+//
+// - Business Logic: Checks if rush delivery is supported for a province and product.
+// - Delivery Handling: Saves delivery info to the database.
+// - Order Management: Creates orders and links them to products.
+// - Pricing Calculation: Calculates total amount from VAT, subtotal, and delivery fee.
+// 
+// These should ideally be separated into smaller services or helpers focused on:
+// - RushOrderChecker
+// - DeliveryService
+// - OrderCreationService
+// - InvoiceCalculationService
+
+//***The solution:
+// To improve cohesion and follow SRP, refactor the PlaceOrderService into dedicated services:
+//
+// - OrderCreationService: For creating and saving orders.
+// - DeliveryService: For managing and saving delivery information.
+// - ProductOrderService: For handling associations between products and orders.
+// - RushOrderService: To encapsulate rush order support checking.
+// - PricingService: To calculate total amounts including taxes and delivery.
+//
+// This modular approach simplifies testing, debugging, and code reusability while keeping responsibilities clearly separated.
+
 @Service
 public class PlaceOrderService {
 
@@ -30,7 +69,6 @@ public class PlaceOrderService {
 
     @Autowired
     private final ProductOrderRepository productOrderRepository;
-
 
     public PlaceOrderService(OrderRepository orderRepository, ProductRepository productRepository,
                              DeliveryInfoRepository deliveryInfoRepository, ProductOrderRepository productOrderRepository) {
@@ -59,7 +97,6 @@ public class PlaceOrderService {
         return result;
     }
 
-
     public Order createOrder(InvoiceDTO invoice) {
         if (invoice == null || invoice.getDeliveryInfo() == null || invoice.getCart() == null) {
             throw new IllegalArgumentException("Invoice, delivery info, or cart is null");
@@ -69,7 +106,6 @@ public class PlaceOrderService {
             DeliveryInfo newDeliveryInfo = saveDeliveryInfo(invoice.getDeliveryInfo());
             Order newOrder = saveOrder(newDeliveryInfo, totalAmount);
             saveProductOrders(invoice.getCart(), newOrder);
-
 
             return newOrder;
         } catch (DataAccessException e) {

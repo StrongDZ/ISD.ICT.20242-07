@@ -14,6 +14,57 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+//***Cohesion: low to medium
+// In the case of the OrderService class:
+
+// It handles several different tasks:
+
+// Managing orders (e.g., creating orders, fetching orders by status, updating order status)
+
+// Processing payments (e.g., creating payment transactions)
+
+// Managing inventory (e.g., updating product quantity when an order is placed)
+
+// Handling delivery information (e.g., saving delivery info for an order)
+
+// Generating invoices (e.g., creating an invoice with product prices, VAT, and delivery fees)
+
+// While all of these tasks are related to the concept of an order, they don't form a single responsibility. 
+//So, the class lacks high cohesion because it mixes different concerns (order management, payment, inventory, delivery, invoice) within the same class.
+// As a result, the cohesion is low to medium.
+
+
+//***SRP  Violation:
+// In the case of OrderService, it violates SRP because it is taking on multiple responsibilities:
+
+// Order Creation: It creates new orders, manages the order status, and associates products with the order.
+
+// Payment Handling: It creates and processes payment transactions for the orders.
+
+// Inventory Management: It updates the quantity of products in the inventory when an order is created.
+
+// Delivery Information: It handles the delivery details for each order (address, recipient, etc.).
+
+// Invoice Generation: It generates invoices based on order items, including VAT and delivery fees.
+
+// These responsibilities should ideally be split into separate classes or services.
+
+// ***The solution:
+// To improve both cohesion and adhere to SRP, you can refactor the OrderService class into several smaller services that each handle one responsibility:
+
+// OrderCreationService: Handles everything related to order creation.
+
+// PaymentService: Manages payment transactions.
+
+// InventoryService: Manages inventory and stock updates.
+
+// DeliveryService: Handles delivery details and logistics.
+
+// InvoiceService: Generates invoices for orders.
+
+// By doing this,  reducing the complexity of the OrderService class and ensure that each service has a clear and focused responsibility.
+
+
 @Service
 public class OrderService {
 

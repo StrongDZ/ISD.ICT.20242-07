@@ -1,13 +1,17 @@
 package com.example.aims.service;
 
+import com.example.aims.dto.OrderDTO;
+import com.example.aims.dto.TransactionDto;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
+import com.example.aims.repository.OrderRepository;
+import com.example.aims.repository.PaymentTransactionRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Optional;
-import java.util.UUID;
 
 // Communicational Cohesion – Methods share common data and purpose (processing payments), 
 // but test logic reduces clarity of single-purpose design
@@ -32,30 +36,37 @@ public class PayOrderService {
     // → Suggestion: In future, pass only necessary fields (e.g., orderId,
     // totalAmount) to reduce coupling to Data level.
 
-    private Order currentOrder; // Biến instance để giữ đơn hàng hiện tại (chỉ dùng cho test)
-    private PaymentTransaction currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
+    private final OrderRepository orderRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
+    private final OrderService orderService;
 
-    public void setCurrentOrderForTest(Order order) {
-        this.currentOrder = order;
+    public PayOrderService(OrderRepository orderRepository,
+            PaymentTransactionRepository paymentTransactionRepository, OrderService orderService) {
+        this.orderService = orderService;
+        this.orderRepository = orderRepository;
+        this.paymentTransactionRepository = paymentTransactionRepository;
     }
 
-    public Optional<Order> findOrderById(String orderId) {
-        if (currentOrder != null && currentOrder.getId().equals(orderId)) {
-            return Optional.of(currentOrder);
-        }
-        return Optional.empty();
+    public OrderDTO findOrderById(String orderId) {
+
+        return orderService.getOrderById(orderId);
     }
 
-    public Optional<PaymentTransaction> findPaymentTransactionByOrderId(String orderId) {
-        if (currentPaymentTransaction != null && currentPaymentTransaction.getOrder().getId().equals(orderId)) {
-            return Optional.of(currentPaymentTransaction);
-        }
-        return Optional.empty();
+    public TransactionDto findPaymentTransactionByOrderId(String orderId) {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository
+                .findByOrderId(orderId).orElseThrow(() -> new RuntimeException(
+                        "Payment transaction not found with order ID: " + orderId));
+        return convertToTransactionDTO(paymentTransaction);
     }
 
     @Transactional
-    public PaymentTransaction processPayment(String orderId, String content) {
-        Optional<Order> orderOptional = findOrderById(orderId);
+    public TransactionDto processPayment(String orderId, String content) {
+        OrderDTO orderDTO = findOrderById(orderId);
+        if (orderDTO == null) {
+            throw new IllegalArgumentException("Order not found with ID: " + orderId);
+        }
+
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
             throw new IllegalArgumentException("Order not found with ID: " + orderId);
         }
@@ -69,31 +80,40 @@ public class PayOrderService {
         // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
         boolean paymentSuccessful = true; // Tạm thời gán true để demo
 
+        PaymentTransaction paymentTransaction;
         if (paymentSuccessful) {
             // 2. Cập nhật trạng thái đơn hàng thành CONFIRMED
             order.setStatus("CONFIRMED");
-            // Không cần "lưu" vào store nữa
+            orderRepository.save(order); // Lưu trạng thái đơn hàng đã cập nhật
 
             // 3. Tạo bản ghi giao dịch thanh toán
-            currentPaymentTransaction = new PaymentTransaction();
-            currentPaymentTransaction.setOrder(order); // Thiết lập mối quan hệ với Order
-            currentPaymentTransaction.setContent(content);
-            currentPaymentTransaction.setDatetime(new Date());
+            paymentTransaction = new PaymentTransaction();
+            paymentTransaction.setOrder(order); // Thiết lập mối quan hệ với Order
+            paymentTransaction.setContent(content);
+            paymentTransaction.setDatetime(new Date());
 
-            return currentPaymentTransaction;
+            paymentTransactionRepository.save(paymentTransaction); // Lưu giao dịch thanh toán
         } else {
             // Xử lý trường hợp thanh toán thất bại
-            currentPaymentTransaction = new PaymentTransaction();
-            currentPaymentTransaction.setOrder(order);
-            currentPaymentTransaction.setContent(content);
-            currentPaymentTransaction.setDatetime(new Date());
+            paymentTransaction = new PaymentTransaction();
+            paymentTransaction.setOrder(order);
+            paymentTransaction.setContent(content);
+            paymentTransaction.setDatetime(new Date());
+
+            paymentTransactionRepository.save(paymentTransaction); // Lưu thông tin giao dịch thất bại (tùy chọn)
 
             throw new RuntimeException("Payment processing failed for order ID: " + orderId);
         }
+
+        return convertToTransactionDTO(paymentTransaction);
     }
 
-    public PaymentTransaction getPaymentTransactionByOrderId(String orderId) {
-        return findPaymentTransactionByOrderId(orderId).orElse(null);
+    private TransactionDto convertToTransactionDTO(PaymentTransaction paymentTransaction) {
+        TransactionDto dto = new TransactionDto();
+        dto.setOrderID(paymentTransaction.getOrder().getId());
+        dto.setContent(paymentTransaction.getContent());
+        dto.setDatetime(paymentTransaction.getDatetime());
+        return dto;
     }
 
     // Không có nơi lưu trữ dữ liệu tập trung trong class này

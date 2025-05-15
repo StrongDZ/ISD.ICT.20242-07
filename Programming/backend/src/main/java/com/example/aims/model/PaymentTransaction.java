@@ -10,7 +10,6 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 @Getter
-@Setter
 @Table(name = "PaymentTransaction")
 
 // Functional Cohesion – All fields serve the single purpose of representing a

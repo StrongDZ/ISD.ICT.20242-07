@@ -180,7 +180,6 @@ public class OrderService {
             itemDTO.setProductTitle(item.getProduct().getTitle());
             itemDTO.setProductPrice(item.getProduct().getPrice());
             itemDTO.setQuantity(item.getQuantity());
-            return itemDTO;
         }).collect(Collectors.toList());
         
         dto.setItems(orderItemDTOs);

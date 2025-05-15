@@ -29,13 +29,9 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "customerID")
     private Users customer;
-
     private String customerName;
-    private String phoneNumber;
     private String status;
-
-    private String shippingAddress;
-    private String province;
+    private DeliveryInfo deliveryInfo;
     private Double totalAmount;
 
     public String checkOrderStatus() {

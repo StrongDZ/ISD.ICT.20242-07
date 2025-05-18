@@ -1,0 +1,16 @@
+rush:
+  address:
+    city: "Ha Noi"
+    districts:
+      - Ba Dinh
+      - Hoan Kiem
+      - Hai Ba Trung
+      - Dong Da
+      - Cau Giay
+      - Thanh Xuan
+      - Long Bien
+      - Hoang Mai
+      - Tay Ho
+      - Nam Tu Liem
+      - Bac Tu Liem
+      - Ha Dong

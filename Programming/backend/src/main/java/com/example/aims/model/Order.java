@@ -61,24 +61,36 @@ public class Order {
     private String phoneNumber;
     private String status;
 
+
     private String shippingAddress;
     private String province;
     private Double totalAmount;
+    private DeliveryInfo deliveryInfo;
 
-    public String checkOrderStatus() {
-        if (!Objects.equals(this.status, "PENDING") && !Objects.equals(this.status, "REJECTED")
-                && !Objects.equals(this.status, "APPROVED")) {
+    public String checkOrderStatus(){
+        if(!Objects.equals(this.status, "PENDING") && !Objects.equals(this.status, "REJECTED") && !Objects.equals(this.status, "APPROVED")){
             return "Wrong input of Status";
-        } else
-            return this.status;
+        }
+        else return this.status;
     }
-
-    public void changeRejectOrder() {
+    public void changeRejectOrder(){
         this.status = "REJECTED";
     }
 
-    public void changeApproveOrder() {
+    public void changeApproveOrder(){
         this.status = "APPROVED";
     }
+
+    public Order(String id, Users customer, String customerName, String phoneNumber, String status,
+             String shippingAddress, String province, Double totalAmount) {
+    this.id = id;
+    this.customer = customer;
+    this.customerName = customerName;
+    this.phoneNumber = phoneNumber;
+    this.status = status;
+    this.shippingAddress = shippingAddress;
+    this.province = province;
+    this.totalAmount = totalAmount;
+}
 
 }

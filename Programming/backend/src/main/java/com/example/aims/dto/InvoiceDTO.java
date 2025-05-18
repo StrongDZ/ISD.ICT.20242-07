@@ -1,4 +1,4 @@
-package main.java.com.example.aims.dto;
+package com.example.aims.dto;
 
 import com.example.aims.model.DeliveryInfo;
 

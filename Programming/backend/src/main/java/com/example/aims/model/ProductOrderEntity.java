@@ -1,4 +1,4 @@
-package main.java.com.example.aims.model;
+package com.example.aims.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

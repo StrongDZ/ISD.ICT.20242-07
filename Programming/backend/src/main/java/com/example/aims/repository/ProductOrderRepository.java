@@ -1,4 +1,4 @@
-package main.java.com.example.aims.repository;
+package com.example.aims.repository;
 
 import com.example.aims.model.ProductOrderEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

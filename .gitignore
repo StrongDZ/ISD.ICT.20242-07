@@ -30,5 +30,7 @@
 
 # Package-lock
 **/package-lock.json
+
 **/frontend/node_modules/
 **/backend/.idea/
+**/.qodo

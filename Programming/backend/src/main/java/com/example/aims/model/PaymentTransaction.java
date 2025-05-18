@@ -30,6 +30,24 @@ import java.util.Date;
 // - getFormattedDatetime(): return a human-readable string for display.
 // - summarizeContent(): return a shortened or categorized version of content.
 
+// ✅ SRP (Single Responsibility Principle)
+// The class is focused solely on representing a payment transaction entity.
+// It encapsulates transaction-related fields only – no mixed responsibilities.
+
+// ✅ OCP (Open-Closed Principle)
+// While the class doesn’t include logic, it's open to extension by adding new fields or utility methods without modifying existing structure.
+
+// ✅ LSP (Liskov Substitution Principle)
+// The class can be safely extended or used as a base entity. No overridden behavior that could violate substitutability.
+
+// ✅ ISP (Interface Segregation Principle)
+// Not applicable here – the class does not implement any interface, and it doesn't force unwanted methods on clients.
+
+// ⚠️ DIP (Dependency Inversion Principle)
+// Currently, this class depends directly on the `Order` entity through `@OneToOne`, which is normal in JPA for entity relationships.
+// 🔧 However, to respect DIP better in the service layer, avoid relying on full `PaymentTransaction` objects when only parts (e.g., `content`, `datetime`) are needed.
+// Instead, services can depend on abstraction (e.g., DTOs or interfaces) or pass only necessary fields.
+
 public class PaymentTransaction {
 
     // Stamp Coupling – This class depends on the entire Order object,

@@ -32,6 +32,8 @@ import java.util.Date;
  */
 public class Product {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String productID;             
     private String title;
      private Double value;
@@ -39,7 +41,7 @@ public class Product {
     private Integer quantity;
     private String description;
     private String barcode;
-    
+    private String category;
     @Temporal(TemporalType.DATE)
     private Date warehouseEntryDate;
     

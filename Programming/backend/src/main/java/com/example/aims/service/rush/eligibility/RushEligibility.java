@@ -1,4 +1,4 @@
-package com.example.aims.subsystem.rush.eligibility;
+package com.example.aims.service.rush.eligibility;
 
 /**
  * ✅ High Cohesion:

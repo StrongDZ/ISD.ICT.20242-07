@@ -1,4 +1,4 @@
-package com.example.aims.subsystem.rush.eligibility;
+package com.example.aims.service.rush.eligibility;
 
 import com.example.aims.model.Product;
 import org.springframework.stereotype.Component;

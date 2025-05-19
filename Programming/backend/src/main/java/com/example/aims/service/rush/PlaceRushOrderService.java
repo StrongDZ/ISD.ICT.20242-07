@@ -1,9 +1,9 @@
-package com.example.aims.service;
+package com.example.aims.service.rush;
 
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.PlaceRushOrderResponse;
 import com.example.aims.model.Product;
-import com.example.aims.subsystem.rush.eligibility.RushEligibility;
+import com.example.aims.service.rush.eligibility.RushEligibility;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

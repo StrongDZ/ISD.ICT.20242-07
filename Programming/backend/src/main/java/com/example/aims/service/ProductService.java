@@ -13,9 +13,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+public interface ProductService {
+    List<ProductDTO> getAllProducts();
+    ProductDTO getProductById(String id);
+    List<ProductDTO> getProductsByCategory(String category);
+    List<ProductDTO> searchProducts(String keyword);
+    ProductDTO createProduct(ProductDTO productDTO, String managerID);
+    ProductDTO updateProduct(String id, ProductDTO productDTO);
+    void deleteProduct(String id);
+}
+
 @Service
 @RequiredArgsConstructor
-public class ProductService {
+class ProductServiceImpl implements ProductService {
 
     // COHESION: Logical Cohesion
     // This class groups together operations related to products (retrieving, creating, updating, deleting),

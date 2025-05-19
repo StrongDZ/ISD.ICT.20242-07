@@ -11,8 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "DeliveryInfo")
 public class DeliveryInfo {
-     // Cohesion: High – fields and methods focus on delivery information.
-    // SRP: Not violated – class is a simple DTO for delivery data.
+    
     @Id
     private String orderID;
     
@@ -27,11 +26,5 @@ public class DeliveryInfo {
     private String mail;
     private String province;
 
-    public String getProvince() {
-        return province;
-    }
-
-    public void setProvince(String province) {
-        this.province = province;
-    }
+    
 }

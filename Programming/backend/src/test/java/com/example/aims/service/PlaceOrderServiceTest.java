@@ -1,4 +1,4 @@
-package test.java.com.example.aims.service;
+package com.example.aims.service;
 
 import com.example.aims.dto.DeliveryProductDTO;
 import com.example.aims.dto.InvoiceDTO;

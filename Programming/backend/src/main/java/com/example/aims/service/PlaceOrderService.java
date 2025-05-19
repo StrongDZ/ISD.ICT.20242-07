@@ -1,4 +1,4 @@
-package main.java.com.example.aims.service;
+package com.example.aims.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;

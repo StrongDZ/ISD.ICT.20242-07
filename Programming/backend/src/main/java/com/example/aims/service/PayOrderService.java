@@ -21,6 +21,13 @@ import java.util.UUID;
 //   instead of using instance-level test data
 // - Keep PayOrderService focused only on real payment logic → move test-specific state out
 
+// ✅ SOLID Evaluation Summary:
+// - ✅ SRP violated: test-related logic should be extracted
+// - ❌ OCP violated: payment logic is hardcoded, not extendable (suggest strategy pattern)
+// - ✅ LSP respected: no inheritance misuse
+// - ✅ ISP acceptable now, but keep in mind if adding interfaces later
+// - ❌ DIP violated: depends directly on concrete classes; should rely on interfaces
+
 @Service
 public class PayOrderService {
 

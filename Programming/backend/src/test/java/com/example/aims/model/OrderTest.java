@@ -1,4 +1,4 @@
-package test.java.com.example.aims.model;
+package com.example.aims.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

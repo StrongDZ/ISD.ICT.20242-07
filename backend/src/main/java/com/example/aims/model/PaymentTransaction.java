@@ -15,7 +15,7 @@ import java.util.Date;
 public class PaymentTransaction {
     
     @Id
-    private String orderID;
+    private Integer orderID;
     
     @OneToOne
     @MapsId

@@ -86,9 +86,7 @@ public class OrderService {
         }
         
         // Create order
-        String orderId = UUID.randomUUID().toString();
         Order order = new Order();
-        order.setId(orderId);
         order.setCustomer(customer);
         order.setStatus("PENDING");
         
@@ -99,7 +97,7 @@ public class OrderService {
         
         for (CartItem cartItem : cartItems) {
             OrderItem orderItem = new OrderItem();
-            OrderItem.OrderItemId orderItemId = new OrderItem.OrderItemId(cartItem.getProduct().getProductID(), orderId);
+            OrderItem.OrderItemId orderItemId = new OrderItem.OrderItemId(cartItem.getProduct().getProductID(), order.getOrderID());
             orderItem.setId(orderItemId);
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setOrder(order);
@@ -117,7 +115,6 @@ public class OrderService {
         
         // Create delivery info
         DeliveryInfo deliveryInfo = new DeliveryInfo();
-        deliveryInfo.setOrderID(orderId);
         deliveryInfo.setOrder(order);
         deliveryInfo.setDeliveryAddress(deliveryInfoDTO.getDeliveryAddress());
         deliveryInfo.setPhoneNumber(deliveryInfoDTO.getPhoneNumber());
@@ -129,7 +126,7 @@ public class OrderService {
         
         // Create payment transaction
         PaymentTransaction paymentTransaction = new PaymentTransaction();
-        paymentTransaction.setOrderID(orderId);
+        paymentTransaction.setOrderID(order.getOrderID());
         paymentTransaction.setOrder(order);
         paymentTransaction.setContent("Order payment");
         paymentTransaction.setDatetime(new Date());
@@ -141,7 +138,7 @@ public class OrderService {
         double deliveryFee = 5.0f; // Fixed delivery fee
         
         Invoice invoice = new Invoice();
-        invoice.setOrderID(orderId);
+        invoice.setOrderID(order.getOrderID());
         invoice.setOrder(order);
         invoice.setProductPriceExcludingVAT(totalPrice);
         invoice.setProductPriceIncludingVAT(totalPrice * (1 + vat));
@@ -168,7 +165,7 @@ public class OrderService {
 
     private OrderDTO convertToDTO(Order order) {
         OrderDTO dto = new OrderDTO();
-        dto.setId(order.getId());
+        dto.setOrderID(order.getOrderID());
         dto.setCustomerID(order.getCustomer().getId());
         dto.setStatus(order.getStatus());
         
@@ -186,7 +183,7 @@ public class OrderService {
         dto.setItems(orderItemDTOs);
         
         // Get delivery info
-        deliveryInfoRepository.findById(order.getId()).ifPresent(deliveryInfo -> {
+        deliveryInfoRepository.findById(order.getOrderID()).ifPresent(deliveryInfo -> {
             DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
             deliveryInfoDTO.setDeliveryAddress(deliveryInfo.getDeliveryAddress());
             deliveryInfoDTO.setPhoneNumber(deliveryInfo.getPhoneNumber());
@@ -198,7 +195,7 @@ public class OrderService {
         });
         
         // Get total price from invoice
-        invoiceRepository.findById(order.getId()).ifPresent(invoice -> {
+            invoiceRepository.findById(order.getOrderID()).ifPresent(invoice -> {
             dto.setTotalPrice(invoice.getProductPriceIncludingVAT() + invoice.getDeliveryFee());
         });
         

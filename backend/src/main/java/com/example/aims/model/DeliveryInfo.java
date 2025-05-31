@@ -5,32 +5,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "delivery_info")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "DeliveryInfo")
 public class DeliveryInfo {
-    
+
     @Id
-    private String orderID;
-    
+    private Integer orderID;
+
     @OneToOne
-    @MapsId
-    @JoinColumn(name = "orderID")
+    @JoinColumn(name = "orderID", insertable = false, updatable = false)
     private Order order;
-    
+
     private String deliveryAddress;
+
     private String phoneNumber;
+
     private String recipientName;
+
     private String mail;
+
     private String province;
-
-    public String getProvince() {
-        return province;
-    }
-
-    public void setProvince(String province) {
-        this.province = province;
-    }
 }

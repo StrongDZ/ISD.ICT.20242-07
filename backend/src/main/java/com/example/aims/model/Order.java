@@ -32,6 +32,7 @@ public class Order {
     private String shippingAddress;
     private String province;
     private Double totalAmount;
+    
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private DeliveryInfo deliveryInfo;
 

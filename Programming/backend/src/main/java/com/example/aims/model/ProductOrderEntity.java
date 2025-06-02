@@ -1,5 +1,6 @@
 package com.example.aims.model;
 
+import jakarta.persistence.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -24,14 +25,20 @@ import lombok.Setter;
 
 // ***Design Note:
 // The class plays the role of a join table (many-to-one with both product and order), which is typical in a many-to-many relationship with extra fields (like quantity).
-// It’s a well-structured part of the domain model and doesn’t require decomposition.
+// It's a well-structured part of the domain model and doesn't require decomposition.
 
 public class ProductOrderEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column(name = "quantity")
     private Integer quantity;
+    
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+    
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;

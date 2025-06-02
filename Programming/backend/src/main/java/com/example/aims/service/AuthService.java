@@ -71,7 +71,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         // Responsibility 1: Validate if username exists
-        if (userRepository.existsByUsersname(request.getUsername())) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Usersname already exists");
         }
 

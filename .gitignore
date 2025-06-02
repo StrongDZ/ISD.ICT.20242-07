@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 **/target/
 
 # IntelliJ IDEA project files
@@ -34,3 +35,40 @@
 **/frontend/node_modules/
 **/backend/.idea/
 **/.qodo
+=======
+# Maven build directory
+target/
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+*.xml
+out/
+
+# VSCode files
+.vscode/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment / secret files
+.env
+.env.*
+
+# Compiled class files
+*.class
+
+# Temporary files
+*.swp
+*.tmp
+
+# Package-lock
+package-lock.json
+/frontend/node_modules
+/backend/.idea
+>>>>>>> 9e0bd1d18fa18279c48e55091a45793664764715

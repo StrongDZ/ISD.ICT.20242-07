@@ -20,11 +20,11 @@ public class DeliveryInfo {
     @JoinColumn(name = "orderID")
     private Order order;
     
-    private String deliveryAddress;
+    private String city;
+    private String district;
+    private String addressDetail;
     private String phoneNumber;
     private String recipientName;
     private String mail;
-    private String province;
-
     
 }

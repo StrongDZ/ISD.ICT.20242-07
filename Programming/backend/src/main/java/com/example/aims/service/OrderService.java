@@ -170,11 +170,12 @@ public class OrderService {
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         deliveryInfo.setOrderID(orderId);
         deliveryInfo.setOrder(order);
-        deliveryInfo.setDeliveryAddress(deliveryInfoDTO.getDeliveryAddress());
+        deliveryInfo.setCity(deliveryInfoDTO.getCity());
+        deliveryInfo.setDistrict(deliveryInfoDTO.getDistrict());
+        deliveryInfo.setAddressDetail(deliveryInfoDTO.getAddressDetail());
         deliveryInfo.setPhoneNumber(deliveryInfoDTO.getPhoneNumber());
         deliveryInfo.setRecipientName(deliveryInfoDTO.getRecipientName());
         deliveryInfo.setMail(deliveryInfoDTO.getMail());
-        deliveryInfo.setProvince(deliveryInfoDTO.getProvince());
         
         deliveryInfoRepository.save(deliveryInfo);
         
@@ -239,11 +240,12 @@ public class OrderService {
         // Get delivery info
         deliveryInfoRepository.findById(order.getId()).ifPresent(deliveryInfo -> {
             DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
-            deliveryInfoDTO.setDeliveryAddress(deliveryInfo.getDeliveryAddress());
+            deliveryInfoDTO.setCity(deliveryInfo.getCity());
+            deliveryInfoDTO.setDistrict(deliveryInfo.getDistrict());
+            deliveryInfoDTO.setAddressDetail(deliveryInfo.getAddressDetail());
             deliveryInfoDTO.setPhoneNumber(deliveryInfo.getPhoneNumber());
             deliveryInfoDTO.setRecipientName(deliveryInfo.getRecipientName());
             deliveryInfoDTO.setMail(deliveryInfo.getMail());
-            deliveryInfoDTO.setProvince(deliveryInfo.getProvince());
             
             dto.setDeliveryInfo(deliveryInfoDTO);
         });

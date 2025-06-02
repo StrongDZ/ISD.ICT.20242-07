@@ -7,11 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Date;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Entity
-@Table(name = "Product")
+
 
 /**
  * ✅ Represents a product in the system.
@@ -30,6 +26,11 @@ import java.util.Date;
  * - D (Dependency Inversion Principle):
  *   This class does not depend on any lower-level modules and is a low-level data holder.
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "Product")
 public class Product {
 
     @Id

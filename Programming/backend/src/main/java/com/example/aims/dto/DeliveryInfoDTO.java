@@ -1,5 +1,6 @@
 package com.example.aims.dto;
-
+import lombok.Data;
+import lombok.AllArgsConstructor;
 /**
  * ✅ This class represents delivery address information used in placing a rush order.
  * ✅ High Cohesion: All fields and methods relate only to delivery address representation.
@@ -12,6 +13,8 @@ package com.example.aims.dto;
  * - I (Interface Segregation Principle): Not applicable; no interfaces implemented here.
  * - D (Dependency Inversion Principle): Depends only on basic types; no external dependencies.
  */
+@Data
+@AllArgsConstructor
 public class DeliveryInfoDTO {
 
     private String city;           // ✅ Part of delivery address

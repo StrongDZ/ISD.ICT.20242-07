@@ -84,8 +84,8 @@ public class PlaceOrderService {
 
     public boolean checkRushOrder(DeliveryProductDTO[] deliveryProduct, DeliveryInfo deliveryInfo) {
         boolean result = false;
-        System.out.println(checkAddressForRushOrder(deliveryInfo.getProvince()));
-        if (!checkAddressForRushOrder(deliveryInfo.getProvince())) {
+        System.out.println(checkAddressForRushOrder(deliveryInfo.getCity()));
+        if (!checkAddressForRushOrder(deliveryInfo.getCity())) {
             return false;
         }
         for (DeliveryProductDTO product : deliveryProduct) {

@@ -139,7 +139,7 @@ public class OrderService {
         // Create order
         String orderId = UUID.randomUUID().toString();
         Order order = new Order();
-        order.setId(orderId);
+        order.setOrderID(orderId);
         order.setCustomer(customer);
         order.setStatus("PENDING");
         
@@ -169,7 +169,6 @@ public class OrderService {
         // Create delivery info
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         deliveryInfo.setOrderID(orderId);
-        deliveryInfo.setOrder(order);
         deliveryInfo.setCity(deliveryInfoDTO.getCity());
         deliveryInfo.setDistrict(deliveryInfoDTO.getDistrict());
         deliveryInfo.setAddressDetail(deliveryInfoDTO.getAddressDetail());
@@ -220,7 +219,7 @@ public class OrderService {
 
     private OrderDTO convertToDTO(Order order) {
         OrderDTO dto = new OrderDTO();
-        dto.setId(order.getId());
+        dto.setId(order.getOrderID());
         dto.setCustomerID(order.getCustomer().getId());
         dto.setStatus(order.getStatus());
         
@@ -238,7 +237,7 @@ public class OrderService {
         dto.setItems(orderItemDTOs);
         
         // Get delivery info
-        deliveryInfoRepository.findById(order.getId()).ifPresent(deliveryInfo -> {
+        deliveryInfoRepository.findById(order.getOrderID()).ifPresent(deliveryInfo -> {
             DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
             deliveryInfoDTO.setCity(deliveryInfo.getCity());
             deliveryInfoDTO.setDistrict(deliveryInfo.getDistrict());
@@ -251,7 +250,7 @@ public class OrderService {
         });
         
         // Get total price from invoice
-        invoiceRepository.findById(order.getId()).ifPresent(invoice -> {
+        invoiceRepository.findById(order.getOrderID()).ifPresent(invoice -> {
             dto.setTotalPrice(invoice.getProductPriceIncludingVAT() + invoice.getDeliveryFee());
         });
         

@@ -47,14 +47,14 @@ public class PayOrderService {
     }
 
     public Optional<Order> findOrderById(String orderId) {
-        if (currentOrder != null && currentOrder.getId().equals(orderId)) {
+        if (currentOrder != null && currentOrder.getOrderID().equals(orderId)) {
             return Optional.of(currentOrder);
         }
         return Optional.empty();
     }
 
     public Optional<PaymentTransaction> findPaymentTransactionByOrderId(String orderId) {
-        if (currentPaymentTransaction != null && currentPaymentTransaction.getOrder().getId().equals(orderId)) {
+        if (currentPaymentTransaction != null && currentPaymentTransaction.getOrder().getOrderID().equals(orderId)) {
             return Optional.of(currentPaymentTransaction);
         }
         return Optional.empty();

@@ -34,10 +34,10 @@ public class VNPaySubsystem implements IPaymentSystem {
         // Build content for payment
         String content = orderEntity.getShippingAddress();
         if (content == null || content.isEmpty()) {
-            content = "Order: " + orderEntity.getId();
+            content = "Order: " + orderEntity.getOrderID();
         }
         // Get order ID
-        String orderId = orderEntity.getId();
+        String orderId = orderEntity.getOrderID();
         // Generate request payment url
         try {
             return "Hello";

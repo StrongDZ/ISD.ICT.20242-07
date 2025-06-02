@@ -15,11 +15,6 @@ public class DeliveryInfo {
     @Id
     private String orderID;
     
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "orderID")
-    private Order order;
-    
     private String city;
     private String district;
     private String addressDetail;

@@ -9,13 +9,6 @@ import lombok.Setter;
 
 import java.util.Objects;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@Entity
-@Table(name = "Orders")
 
 // Functional Cohesion – All methods and fields are related to the single
 // responsibility: managing an order
@@ -47,11 +40,17 @@ import java.util.Objects;
 // decision-making logic instead of embedding it here.
 // ➤ Slight DIP violation risk if logic grows. Keep data and logic
 // responsibilities separate.
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Entity
+@Table(name = "Orders")
 public class Order {
 
     @Id
-    private String id;
+    private String orderID;
 
     @ManyToOne
     @JoinColumn(name = "customerID")
@@ -65,6 +64,9 @@ public class Order {
     private String shippingAddress;
     private String province;
     private Double totalAmount;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "orderID")
     private DeliveryInfo deliveryInfo;
 
     public String checkOrderStatus(){
@@ -83,7 +85,7 @@ public class Order {
 
     public Order(String id, Users customer, String customerName, String phoneNumber, String status,
              String shippingAddress, String province, Double totalAmount) {
-    this.id = id;
+    this.orderID = id;
     this.customer = customer;
     this.customerName = customerName;
     this.phoneNumber = phoneNumber;

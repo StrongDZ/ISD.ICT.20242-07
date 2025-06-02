@@ -3,14 +3,14 @@ CREATE TABLE Product (
     productID VARCHAR PRIMARY KEY,
     category VARCHAR,
     title VARCHAR,
-    value DOUBLE,
-    price DOUBLE,
+    value DOUBLE PRECISION,
+    price DOUBLE PRECISION,
     quantity INT,
     description VARCHAR,
     barcode VARCHAR,
     warehouseEntryDate DATE,
     dimensions VARCHAR,
-    weight DOUBLE,
+    weight DOUBLE PRECISION,
     imageURL VARCHAR
 );
 
@@ -89,7 +89,7 @@ CREATE TABLE OrderItems (
 
 -- Bảng DeliveryInfo
 CREATE TABLE DeliveryInfo (
-    orderID VARCHAR PRIMARY KEY REFERENCES OrderAccount(id),
+    orderID VARCHAR PRIMARY KEY REFERENCES "user"(id),
     deliveryAddress VARCHAR,
     phoneNumber VARCHAR,
     recipientName VARCHAR,
@@ -99,15 +99,15 @@ CREATE TABLE DeliveryInfo (
 
 -- Bảng PaymentTransaction
 CREATE TABLE PaymentTransaction (
-    orderID VARCHAR PRIMARY KEY REFERENCES OrderAccount(id),
+    orderID VARCHAR PRIMARY KEY REFERENCES "user"(id),
     content VARCHAR,
     datetime TIMESTAMP
 );
 
 -- Bảng Invoice
 CREATE TABLE Invoice (
-    orderID VARCHAR PRIMARY KEY REFERENCES OrderAccount(id),
-    productPriceExcludingVAT DOUBLE,
-    productPriceIncludingVAT DOUBLE,
-    deliveryFee DOUBLE
+    orderID VARCHAR PRIMARY KEY REFERENCES "user"(id),
+    productPriceExcludingVAT DOUBLE PRECISION,
+    productPriceIncludingVAT DOUBLE PRECISION,
+    deliveryFee DOUBLE PRECISION
 );

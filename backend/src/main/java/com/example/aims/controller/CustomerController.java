@@ -2,7 +2,6 @@ package com.example.aims.controller;
 
 import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.InvoiceDTO;
 import com.example.aims.dto.OrderDTO;
 import com.example.aims.service.CartService;
 import com.example.aims.service.OrderService;
@@ -84,10 +83,10 @@ public class CustomerController {
     }
 
     @PostMapping("/orders")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody InvoiceDTO invoiceDTO) {
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody DeliveryInfoDTO deliveryInfoDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String customerID = authentication.getName();
         
-        return ResponseEntity.ok(orderService.createOrder(customerID, invoiceDTO));
+        return ResponseEntity.ok(orderService.createOrderFromCart(customerID, deliveryInfoDTO));
     }
 }

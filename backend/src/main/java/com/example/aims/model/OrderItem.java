@@ -33,6 +33,6 @@ public class OrderItem {
     @AllArgsConstructor
     public static class OrderItemId implements java.io.Serializable {
         private String productID;
-        private Integer orderID;
+        private String orderID;
     }
 }

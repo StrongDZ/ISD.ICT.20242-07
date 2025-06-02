@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 class OrderTest {
     Order testthisOrder;
     Users customerTest;
@@ -15,8 +14,10 @@ class OrderTest {
         // Tạo đối tượng Users bằng AllArgsConstructor
         customerTest = new Users("1001", "Customer", "thoconbexinh", "112233");
 
-        // Tạo đối tượng Order (giả sử constructor của Order đã được cập nhật để nhận đối tượng Users)
-        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "PENDING", "Thị Cầu, Bắc Ninh", "Bắc Ninh", 345.000);
+        // Tạo đối tượng Order (giả sử constructor của Order đã được cập nhật để nhận
+        // đối tượng Users)
+        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "PENDING", "Thị Cầu, Bắc Ninh",
+                "Bắc Ninh", 345.000);
     }
 
     @Test
@@ -37,7 +38,8 @@ class OrderTest {
     @Test
     void checkOrderStatus() {
         assertEquals("PENDING", testthisOrder.checkOrderStatus());
-        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "ABCXYZ", "Bắc Ninh", "Thị Cầu, Bắc Ninh", 345.000);
+        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "ABCXYZ", "Bắc Ninh",
+                "Thị Cầu, Bắc Ninh", 345.000);
 
         assertEquals("Wrong input of Status", testthisOrder.checkOrderStatus());
     }

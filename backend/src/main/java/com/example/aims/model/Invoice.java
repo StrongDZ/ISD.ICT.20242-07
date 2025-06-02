@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Invoice {
     
     @Id
-    private Integer orderID;
+    private String orderID;
     
     @OneToOne
     @MapsId

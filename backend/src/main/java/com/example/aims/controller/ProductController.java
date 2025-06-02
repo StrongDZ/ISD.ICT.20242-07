@@ -74,13 +74,10 @@ public class ProductController {
                 schema = @Schema(implementation = ProductDTO.class))),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-
     @GetMapping("/search")
     public ResponseEntity<List<ProductDTO>> searchProducts(
             @Parameter(description = "Keyword to search in product titles", required = true)
             @RequestParam String keyword) {
         return ResponseEntity.ok(productService.searchProducts(keyword));
     }
-
-
 }

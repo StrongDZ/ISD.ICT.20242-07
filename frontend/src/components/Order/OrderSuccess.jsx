@@ -1,0 +1,228 @@
+import React from "react";
+import { Card, CardContent, Typography, Box, Button, Chip, Alert } from "@mui/material";
+import { CheckCircle, LocalShipping, Inventory, Phone, Home, ShoppingCart, Receipt } from "@mui/icons-material";
+import { Timeline, TimelineItem, TimelineOppositeContent, TimelineSeparator, TimelineDot, TimelineConnector, TimelineContent } from "@mui/lab";
+
+const OrderSuccess = ({ order, onContinueShopping, onViewOrders }) => {
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(price);
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleString("vi-VN");
+    };
+
+    const getDeliverySteps = () => {
+        const isRush = order?.deliveryInfo?.isRushOrder;
+
+        if (isRush) {
+            return [
+                {
+                    time: "Now",
+                    title: "Order Confirmed",
+                    description: "We've received your order and are preparing it",
+                    icon: <CheckCircle color="success" />,
+                    completed: true,
+                },
+                {
+                    time: "Within 2 hours",
+                    title: "Out for Delivery",
+                    description: "Your order is on the way",
+                    icon: <LocalShipping color="primary" />,
+                    completed: false,
+                },
+                {
+                    time: "Same day",
+                    title: "Delivered",
+                    description: "Order delivered to your address",
+                    icon: <Home color="primary" />,
+                    completed: false,
+                },
+            ];
+        }
+
+        return [
+            {
+                time: "Now",
+                title: "Order Confirmed",
+                description: "We've received your order and are preparing it",
+                icon: <CheckCircle color="success" />,
+                completed: true,
+            },
+            {
+                time: "1-2 days",
+                title: "Processing",
+                description: "Your order is being prepared for shipment",
+                icon: <Inventory color="primary" />,
+                completed: false,
+            },
+            {
+                time: "2-3 days",
+                title: "Shipped",
+                description: "Your order is on the way",
+                icon: <LocalShipping color="primary" />,
+                completed: false,
+            },
+            {
+                time: "3-5 days",
+                title: "Delivered",
+                description: "Order delivered to your address",
+                icon: <Home color="primary" />,
+                completed: false,
+            },
+        ];
+    };
+
+    const deliverySteps = getDeliverySteps();
+
+    return (
+        <Box>
+            {/* Success Header */}
+            <Card sx={{ mb: 4, textAlign: "center", bgcolor: "success.50" }}>
+                <CardContent sx={{ py: 6 }}>
+                    <CheckCircle sx={{ fontSize: 80, color: "success.main", mb: 2 }} />
+                    <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold" }}>
+                        Order Placed Successfully!
+                    </Typography>
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                        Order ID: {order?.id}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                        Thank you for your purchase. We'll send you a confirmation email shortly.
+                    </Typography>
+                </CardContent>
+            </Card>
+
+            {/* Order Details */}
+            <Card sx={{ mb: 4 }}>
+                <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                        Order Details
+                    </Typography>
+
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 3 }}>
+                        <Chip
+                            icon={<Receipt />}
+                            label={`${order?.items?.length || 0} item${(order?.items?.length || 0) !== 1 ? "s" : ""}`}
+                            color="primary"
+                            variant="outlined"
+                        />
+                        <Chip
+                            icon={<LocalShipping />}
+                            label={order?.deliveryInfo?.isRushOrder ? "Rush Delivery" : "Standard Delivery"}
+                            color={order?.deliveryInfo?.isRushOrder ? "success" : "info"}
+                        />
+                        <Chip label={`Total: ${formatPrice(order?.total || 0)}`} color="secondary" />
+                    </Box>
+
+                    {/* Delivery Information */}
+                    {order?.deliveryInfo && (
+                        <Box sx={{ p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
+                            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "medium" }}>
+                                Delivery Information
+                            </Typography>
+                            <Typography variant="body2">
+                                <strong>Recipient:</strong> {order.deliveryInfo.recipientName}
+                            </Typography>
+                            <Typography variant="body2">
+                                <strong>Phone:</strong> {order.deliveryInfo.phoneNumber}
+                            </Typography>
+                            <Typography variant="body2">
+                                <strong>Address:</strong> {order.deliveryInfo.addressDetail}, {order.deliveryInfo.district}, {order.deliveryInfo.city}
+                            </Typography>
+                            <Typography variant="body2">
+                                <strong>Order Date:</strong> {formatDate(order.date)}
+                            </Typography>
+                        </Box>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Delivery Timeline */}
+            <Card sx={{ mb: 4 }}>
+                <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                        Delivery Progress
+                    </Typography>
+
+                    <Timeline position="left">
+                        {deliverySteps.map((step, index) => (
+                            <TimelineItem key={index}>
+                                <TimelineOppositeContent sx={{ m: "auto 0" }} align="right" variant="body2" color="text.secondary">
+                                    {step.time}
+                                </TimelineOppositeContent>
+                                <TimelineSeparator>
+                                    <TimelineDot sx={{ bgcolor: "transparent", boxShadow: "none" }}>{step.icon}</TimelineDot>
+                                    {index < deliverySteps.length - 1 && <TimelineConnector />}
+                                </TimelineSeparator>
+                                <TimelineContent sx={{ py: "12px", px: 2 }}>
+                                    <Typography variant="h6" component="span" sx={{ fontWeight: step.completed ? "bold" : "normal" }}>
+                                        {step.title}
+                                    </Typography>
+                                    <Typography color="text.secondary">{step.description}</Typography>
+                                </TimelineContent>
+                            </TimelineItem>
+                        ))}
+                    </Timeline>
+                </CardContent>
+            </Card>
+
+            {/* Important Notes */}
+            <Alert severity="info" sx={{ mb: 4 }}>
+                <Typography variant="body2">
+                    <strong>Important:</strong> This is a Cash on Delivery (COD) order. Please have the exact amount ready when your order arrives.
+                    You can pay with cash to our delivery person.
+                </Typography>
+            </Alert>
+
+            {/* Next Steps */}
+            <Card sx={{ mb: 4 }}>
+                <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                        What's Next?
+                    </Typography>
+
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <CheckCircle color="success" />
+                            <Typography variant="body2">You'll receive a confirmation message shortly</Typography>
+                        </Box>
+
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Phone color="primary" />
+                            <Typography variant="body2">Our team may call you to confirm delivery details</Typography>
+                        </Box>
+
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <LocalShipping color="primary" />
+                            <Typography variant="body2">You'll be notified when your order ships</Typography>
+                        </Box>
+
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Home color="primary" />
+                            <Typography variant="body2">Be available at the delivery address during the estimated time</Typography>
+                        </Box>
+                    </Box>
+                </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
+                <Button variant="contained" startIcon={<ShoppingCart />} onClick={onContinueShopping} size="large">
+                    Continue Shopping
+                </Button>
+
+                {onViewOrders && (
+                    <Button variant="outlined" startIcon={<Receipt />} onClick={onViewOrders} size="large">
+                        View My Orders
+                    </Button>
+                )}
+            </Box>
+        </Box>
+    );
+};
+
+export default OrderSuccess;

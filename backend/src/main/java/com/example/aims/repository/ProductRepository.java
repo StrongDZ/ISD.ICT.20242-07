@@ -10,4 +10,9 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findByCategory(String category);
     List<Product> findByTitleContainingIgnoreCase(String title);
+    default void updateProductQuantity(String id, int newQuantity) {
+            Product product = findById(id).orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            product.setQuantity(newQuantity);
+            save(product);
+        };
 }

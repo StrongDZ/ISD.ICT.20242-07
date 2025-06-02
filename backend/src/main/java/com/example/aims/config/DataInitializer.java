@@ -22,7 +22,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Create admin user if not exists
-        if (!userRepository.existsByUsersname("admin")) {
+            if (!userRepository.existsByUsername("admin")) {
             Users admin = new Users();
             admin.setId(UUID.randomUUID().toString());
             admin.setUsername("admin");
@@ -33,7 +33,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // Create product manager if not exists
-        if (!userRepository.existsByUsersname("manager")) {
+        if (!userRepository.existsByUsername("manager")) {
             Users manager = new Users();
             manager.setId(UUID.randomUUID().toString());
             manager.setUsername("manager");
@@ -44,7 +44,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // Create customer if not exists
-        if (!userRepository.existsByUsersname("customer")) {
+        if (!userRepository.existsByUsername("customer")) {
             Users customer = new Users();
             customer.setId(UUID.randomUUID().toString());
             customer.setUsername("customer");

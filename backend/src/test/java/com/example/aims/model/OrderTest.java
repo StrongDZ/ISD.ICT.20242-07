@@ -21,7 +21,7 @@ class OrderTest {
 
     @Test
     void getId() {
-        assertEquals("1", testthisOrder.getId());
+        assertEquals("1", testthisOrder.getOrderID());
     }
 
     @Test

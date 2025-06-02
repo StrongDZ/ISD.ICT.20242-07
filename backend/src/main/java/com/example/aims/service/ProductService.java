@@ -329,4 +329,19 @@ public class ProductService {
         
         return dto;
     }
+
+    public void updateProductQuantity(String productId, int quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        product.setQuantity(quantity);
+        productRepository.save(product);
+    }
+
+    public void checkProductQuantity(String productId, int quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        if (product.getQuantity() < quantity) {
+            throw new RuntimeException("Product not found with id: " + productId);
+        }
+    }
 }

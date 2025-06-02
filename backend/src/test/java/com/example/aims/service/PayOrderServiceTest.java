@@ -18,7 +18,7 @@ class PayOrderServiceTest {
     void setUp() {
         payOrderService = new PayOrderService();
         testOrder = new Order();
-        testOrder.setId("ORD001");
+        testOrder.setOrderID(1);
         testOrder.setStatus("PENDING");
         testOrder.setTotalAmount(100.0);
         payOrderService.setCurrentOrderForTest(testOrder);

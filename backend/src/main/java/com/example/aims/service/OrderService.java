@@ -1,6 +1,8 @@
 package com.example.aims.service;
 
 import com.example.aims.dto.DeliveryInfoDTO;
+import com.example.aims.dto.DeliveryProductDTO;
+import com.example.aims.dto.InvoiceDTO;
 import com.example.aims.dto.OrderDTO;
 import com.example.aims.dto.OrderItemDTO;
 import com.example.aims.model.*;
@@ -75,20 +77,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO createOrderFromCart(String customerId, DeliveryInfoDTO deliveryInfoDTO) {
+    public OrderDTO createOrder(String customerId, InvoiceDTO invoiceDTO) {
         Users customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Users not found with id: " + customerId));
-        
-        List<CartItem> cartItems = cartItemRepository.findByCustomer(customer);
-        
-        if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
-        }
-        
         // Create order
-        String orderId = UUID.randomUUID().toString();
         Order order = new Order();
-        order.setId(orderId);
         order.setCustomer(customer);
         order.setStatus("PENDING");
         
@@ -97,60 +90,23 @@ public class OrderService {
         // Create order items
         double totalPrice = 0.0f;
         
-        for (CartItem cartItem : cartItems) {
+        for (DeliveryProductDTO deliveryProduct : invoiceDTO.getCart()) {
+            Product product = productRepository.findById(deliveryProduct.getId()).orElseThrow(() -> new RuntimeException("Product not found with id: " + deliveryProduct.getId()));
+            
             OrderItem orderItem = new OrderItem();
-            OrderItem.OrderItemId orderItemId = new OrderItem.OrderItemId(cartItem.getProduct().getProductID(), orderId);
+            OrderItem.OrderItemId orderItemId = new OrderItem.OrderItemId(deliveryProduct.getId(), order.getOrderID());
             orderItem.setId(orderItemId);
-            orderItem.setProduct(cartItem.getProduct());
+            orderItem.setProduct(product);
             orderItem.setOrder(order);
-            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setQuantity(deliveryProduct.getQuantity());
             
             orderItemRepository.save(orderItem);
             
-            // Update product quantity
-            Product product = cartItem.getProduct();
-            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
-            productRepository.save(product);
+            productRepository.updateProductQuantity(deliveryProduct.getId(), product.getQuantity() - deliveryProduct.getQuantity());
             
-            totalPrice += product.getPrice() * cartItem.getQuantity();
+            totalPrice += product.getPrice() * deliveryProduct.getQuantity();
         }
-        
-        // Create delivery info
-        DeliveryInfo deliveryInfo = new DeliveryInfo();
-        deliveryInfo.setOrderID(orderId);
-        deliveryInfo.setOrder(order);
-        deliveryInfo.setDeliveryAddress(deliveryInfoDTO.getDeliveryAddress());
-        deliveryInfo.setPhoneNumber(deliveryInfoDTO.getPhoneNumber());
-        deliveryInfo.setRecipientName(deliveryInfoDTO.getRecipientName());
-        deliveryInfo.setMail(deliveryInfoDTO.getMail());
-        deliveryInfo.setProvince(deliveryInfoDTO.getProvince());
-        
-        deliveryInfoRepository.save(deliveryInfo);
-        
-        // Create payment transaction
-        PaymentTransaction paymentTransaction = new PaymentTransaction();
-        paymentTransaction.setOrderID(orderId);
-        paymentTransaction.setOrder(order);
-        paymentTransaction.setContent("Order payment");
-        paymentTransaction.setDatetime(new Date());
-        
-        paymentTransactionRepository.save(paymentTransaction);
-        
-        // Create invoice
-        double vat = 0.1f; // 10% VAT
-        double deliveryFee = 5.0f; // Fixed delivery fee
-        
-        Invoice invoice = new Invoice();
-        invoice.setOrderID(orderId);
-        invoice.setOrder(order);
-        invoice.setProductPriceExcludingVAT(totalPrice);
-        invoice.setProductPriceIncludingVAT(totalPrice * (1 + vat));
-        invoice.setDeliveryFee(deliveryFee);
-        
-        invoiceRepository.save(invoice);
-        
-        // Clear the cart
-        cartItemRepository.deleteByCustomer(customer);
+
         
         return convertToDTO(order);
     }
@@ -168,7 +124,7 @@ public class OrderService {
 
     private OrderDTO convertToDTO(Order order) {
         OrderDTO dto = new OrderDTO();
-        dto.setId(order.getId());
+        dto.setOrderID(order.getOrderID());
         dto.setCustomerID(order.getCustomer().getId());
         dto.setStatus(order.getStatus());
         
@@ -186,7 +142,7 @@ public class OrderService {
         dto.setItems(orderItemDTOs);
         
         // Get delivery info
-        deliveryInfoRepository.findById(order.getId()).ifPresent(deliveryInfo -> {
+        deliveryInfoRepository.findById(order.getOrderID()).ifPresent(deliveryInfo -> {
             DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
             deliveryInfoDTO.setDeliveryAddress(deliveryInfo.getDeliveryAddress());
             deliveryInfoDTO.setPhoneNumber(deliveryInfo.getPhoneNumber());
@@ -198,7 +154,7 @@ public class OrderService {
         });
         
         // Get total price from invoice
-        invoiceRepository.findById(order.getId()).ifPresent(invoice -> {
+            invoiceRepository.findById(order.getOrderID()).ifPresent(invoice -> {
             dto.setTotalPrice(invoice.getProductPriceIncludingVAT() + invoice.getDeliveryFee());
         });
         

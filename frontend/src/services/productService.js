@@ -1,0 +1,598 @@
+import api from "./api";
+
+export const productService = {
+    // Get all products with pagination
+    getAllProducts: async (page = 1, limit = 20) => {
+        try {
+            const response = await api.get(`/products?page=${page}&limit=${limit}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to fetch products");
+        }
+    },
+
+    // Get product by ID
+    getProductById: async (id) => {
+        try {
+            const response = await api.get(`/products/${id}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to fetch product");
+        }
+    },
+
+    // Get products by category
+    getProductsByCategory: async (category, page = 1, limit = 20) => {
+        try {
+            const response = await api.get(`/products/category/${category}?page=${page}&limit=${limit}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to fetch products by category");
+        }
+    },
+
+    // Search products
+    searchProducts: async (keyword, page = 1, limit = 20) => {
+        try {
+            const response = await api.get(`/products/search?keyword=${encodeURIComponent(keyword)}&page=${page}&limit=${limit}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to search products");
+        }
+    },
+
+    // Create new product (Manager only)
+    createProduct: async (productData) => {
+        try {
+            const response = await api.post("/manager/products", productData);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to create product");
+        }
+    },
+
+    // Update product (Manager only)
+    updateProduct: async (id, productData) => {
+        try {
+            const response = await api.put(`/manager/products/${id}`, productData);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to update product");
+        }
+    },
+
+    // Delete product (Manager only)
+    deleteProduct: async (id) => {
+        try {
+            await api.delete(`/manager/products/${id}`);
+            return true;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to delete product");
+        }
+    },
+
+    // Enhanced Mock data for development/testing - Complete AIMS product catalog
+    getMockProducts: () => {
+        return [
+            // BOOKS
+            {
+                productID: "1",
+                title: "Clean Code: A Handbook of Agile Software Craftsmanship",
+                category: "book",
+                price: 450000,
+                value: 400000,
+                quantity: 15,
+                description:
+                    "A comprehensive guide to writing clean, maintainable code that any developer can read and easily understand. Learn the principles of writing good code and how to transform bad code into good code.",
+                imageURL: "https://via.placeholder.com/300x400/0066cc/ffffff?text=Clean+Code",
+                authors: "Robert C. Martin",
+                publisher: "Prentice Hall",
+                coverType: "Paperback",
+                numberOfPages: 464,
+                language: "English",
+                genre: "Programming",
+                pubDate: "2008-08-01",
+                weight: 0.8,
+                dimensions: "18.5 x 23.4 x 2.8 cm",
+                isbn: "978-0132350884",
+                rushEligible: true,
+            },
+            {
+                productID: "2",
+                title: "The Great Gatsby",
+                category: "book",
+                price: 280000,
+                value: 250000,
+                quantity: 25,
+                description:
+                    "F. Scott Fitzgerald's masterpiece of American literature. A tale of decadence, idealism, resistance to change, social upheaval, and excess.",
+                imageURL: "https://via.placeholder.com/300x400/228B22/ffffff?text=Great+Gatsby",
+                authors: "F. Scott Fitzgerald",
+                publisher: "Vintage Classics",
+                coverType: "Hardcover",
+                numberOfPages: 180,
+                language: "English",
+                genre: "Classic Literature",
+                pubDate: "1925-04-10",
+                weight: 0.4,
+                dimensions: "19.7 x 12.9 x 1.8 cm",
+                isbn: "978-0743273565",
+                rushEligible: true,
+            },
+            {
+                productID: "3",
+                title: "Effective Java",
+                category: "book",
+                price: 520000,
+                value: 480000,
+                quantity: 12,
+                description: "The definitive guide to Java programming from the creator of the Java platform. Essential for every Java developer.",
+                imageURL: "https://via.placeholder.com/300x400/FF6347/ffffff?text=Effective+Java",
+                authors: "Joshua Bloch",
+                publisher: "Addison-Wesley",
+                coverType: "Paperback",
+                numberOfPages: 412,
+                language: "English",
+                genre: "Programming",
+                pubDate: "2017-12-27",
+                weight: 0.9,
+                dimensions: "18.8 x 23.5 x 2.5 cm",
+                isbn: "978-0134685991",
+                rushEligible: true,
+            },
+            {
+                productID: "4",
+                title: "Sapiens: A Brief History of Humankind",
+                category: "book",
+                price: 380000,
+                value: 350000,
+                quantity: 20,
+                description:
+                    "How did our species succeed in the battle for dominance? Why did our foraging ancestors come together to create cities and kingdoms?",
+                imageURL: "https://via.placeholder.com/300x400/4682B4/ffffff?text=Sapiens",
+                authors: "Yuval Noah Harari",
+                publisher: "Harper",
+                coverType: "Paperback",
+                numberOfPages: 512,
+                language: "English",
+                genre: "History",
+                pubDate: "2014-02-10",
+                weight: 0.6,
+                dimensions: "19.8 x 12.9 x 2.8 cm",
+                isbn: "978-0062316097",
+                rushEligible: true,
+            },
+
+            // CDs
+            {
+                productID: "5",
+                title: "Bohemian Rhapsody - Greatest Hits",
+                category: "cd",
+                price: 350000,
+                value: 320000,
+                quantity: 25,
+                description:
+                    "Queen's greatest hits collection featuring Bohemian Rhapsody and other timeless classics. Remastered for superior sound quality.",
+                imageURL: "https://via.placeholder.com/300x300/cc6600/ffffff?text=Queen+CD",
+                artist: "Queen",
+                recordLabel: "EMI Records",
+                tracklist:
+                    "Bohemian Rhapsody, Don't Stop Me Now, We Will Rock You, We Are The Champions, Another One Bites The Dust, Somebody To Love",
+                musicType: "Rock",
+                releaseDate: "1981-10-26",
+                weight: 0.1,
+                dimensions: "14.2 x 12.5 x 1 cm",
+                barcode: "724349075429",
+                rushEligible: true,
+            },
+            {
+                productID: "6",
+                title: "Abbey Road",
+                category: "cd",
+                price: 420000,
+                value: 380000,
+                quantity: 18,
+                description: "The Beatles' iconic album featuring Come Together and Here Comes the Sun. A masterpiece of popular music.",
+                imageURL: "https://via.placeholder.com/300x300/003366/ffffff?text=Beatles+CD",
+                artist: "The Beatles",
+                recordLabel: "Apple Records",
+                tracklist:
+                    "Come Together, Something, Maxwell's Silver Hammer, Oh! Darling, Octopus's Garden, I Want You, Here Comes the Sun, Because, You Never Give Me Your Money, Sun King, Mean Mr. Mustard, Polythene Pam, She Came in Through the Bathroom Window, Golden Slumbers, Carry That Weight, The End",
+                musicType: "Rock, Pop",
+                releaseDate: "1969-09-26",
+                weight: 0.1,
+                dimensions: "14.2 x 12.5 x 1 cm",
+                barcode: "094638241621",
+                rushEligible: true,
+            },
+            {
+                productID: "7",
+                title: "Back to Black",
+                category: "cd",
+                price: 380000,
+                value: 340000,
+                quantity: 15,
+                description: "Amy Winehouse's critically acclaimed second studio album. Features the hit singles 'Rehab' and 'Back to Black'.",
+                imageURL: "https://via.placeholder.com/300x300/000000/ffffff?text=Back+to+Black",
+                artist: "Amy Winehouse",
+                recordLabel: "Island Records",
+                tracklist:
+                    "Rehab, You Know I'm No Good, Me & Mr Jones, Just Friends, Back to Black, Love Is a Losing Game, Tears Dry on Their Own, Wake Up Alone, Some Unholy War, He Can Only Hold Her, Addicted",
+                musicType: "Soul, R&B",
+                releaseDate: "2006-10-27",
+                weight: 0.1,
+                dimensions: "14.2 x 12.5 x 1 cm",
+                barcode: "602517013728",
+                rushEligible: true,
+            },
+
+            // LPs (Vinyl Records)
+            {
+                productID: "8",
+                title: "Dark Side of the Moon",
+                category: "lp",
+                price: 850000,
+                value: 780000,
+                quantity: 8,
+                description:
+                    "Pink Floyd's legendary concept album on 180-gram vinyl. One of the best-selling albums of all time, exploring themes of conflict, greed, and mental illness.",
+                imageURL: "https://via.placeholder.com/300x300/2F4F4F/ffffff?text=Dark+Side+LP",
+                artist: "Pink Floyd",
+                recordLabel: "Harvest Records",
+                tracklist:
+                    "Speak to Me, Breathe, On the Run, Time, The Great Gig in the Sky, Money, Us and Them, Any Colour You Like, Brain Damage, Eclipse",
+                musicType: "Progressive Rock",
+                releaseDate: "1973-03-01",
+                weight: 0.3,
+                dimensions: "31.5 x 31.5 x 0.5 cm",
+                barcode: "886977866418",
+                vinylSize: "12 inch",
+                rpm: "33⅓",
+                rushEligible: false,
+            },
+            {
+                productID: "9",
+                title: "Thriller",
+                category: "lp",
+                price: 920000,
+                value: 850000,
+                quantity: 6,
+                description:
+                    "Michael Jackson's best-selling album of all time on premium vinyl. Features iconic tracks like 'Billie Jean' and 'Beat It'.",
+                imageURL: "https://via.placeholder.com/300x300/8B0000/ffffff?text=Thriller+LP",
+                artist: "Michael Jackson",
+                recordLabel: "Epic Records",
+                tracklist:
+                    "Wanna Be Startin' Somethin', Baby Be Mine, The Girl Is Mine, Thriller, Beat It, Billie Jean, Human Nature, P.Y.T., The Lady in My Life",
+                musicType: "Pop, R&B",
+                releaseDate: "1982-11-30",
+                weight: 0.3,
+                dimensions: "31.5 x 31.5 x 0.5 cm",
+                barcode: "074643811217",
+                vinylSize: "12 inch",
+                rpm: "33⅓",
+                rushEligible: false,
+            },
+            {
+                productID: "10",
+                title: "Kind of Blue",
+                category: "lp",
+                price: 780000,
+                value: 720000,
+                quantity: 10,
+                description: "Miles Davis' masterpiece - often cited as the greatest jazz album ever made. Audiophile 180-gram pressing.",
+                imageURL: "https://via.placeholder.com/300x300/191970/ffffff?text=Kind+of+Blue",
+                artist: "Miles Davis",
+                recordLabel: "Columbia Records",
+                tracklist: "So What, Freddie Freeloader, Blue in Green, All Blues, Flamenco Sketches",
+                musicType: "Jazz",
+                releaseDate: "1959-08-17",
+                weight: 0.3,
+                dimensions: "31.5 x 31.5 x 0.5 cm",
+                barcode: "889854179113",
+                vinylSize: "12 inch",
+                rpm: "33⅓",
+                rushEligible: false,
+            },
+
+            // DVDs
+            {
+                productID: "11",
+                title: "Avengers: Endgame",
+                category: "dvd",
+                price: 650000,
+                value: 580000,
+                quantity: 12,
+                description:
+                    "Epic conclusion to the Marvel Cinematic Universe saga. The ultimate battle for the fate of the universe in stunning 4K quality.",
+                imageURL: "https://via.placeholder.com/300x400/990000/ffffff?text=Avengers+DVD",
+                director: "Anthony Russo, Joe Russo",
+                studio: "Marvel Studios",
+                discType: "4K Ultra HD + Blu-ray",
+                runtime: "181 minutes",
+                language: "English, Spanish, French",
+                subtitle: "Vietnamese, English, Spanish, French, Chinese",
+                genre: "Action, Adventure, Drama",
+                releaseDate: "2019-04-26",
+                weight: 0.2,
+                dimensions: "19 x 13.5 x 1.5 cm",
+                barcode: "786936861457",
+                rushEligible: true,
+            },
+            {
+                productID: "12",
+                title: "Inception",
+                category: "dvd",
+                price: 580000,
+                value: 520000,
+                quantity: 8,
+                description: "Mind-bending sci-fi thriller about dreams within dreams. Christopher Nolan's masterpiece with stunning visual effects.",
+                imageURL: "https://via.placeholder.com/300x400/663399/ffffff?text=Inception+DVD",
+                director: "Christopher Nolan",
+                studio: "Warner Bros.",
+                discType: "Blu-ray + Digital Copy",
+                runtime: "148 minutes",
+                language: "English, French, Spanish",
+                subtitle: "Vietnamese, English, French, Spanish, Portuguese",
+                genre: "Sci-Fi, Thriller",
+                releaseDate: "2010-07-16",
+                weight: 0.2,
+                dimensions: "19 x 13.5 x 1.5 cm",
+                barcode: "883929140504",
+                rushEligible: true,
+            },
+            {
+                productID: "13",
+                title: "The Godfather Trilogy",
+                category: "dvd",
+                price: 890000,
+                value: 820000,
+                quantity: 5,
+                description:
+                    "The complete Godfather trilogy in a beautiful collector's edition. Francis Ford Coppola's epic saga of power and family.",
+                imageURL: "https://via.placeholder.com/300x400/8B4513/ffffff?text=Godfather+DVD",
+                director: "Francis Ford Coppola",
+                studio: "Paramount Pictures",
+                discType: "Blu-ray Collector's Edition",
+                runtime: "537 minutes (all three films)",
+                language: "English, Italian",
+                subtitle: "Vietnamese, English, Spanish, French, Italian",
+                genre: "Crime, Drama",
+                releaseDate: "1972-03-24",
+                weight: 0.8,
+                dimensions: "19 x 13.5 x 4 cm",
+                barcode: "191329054543",
+                rushEligible: false,
+            },
+            {
+                productID: "14",
+                title: "Spirited Away",
+                category: "dvd",
+                price: 480000,
+                value: 430000,
+                quantity: 14,
+                description: "Studio Ghibli's Academy Award-winning animated masterpiece. Hayao Miyazaki's magical tale of a young girl's adventure.",
+                imageURL: "https://via.placeholder.com/300x400/32CD32/ffffff?text=Spirited+Away",
+                director: "Hayao Miyazaki",
+                studio: "Studio Ghibli",
+                discType: "Blu-ray + DVD",
+                runtime: "125 minutes",
+                language: "Japanese, English",
+                subtitle: "Vietnamese, English, Japanese, Chinese, Korean",
+                genre: "Animation, Family, Fantasy",
+                releaseDate: "2001-07-20",
+                weight: 0.2,
+                dimensions: "19 x 13.5 x 1.5 cm",
+                barcode: "826663171983",
+                rushEligible: true,
+            },
+            {
+                productID: "15",
+                title: "The Lord of the Rings: Extended Edition Trilogy",
+                category: "dvd",
+                price: 1200000,
+                value: 1100000,
+                quantity: 3,
+                description:
+                    "Peter Jackson's complete Middle-earth saga with extended scenes. Over 9 hours of additional content including documentaries.",
+                imageURL: "https://via.placeholder.com/300x400/DAA520/ffffff?text=LOTR+DVD",
+                director: "Peter Jackson",
+                studio: "New Line Cinema",
+                discType: "4K Ultra HD + Blu-ray Extended Edition",
+                runtime: "686 minutes (extended cuts)",
+                language: "English",
+                subtitle: "Vietnamese, English, Spanish, French, German, Italian",
+                genre: "Fantasy, Adventure, Drama",
+                releaseDate: "2001-12-19",
+                weight: 1.2,
+                dimensions: "19 x 13.5 x 6 cm",
+                barcode: "794043194450",
+                rushEligible: false,
+            },
+
+            // Additional Books for variety
+            {
+                productID: "16",
+                title: "1984",
+                category: "book",
+                price: 320000,
+                value: 290000,
+                quantity: 30,
+                description: "George Orwell's dystopian social science fiction novel about totalitarian control and surveillance.",
+                imageURL: "https://via.placeholder.com/300x400/696969/ffffff?text=1984",
+                authors: "George Orwell",
+                publisher: "Penguin Classics",
+                coverType: "Paperback",
+                numberOfPages: 328,
+                language: "English",
+                genre: "Dystopian Fiction",
+                pubDate: "1949-06-08",
+                weight: 0.3,
+                dimensions: "19.8 x 12.9 x 2.1 cm",
+                isbn: "978-0452284234",
+                rushEligible: true,
+            },
+            {
+                productID: "17",
+                title: "Design Patterns: Elements of Reusable Object-Oriented Software",
+                category: "book",
+                price: 680000,
+                value: 620000,
+                quantity: 8,
+                description:
+                    "The Gang of Four's foundational book on software design patterns. Essential reading for software architects and developers.",
+                imageURL: "https://via.placeholder.com/300x400/8A2BE2/ffffff?text=Design+Patterns",
+                authors: "Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides",
+                publisher: "Addison-Wesley",
+                coverType: "Hardcover",
+                numberOfPages: 395,
+                language: "English",
+                genre: "Programming",
+                pubDate: "1994-10-21",
+                weight: 1.1,
+                dimensions: "24.1 x 17.8 x 2.5 cm",
+                isbn: "978-0201633610",
+                rushEligible: true,
+            },
+
+            // Additional CDs
+            {
+                productID: "18",
+                title: "Random Access Memories",
+                category: "cd",
+                price: 450000,
+                value: 410000,
+                quantity: 12,
+                description: "Daft Punk's Grammy-winning album featuring 'Get Lucky'. A perfect blend of electronic and funk music.",
+                imageURL: "https://via.placeholder.com/300x300/FFD700/000000?text=Daft+Punk",
+                artist: "Daft Punk",
+                recordLabel: "Columbia Records",
+                tracklist:
+                    "Give Life Back to Music, The Game of Love, Giorgio by Moroder, Within, Instant Crush, Lose Yourself to Dance, Touch, Get Lucky, Beyond, Motherboard, Fragments of Time, Doin' it Right, Contact",
+                musicType: "Electronic, Funk",
+                releaseDate: "2013-05-17",
+                weight: 0.1,
+                dimensions: "14.2 x 12.5 x 1 cm",
+                barcode: "886443919327",
+                rushEligible: true,
+            },
+
+            // Additional DVDs
+            {
+                productID: "19",
+                title: "Your Name",
+                category: "dvd",
+                price: 520000,
+                value: 470000,
+                quantity: 16,
+                description: "Makoto Shinkai's beautiful anime film about body-swapping and destiny. A modern masterpiece of animation.",
+                imageURL: "https://via.placeholder.com/300x400/87CEEB/000000?text=Your+Name",
+                director: "Makoto Shinkai",
+                studio: "CoMix Wave Films",
+                discType: "Blu-ray + DVD",
+                runtime: "106 minutes",
+                language: "Japanese, English",
+                subtitle: "Vietnamese, English, Japanese, Chinese",
+                genre: "Animation, Romance, Drama",
+                releaseDate: "2016-08-26",
+                weight: 0.2,
+                dimensions: "19 x 13.5 x 1.5 cm",
+                barcode: "704400097713",
+                rushEligible: true,
+            },
+
+            // Additional LP
+            {
+                productID: "20",
+                title: "Random Access Memories",
+                category: "lp",
+                price: 980000,
+                value: 900000,
+                quantity: 4,
+                description:
+                    "Daft Punk's final album on premium 180-gram vinyl. Includes the hit single 'Get Lucky' and other electronic masterpieces.",
+                imageURL: "https://via.placeholder.com/300x300/FFD700/000000?text=Daft+Punk+LP",
+                artist: "Daft Punk",
+                recordLabel: "Columbia Records",
+                tracklist:
+                    "Give Life Back to Music, The Game of Love, Giorgio by Moroder, Within, Instant Crush, Lose Yourself to Dance, Touch, Get Lucky, Beyond, Motherboard, Fragments of Time, Doin' it Right, Contact",
+                musicType: "Electronic, Funk",
+                releaseDate: "2013-05-17",
+                weight: 0.3,
+                dimensions: "31.5 x 31.5 x 0.5 cm",
+                barcode: "886443919358",
+                vinylSize: "12 inch",
+                rpm: "33⅓",
+                rushEligible: false,
+            },
+        ];
+    },
+
+    // Get products with filtering and pagination
+    getFilteredProducts: (filters = {}, page = 1, limit = 20) => {
+        let products = productService.getMockProducts();
+
+        // Apply category filter
+        if (filters.category) {
+            products = products.filter((product) => product.category === filters.category);
+        }
+
+        // Apply search filter
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            products = products.filter(
+                (product) =>
+                    product.title.toLowerCase().includes(searchTerm) ||
+                    product.description.toLowerCase().includes(searchTerm) ||
+                    (product.authors && product.authors.toLowerCase().includes(searchTerm)) ||
+                    (product.artist && product.artist.toLowerCase().includes(searchTerm)) ||
+                    (product.director && product.director.toLowerCase().includes(searchTerm))
+            );
+        }
+
+        // Apply price range filter
+        if (filters.minPrice) {
+            products = products.filter((product) => product.price >= filters.minPrice);
+        }
+        if (filters.maxPrice) {
+            products = products.filter((product) => product.price <= filters.maxPrice);
+        }
+
+        // Apply sorting
+        if (filters.sortBy) {
+            switch (filters.sortBy) {
+                case "title_asc":
+                    products.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case "title_desc":
+                    products.sort((a, b) => b.title.localeCompare(a.title));
+                    break;
+                case "price_asc":
+                    products.sort((a, b) => a.price - b.price);
+                    break;
+                case "price_desc":
+                    products.sort((a, b) => b.price - a.price);
+                    break;
+                case "newest":
+                    products.sort((a, b) => new Date(b.releaseDate || b.pubDate) - new Date(a.releaseDate || a.pubDate));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Apply pagination
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedProducts = products.slice(startIndex, endIndex);
+
+        return {
+            products: paginatedProducts,
+            totalProducts: products.length,
+            totalPages: Math.ceil(products.length / limit),
+            currentPage: page,
+            hasNext: endIndex < products.length,
+            hasPrevious: page > 1,
+        };
+    },
+};

@@ -1,6 +1,7 @@
 package com.example.aims.subsystem.VNPay;
 
 import com.example.aims.model.Order;
+import com.example.aims.model.PaymentTransaction;
 import com.example.aims.subsystem.IPaymentSystem;
 
 // Functional Cohesion – All fields and methods support the single purpose of integrating with VNPay payment system
@@ -40,10 +41,18 @@ public class VNPaySubsystem implements IPaymentSystem {
         String orderId = orderEntity.getOrderID();
         // Generate request payment url
         try {
-            return "Hello";
+            return request.generateUrl(amount, content, orderId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
+
+    @Override
+        public String getRefundUrl(PaymentTransaction transaction){
+            
+            return "Hello";
+        }
+
+
 }

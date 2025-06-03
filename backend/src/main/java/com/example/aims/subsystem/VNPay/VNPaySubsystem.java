@@ -54,5 +54,10 @@ public class VNPaySubsystem implements IPaymentSystem {
             return "Hello";
         }
 
+    @Override
+    public PaymentTransaction getTransactionInfo() {
+        return null;
+    }
+
 
 }

@@ -41,7 +41,10 @@ class PayOrderServiceTest {
     @Test
     void getPaymentTransactionByOrderId_found() {
         String orderId = "ORD001";
-        //payOrderService.processPayment(orderId, "Cash");
+        // First create a payment transaction
+        payOrderService.processPayment(orderId, "Cash");
+        
+        // Then try to retrieve it
         PaymentTransaction paymentTransaction = payOrderService.getPaymentTransactionByOrderId(orderId);
 
         assertNotNull(paymentTransaction);

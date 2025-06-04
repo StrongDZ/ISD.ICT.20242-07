@@ -1,6 +1,7 @@
 package com.example.aims.service;
 
 import com.example.aims.dto.DeliveryInfoDTO;
+import com.example.aims.dto.InvoiceDTO;
 import com.example.aims.dto.OrderDTO;
 import com.example.aims.dto.OrderItemDTO;
 import com.example.aims.model.*;
@@ -255,5 +256,10 @@ public class OrderService {
         });
         
         return dto;
+    }
+
+    public Object createOrder(String customerID, InvoiceDTO invoiceDTO) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createOrder'");
     }
 }

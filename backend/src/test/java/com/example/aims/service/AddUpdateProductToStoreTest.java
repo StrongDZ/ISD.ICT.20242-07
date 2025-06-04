@@ -76,8 +76,8 @@
          dto.setGenre("Programming");
     
          // Mock: người quản lý đã tồn tại trong hệ thống
-         Users mockManager = new Users("manager001", "manager_user", "manager", "password123");
-         when(userRepository.findById("manager001")).thenReturn(Optional.of(mockManager));
+         Users mockManager = new Users(1, "manager_user", "manager", "password123");
+         when(userRepository.findById(1)).thenReturn(Optional.of(mockManager));
     
          // Mock các thao tác lưu
          when(productRepo.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -334,7 +334,7 @@
          dto.setCategory("book");
 
          when(productRepo.existsById("P010")).thenReturn(false);
-         when(userRepository.findById("manager001")).thenReturn(Optional.empty());
+         when(userRepository.findById(1)).thenReturn(Optional.empty());
 
          Exception ex = assertThrows(RuntimeException.class, () -> productService.createProduct(dto, "manager001"));
          assertTrue(ex.getMessage().toLowerCase().contains("manager not found"));

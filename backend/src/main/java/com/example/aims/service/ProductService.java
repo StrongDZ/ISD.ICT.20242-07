@@ -95,7 +95,7 @@ import java.util.UUID;
      }
 
      @Transactional
-     public ProductDTO createProduct(ProductDTO productDTO, String managerID) {
+     public ProductDTO createProduct(ProductDTO productDTO, Integer managerID) {
          // This method handles:
          // 1. Product ID generation
          // 2. Category validation

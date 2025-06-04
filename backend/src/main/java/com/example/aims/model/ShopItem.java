@@ -31,6 +31,6 @@ public class ShopItem {
     @AllArgsConstructor
     public static class ShopItemId implements java.io.Serializable {
         private String productID;
-        private String managerID;
+        private Integer managerID;
     }
 }

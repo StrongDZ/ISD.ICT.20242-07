@@ -21,7 +21,8 @@ public class ManagerController {
     @PostMapping("/products")
     public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String managerID = authentication.getName();
+        Integer managerID = Integer.parseInt(authentication.getName());
+
         
         return ResponseEntity.ok(productService.createProduct(productDTO, managerID));
     }

@@ -1,7 +1,10 @@
 package com.example.aims.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -9,10 +12,12 @@ import org.hibernate.type.SqlTypes;
 import com.example.aims.common.UserStatus;
 import com.example.aims.common.UserType;
 
-
+@Data
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class Users {
     @Id
@@ -33,26 +38,5 @@ public class Users {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_status")
     private UserStatus userStatus;
-
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setGmail(String gmail) {
-        this.gmail = gmail;
-    }
-
-    public void setType(UserType type) {
-        this.type = type;
-    }
-
-    public void setUserStatus(UserStatus userStatus) {
-        this.userStatus = userStatus;
-    }
 
 }

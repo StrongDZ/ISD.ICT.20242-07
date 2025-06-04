@@ -90,7 +90,7 @@ public class OrderService {
         this.cartItemRepository = cartItemRepository;
     }
 
-    public List<OrderDTO> getCustomerOrders(String customerId) {
+    public List<OrderDTO> getCustomerOrders(Integer customerId) {
         Users customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Users not found with id: " + customerId));
 
@@ -125,7 +125,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO createOrderFromCart(String customerId, DeliveryInfoDTO deliveryInfoDTO) {
+    public OrderDTO createOrderFromCart(Integer customerId, DeliveryInfoDTO deliveryInfoDTO) {
         Users customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Users not found with id: " + customerId));
 

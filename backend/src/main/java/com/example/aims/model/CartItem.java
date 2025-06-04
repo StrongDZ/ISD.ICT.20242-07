@@ -32,7 +32,7 @@ public class CartItem {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CartItemId implements java.io.Serializable {
-        private String customerID;
+        private Integer customerID;
         private String productID;
     }
 }

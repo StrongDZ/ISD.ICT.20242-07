@@ -80,8 +80,8 @@ public class PayOrderService {
     // orderId) {
     // return Optional.ofNullable(currentPaymentTransaction.findByOrderId(orderId));
     // }
-    public String getPaymentURL(Integer orderId) {
-        Optional<Order> orderOptional = currentOrder.findByOrderId(orderId);
+    public String getPaymentURL(String orderId) {
+        Optional<Order> orderOptional = currentOrder.findByOrderID(orderId);
         if (orderOptional.isEmpty()) {
             throw new IllegalArgumentException("Order not found with ID: " + orderId);
         }
@@ -101,8 +101,8 @@ public class PayOrderService {
 
             PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
             String transactionNo = savedTransaction.getTransactionNo();
-            Integer orderID = Integer.parseInt(allRequestParams.get("vnp_TxnRef"));
-            Order order = currentOrder.findByOrderId(orderID)
+            String orderID = allRequestParams.get("vnp_TxnRef");
+            Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
             order.setStatus("PENDING");
             currentOrder.save(order);

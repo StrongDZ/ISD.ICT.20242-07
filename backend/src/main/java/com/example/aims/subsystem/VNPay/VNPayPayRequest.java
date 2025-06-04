@@ -18,7 +18,7 @@ public class VNPayPayRequest {
         return "192.168.2.1";
     }
 
-    protected String generateUrl(int amount, String content, String orderId) throws UnsupportedEncodingException{
+    protected String generateUrl(int amount, String content, String orderId) throws UnsupportedEncodingException {
         // This method should implement the logic to generate the payment URL
         // using VNPay's API or signature generation.
         // Currently, it is a placeholder and does not perform any operations.
@@ -27,6 +27,7 @@ public class VNPayPayRequest {
         vnpayParams.put("vnp_Command", VNPayConfig.vnpayPayCommand);
         vnpayParams.put("vnp_TmnCode", VNPayConfig.vnpayTmnCode);
         vnpayParams.put("vnp_Amount", String.valueOf(amount));
+        vnpayParams.put("vnp_OrderType", "other");
         vnpayParams.put("vnp_CurrCode", VNPayConfig.vnpayCurrCode);
         vnpayParams.put("vnp_BankCode", "");
         vnpayParams.put("vnp_TxnRef", orderId);

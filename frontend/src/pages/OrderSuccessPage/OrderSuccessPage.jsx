@@ -4,34 +4,31 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import OrderSuccess from "../../components/Order/OrderSuccess";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";
+import axios from "axios"; // Import axios ở đây
 
 const OrderSuccessPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
     const [orderData, setOrderData] = useState(null);
+    const [paymentUrl, setPaymentUrl] = useState(""); // Khởi tạo là chuỗi rỗng
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Check authentication
         if (!isAuthenticated()) {
             navigate("/login");
             return;
         }
 
-        // Get order data from navigation state or localStorage
         const getOrderData = () => {
             try {
-                // First try to get from navigation state
                 const stateOrderData = location.state?.orderData;
                 if (stateOrderData) {
                     setOrderData(stateOrderData);
-                    setLoading(false);
-                    return;
+                    return stateOrderData;
                 }
 
-                // If no state data, try to get the latest order from localStorage
                 const orderId = location.state?.orderId;
                 const savedOrders = JSON.parse(localStorage.getItem("userOrders") || "[]");
 
@@ -39,38 +36,60 @@ const OrderSuccessPage = () => {
                     const foundOrder = savedOrders.find((order) => order.id === orderId);
                     if (foundOrder) {
                         setOrderData(foundOrder);
-                        setLoading(false);
-                        return;
+                        return foundOrder;
                     }
                 }
 
-                // Get the most recent order if no specific order ID
                 if (savedOrders.length > 0) {
                     const latestOrder = savedOrders[savedOrders.length - 1];
                     setOrderData(latestOrder);
-                    setLoading(false);
-                    return;
+                    return latestOrder;
                 }
 
-                // No order found
                 setError("No order information found. Please check your order history.");
-                setLoading(false);
+                return null;
             } catch (err) {
                 console.error("Error loading order data:", err);
                 setError("Failed to load order information.");
+                return null;
+            } finally {
                 setLoading(false);
             }
         };
 
-        getOrderData();
+        const initialOrder = getOrderData();
+
+        const fetchPaymentUrl = async (orderId) => {
+            if (!orderId) return;
+
+            try {
+                const res = await axios.get(`http://localhost:8080/api/payments/url`, {
+                    params: { orderId: "ORDER-1004" }
+                });
+                // --- THÊM DÒNG NÀY ĐỂ IN URL RA CONSOLE ---
+                console.log("VNPay Payment URL:", res.data);
+                // ------------------------------------------
+
+                setPaymentUrl(res.data);
+            } catch (error) {
+                console.error("Error fetching VNPay URL:", error);
+            }
+        };
+
+        if (initialOrder?.id) {
+            fetchPaymentUrl(initialOrder.id);
+        } else {
+            setLoading(false);
+        }
+
     }, [isAuthenticated, location.state, navigate]);
+
 
     const handleContinueShopping = () => {
         navigate("/products");
     };
 
     const handleViewOrders = () => {
-        // For now, redirect to home. In a real app, this would go to orders page
         navigate("/", { state: { message: "Order history feature coming soon!" } });
     };
 
@@ -126,7 +145,13 @@ const OrderSuccessPage = () => {
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
-            <OrderSuccess order={orderData} onContinueShopping={handleContinueShopping} onViewOrders={handleViewOrders} />
+            {/* Truyền paymentUrl xuống OrderSuccess */}
+            <OrderSuccess
+                order={orderData}
+                paymentUrl={paymentUrl} // Truyền paymentUrl vào đây
+                onContinueShopping={handleContinueShopping}
+                onViewOrders={handleViewOrders}
+            />
         </Container>
     );
 };

@@ -1,4 +1,4 @@
-package com.example.aims.service;
+package com.example.aims.service.user;
 
 import org.springframework.stereotype.Service;
 

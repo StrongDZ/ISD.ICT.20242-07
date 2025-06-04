@@ -61,6 +61,4 @@ public class VNPaySubsystem implements IPaymentSystem {
         String response = refundRequest.requestVNPayRefund(transaction);
         return refundResponse.parseResponse(response);
     }
-
-
 }

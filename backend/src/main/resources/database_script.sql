@@ -54,7 +54,9 @@ CREATE TABLE "user" (
     id VARCHAR PRIMARY KEY,
     role VARCHAR,
     username VARCHAR,
-    password VARCHAR
+    password VARCHAR,
+    gmail VARCHAR,
+    userStatus VARCHAR
 );
 
 -- Bảng ShopItems (quan hệ giữa Product và Manager)

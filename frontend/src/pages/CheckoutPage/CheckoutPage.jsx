@@ -181,16 +181,16 @@ const CheckoutPage = () => {
                             </Typography>
                             <Alert severity="info" sx={{ mt: 2 }}>
                                 <Typography variant="body2">
-                                    Cash on Delivery (COD) is currently the only available payment method. You will pay when your order is delivered.
+                                    Payment via VNPay is currently the only available payment method. You will pay securely through VNPay at the time of placing your order.
                                 </Typography>
                             </Alert>
                             <Box sx={{ mt: 3, p: 2, border: 1, borderColor: "primary.main", borderRadius: 1 }}>
                                 <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                                     <CreditCard color="primary" sx={{ mr: 1 }} />
-                                    <Typography variant="h6">Cash on Delivery</Typography>
+                                    <Typography variant="h6">Payment via VNPay</Typography>
                                 </Box>
                                 <Typography variant="body2" color="text.secondary">
-                                    Pay with cash when your order arrives. No additional fees.
+                                    Pay in advance via VNPay. You will be redirected to the VNPay payment gateway to complete the transaction.
                                 </Typography>
                             </Box>
                         </CardContent>

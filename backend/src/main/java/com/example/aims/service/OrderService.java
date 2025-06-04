@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 //So, the class lacks high cohesion because it mixes different concerns (order management, payment, inventory, delivery, invoice) within the same class.
 // As a result, the cohesion is low to medium.
 
-
 //***SRP  Violation:
 // In the case of OrderService, it violates SRP because it is taking on multiple responsibilities:
 
@@ -65,7 +64,6 @@ import java.util.stream.Collectors;
 
 // By doing this,  reducing the complexity of the OrderService class and ensure that each service has a clear and focused responsibility.
 
-
 @Service
 public class OrderService {
 
@@ -79,9 +77,9 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-                       DeliveryInfoRepository deliveryInfoRepository, PaymentTransactionRepository paymentTransactionRepository,
-                       InvoiceRepository invoiceRepository, UsersRepository userRepository,
-                       ProductRepository productRepository, CartItemRepository cartItemRepository) {
+            DeliveryInfoRepository deliveryInfoRepository, PaymentTransactionRepository paymentTransactionRepository,
+            InvoiceRepository invoiceRepository, UsersRepository userRepository,
+            ProductRepository productRepository, CartItemRepository cartItemRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.deliveryInfoRepository = deliveryInfoRepository;
@@ -95,34 +93,34 @@ public class OrderService {
     public List<OrderDTO> getCustomerOrders(String customerId) {
         Users customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Users not found with id: " + customerId));
-        
+
         List<Order> orders = orderRepository.findByCustomer(customer);
         List<OrderDTO> orderDTOs = new ArrayList<>();
-        
+
         for (Order order : orders) {
             OrderDTO dto = convertToDTO(order);
             orderDTOs.add(dto);
         }
-        
+
         return orderDTOs;
     }
 
     public OrderDTO getOrderById(String orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-        
+
         return convertToDTO(order);
     }
 
     public List<OrderDTO> getOrdersByStatus(String status) {
         List<Order> orders = orderRepository.findByStatus(status);
         List<OrderDTO> orderDTOs = new ArrayList<>();
-        
+
         for (Order order : orders) {
             OrderDTO dto = convertToDTO(order);
             orderDTOs.add(dto);
         }
-        
+
         return orderDTOs;
     }
 
@@ -130,43 +128,44 @@ public class OrderService {
     public OrderDTO createOrderFromCart(String customerId, DeliveryInfoDTO deliveryInfoDTO) {
         Users customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Users not found with id: " + customerId));
-        
+
         List<CartItem> cartItems = cartItemRepository.findByCustomer(customer);
-        
+
         if (cartItems.isEmpty()) {
             throw new RuntimeException("Cart is empty");
         }
-        
+
         // Create order
         String orderId = UUID.randomUUID().toString();
         Order order = new Order();
         order.setOrderID(orderId);
         order.setCustomer(customer);
         order.setStatus("PENDING");
-        
+
         orderRepository.save(order);
-        
+
         // Create order items
         double totalPrice = 0.0f;
-        
+
         for (CartItem cartItem : cartItems) {
             OrderItem orderItem = new OrderItem();
-            OrderItem.OrderItemId orderItemId = new OrderItem.OrderItemId(cartItem.getProduct().getProductID(), orderId);
+            OrderItem.OrderItemId orderItemId = new OrderItem.OrderItemId(cartItem.getProduct().getProductID(),
+                    orderId);
             orderItem.setId(orderItemId);
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setOrder(order);
             orderItem.setQuantity(cartItem.getQuantity());
-            
+
             orderItemRepository.save(orderItem);
-            
+
             // Update product quantity
             Product product = cartItem.getProduct();
             product.setQuantity(product.getQuantity() - cartItem.getQuantity());
             productRepository.save(product);
-            
+
             totalPrice += product.getPrice() * cartItem.getQuantity();
         }
-        
+
         // Create delivery info
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         deliveryInfo.setOrderID(orderId);
@@ -176,34 +175,34 @@ public class OrderService {
         deliveryInfo.setPhoneNumber(deliveryInfoDTO.getPhoneNumber());
         deliveryInfo.setRecipientName(deliveryInfoDTO.getRecipientName());
         deliveryInfo.setMail(deliveryInfoDTO.getMail());
-        
+
         deliveryInfoRepository.save(deliveryInfo);
-        
+
         // Create payment transaction
         PaymentTransaction paymentTransaction = new PaymentTransaction();
         paymentTransaction.setOrderID(orderId);
         paymentTransaction.setOrder(order);
-        paymentTransaction.setContent("Order payment");
+        // paymentTransaction.setContent("Order payment");
         paymentTransaction.setDatetime(new Date());
-        
+
         paymentTransactionRepository.save(paymentTransaction);
-        
+
         // Create invoice
         double vat = 0.1f; // 10% VAT
         double deliveryFee = 5.0f; // Fixed delivery fee
-        
+
         Invoice invoice = new Invoice();
         invoice.setOrderID(orderId);
         invoice.setOrder(order);
         invoice.setProductPriceExcludingVAT(totalPrice);
         invoice.setProductPriceIncludingVAT(totalPrice * (1 + vat));
         invoice.setDeliveryFee(deliveryFee);
-        
+
         invoiceRepository.save(invoice);
-        
+
         // Clear the cart
         cartItemRepository.deleteByCustomer(customer);
-        
+
         return convertToDTO(order);
     }
 
@@ -211,10 +210,10 @@ public class OrderService {
     public OrderDTO updateOrderStatus(String orderId, String status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-        
+
         order.setStatus(status);
         orderRepository.save(order);
-        
+
         return convertToDTO(order);
     }
 
@@ -223,7 +222,7 @@ public class OrderService {
         dto.setId(order.getOrderID());
         dto.setCustomerID(order.getCustomer().getId());
         dto.setStatus(order.getStatus());
-        
+
         // Get order items
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
         List<OrderItemDTO> orderItemDTOs = orderItems.stream().map(item -> {
@@ -234,9 +233,9 @@ public class OrderService {
             itemDTO.setQuantity(item.getQuantity());
             return itemDTO;
         }).collect(Collectors.toList());
-        
+
         dto.setItems(orderItemDTOs);
-        
+
         // Get delivery info
         deliveryInfoRepository.findById(order.getOrderID()).ifPresent(deliveryInfo -> {
             DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
@@ -246,15 +245,15 @@ public class OrderService {
             deliveryInfoDTO.setPhoneNumber(deliveryInfo.getPhoneNumber());
             deliveryInfoDTO.setRecipientName(deliveryInfo.getRecipientName());
             deliveryInfoDTO.setMail(deliveryInfo.getMail());
-            
+
             dto.setDeliveryInfo(deliveryInfoDTO);
         });
-        
+
         // Get total price from invoice
         invoiceRepository.findById(order.getOrderID()).ifPresent(invoice -> {
             dto.setTotalPrice(invoice.getProductPriceIncludingVAT() + invoice.getDeliveryFee());
         });
-        
+
         return dto;
     }
 

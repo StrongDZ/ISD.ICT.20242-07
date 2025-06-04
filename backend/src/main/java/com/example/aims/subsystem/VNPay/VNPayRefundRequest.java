@@ -13,6 +13,7 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import com.example.aims.model.PaymentTransaction;
 
@@ -63,7 +64,8 @@ public class VNPayRefundRequest {
         String refundJSON = gson.toJson(vnpayParams, typeObject);
         try {
             // Send refund request to VNPay
-            URL url = new URL(VNPayConfig.refundUrl);
+            URI uri = new URI(VNPayConfig.refundUrl);
+            URL url = uri.toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "Application/json");
@@ -81,7 +83,7 @@ public class VNPayRefundRequest {
             }
             in.close();
             System.out.print(response);
-            return response.toString(); // Temporary broken, always return error!
+            return response.toString(); 
         } catch (Exception e) {
             return e.getMessage();
         }

@@ -107,9 +107,10 @@ public class OrderService {
     }
 
     public OrderDTO getOrderById(String orderId) {
-        Order order = orderRepository.findById(orderId)
+        Integer id = Integer.valueOf(orderId);  // Chuyển String sang Integer
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-        
+        // tiếp tục xử lý chuyển Order thành OrderDTO hoặc các logic khác
         return convertToDTO(order);
     }
 
@@ -208,7 +209,9 @@ public class OrderService {
 
     @Transactional
     public OrderDTO updateOrderStatus(String orderId, String status) {
-        Order order = orderRepository.findById(orderId)
+        Integer id = Integer.valueOf(orderId);  // Chuyển String sang Integer
+
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         
         order.setStatus(status);
@@ -216,6 +219,7 @@ public class OrderService {
         
         return convertToDTO(order);
     }
+
 
     private OrderDTO convertToDTO(Order order) {
         OrderDTO dto = new OrderDTO();

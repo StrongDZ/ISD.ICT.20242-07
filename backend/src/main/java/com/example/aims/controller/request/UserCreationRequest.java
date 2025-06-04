@@ -2,8 +2,7 @@ package com.example.aims.controller.request;
 
 import java.io.Serializable;
 
-import org.hibernate.usertype.UserType;
-
+import com.example.aims.common.UserType;
 import com.example.aims.common.UserStatus;
 
 import lombok.Getter;

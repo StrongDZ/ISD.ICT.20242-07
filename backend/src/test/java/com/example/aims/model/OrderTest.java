@@ -12,8 +12,8 @@ class OrderTest {
     @BeforeEach
     void setUp() {
         // Tạo đối tượng Users bằng AllArgsConstructor
-        customerTest = new Users(1, "Customer", "thoconbexinh", "112233");
-
+        Users customerTest = new Users(1, "Customer", "thoconbexinh", "112233");
+        
         // Tạo đối tượng Order (giả sử constructor của Order đã được cập nhật để nhận
         // đối tượng Users)
         testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "PENDING", "Thị Cầu, Bắc Ninh",

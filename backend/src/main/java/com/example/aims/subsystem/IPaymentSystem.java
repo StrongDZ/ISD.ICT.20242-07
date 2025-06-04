@@ -8,6 +8,8 @@ import com.example.aims.repository.OrderRepository;
 
 public interface IPaymentSystem {
     public String getPaymentUrl(Order order);
+
     public String getRefundInfo(PaymentTransaction transaction);
+
     public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, OrderRepository orderRepository);
 }

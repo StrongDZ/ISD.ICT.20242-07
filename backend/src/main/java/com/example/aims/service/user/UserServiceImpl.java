@@ -1,4 +1,4 @@
-package com.example.aims.service;
+package com.example.aims.service.user;
 
 import java.util.List;
 
@@ -18,7 +18,6 @@ import com.example.aims.controller.request.UserUpdateRequest;
 import com.example.aims.controller.response.UserResponse;
 import com.example.aims.model.Users;
 import com.example.aims.repository.UsersRepository;
-import com.example.aims.service.user.UserService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

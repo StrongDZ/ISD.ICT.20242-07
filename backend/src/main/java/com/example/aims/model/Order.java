@@ -53,7 +53,7 @@ public class Order {
     private String orderID;
 
     @ManyToOne
-    @JoinColumn(name = "customerID")
+    @JoinColumn(name = "userID")
     private Users customer;
 
     private String customerName;

@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import com.example.aims.common.UserStatus;
@@ -16,13 +15,13 @@ import com.example.aims.common.UserType;
 @Setter
 @Entity
 @AllArgsConstructor
-@RequiredArgsConstructor
+@NoArgsConstructor
 @Table(name = "users")
 public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "userID")
     private Integer id;
     @Column(name ="user_name", unique = true, nullable = true, length = 255)
     private String username;
@@ -39,11 +38,11 @@ public class Users {
     @Column(name = "user_status")
     private UserStatus userStatus;
 
-    public Users(int i, String string, String string2, String string3) {
-        this.id = i;
-        this.gmail = string;
-        this.username = string2;
-        this.password = string3;
+    public Users(Integer id, String gmail, String username, String password) {
+        this.id = id;
+        this.gmail = gmail;
+        this.username = username;
+        this.password = password;
     }
 
 }

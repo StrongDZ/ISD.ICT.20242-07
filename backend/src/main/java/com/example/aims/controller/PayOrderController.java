@@ -9,7 +9,6 @@ import com.example.aims.subsystem.VNPay.VNPaySubsystem;
 
 @RestController
 @RequestMapping("/api/payments")
-@CrossOrigin(origins = "*")
 public class PayOrderController {
     @Autowired
     private PayOrderService payOrderService;

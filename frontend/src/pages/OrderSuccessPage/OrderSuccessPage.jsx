@@ -64,7 +64,7 @@ const OrderSuccessPage = () => {
 
             try {
                 const res = await axios.get(`http://localhost:8080/api/payments/url`, {
-                    params: { orderId: "ORDER-1004" }
+                    params: { orderId: "ORD001" }
                 });
                 // --- THÊM DÒNG NÀY ĐỂ IN URL RA CONSOLE ---
                 console.log("VNPay Payment URL:", res.data);

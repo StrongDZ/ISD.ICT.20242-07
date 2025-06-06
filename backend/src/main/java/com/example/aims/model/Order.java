@@ -50,6 +50,7 @@ import java.util.Objects;
 public class Order {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String orderID;
 
     @ManyToOne

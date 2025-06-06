@@ -23,11 +23,11 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "userID")
     private Integer id;
-    @Column(name ="user_name", unique = true, nullable = true, length = 255)
+    @Column(name ="user_name", unique = true, nullable = false, length = 255)
     private String username;
-    @Column(name ="password", unique = true, nullable = true, length = 255)
+    @Column(name ="password", unique = true, nullable = false, length = 255)
     private String password;
-    @Column(name = "gmail", unique = true, nullable = true, length = 15)
+    @Column(name = "gmail", unique = true, nullable = false, length = 255)
     private String gmail;
 
     @Enumerated(EnumType.STRING)

@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
     public long save(UserCreationRequest req){
         log.info("Saving user {}", req);
         Users user = new Users();
-        user.setUsername(req.getUserName());
+        user.setUsername(req.getUsername());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setGmail(req.getGmail());
         user.setType(req.getType());

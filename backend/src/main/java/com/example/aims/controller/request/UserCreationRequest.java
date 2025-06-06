@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 public class UserCreationRequest implements Serializable {
 
-    private String userName;
+    private String username;
     private String password;
     private String gmail;
     private UserType type;

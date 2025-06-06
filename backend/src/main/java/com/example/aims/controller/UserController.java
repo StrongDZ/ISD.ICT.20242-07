@@ -73,7 +73,7 @@ public class UserController {
 
     @Operation(summary = "Create User")
     @PostMapping("/add")
-    public ResponseEntity<Long> createUser(UserCreationRequest request) {
+    public ResponseEntity<Long> createUser(@RequestBody UserCreationRequest request) {
 
 
 //        Map<String, Object> result = new LinkedHashMap<>();
@@ -87,7 +87,7 @@ public class UserController {
 
     @Operation(summary = "Update User")
     @PutMapping("/upd")
-    public Map<String, Object> updateUser(UserUpdateRequest request) {
+    public Map<String, Object> updateUser(@RequestBody UserUpdateRequest request) {
 
         userService.update(request);
         Map<String, Object> result = new LinkedHashMap<>();
@@ -99,7 +99,7 @@ public class UserController {
 
     @Operation(summary = "Change User Password")
     @PatchMapping("/change_pwd")
-    public Map<String, Object> changePassword(UserPasswordRequest request) {
+    public Map<String, Object> changePassword(@RequestBody UserPasswordRequest request) {
         userService.changePassword(request);
         log.info("Change password for user: {}", request);
         Map<String, Object> result = new LinkedHashMap<>();

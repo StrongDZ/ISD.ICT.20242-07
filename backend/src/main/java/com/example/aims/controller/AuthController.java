@@ -16,13 +16,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
@@ -35,26 +37,36 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        log.info("Attempting to authenticate user: {}", loginRequest.getUsername());
+        
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+            log.info("Authentication successful for user: {}", loginRequest.getUsername());
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String jwt = jwtUtils.generateJwtToken(
-            userDetails.getUsername(),
-            userDetails.getAuthorities().iterator().next().getAuthority(),
-            userDetails.getUserStatus()
-        );
-
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(new JwtResponseDTO(jwt,
-                userDetails.getId(),
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            log.info("User details loaded: {}", userDetails.getUsername());
+            
+            String jwt = jwtUtils.generateJwtToken(
                 userDetails.getUsername(),
-                userDetails.getGmail(),
-                roles));
+                userDetails.getAuthorities().iterator().next().getAuthority(),
+                userDetails.getUserStatus()
+            );
+            log.info("JWT token generated successfully");
+
+            JwtResponseDTO response = new JwtResponseDTO(jwt,
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getGmail(),
+                    userDetails.getRoles());
+            log.info("Response DTO created: {}", response);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Authentication failed for user: {}", loginRequest.getUsername(), e);
+            throw e;
+        }
     }
 
 } 

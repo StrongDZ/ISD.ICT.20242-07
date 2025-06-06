@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
         log.info("Saving user {}", req);
         Users user = new Users();
         user.setUsername(req.getUserName());
-        user.setPassword(req.getPassword());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setGmail(req.getGmail());
         user.setType(req.getType());
         user.setUserStatus(UserStatus.NONE);
@@ -124,15 +124,23 @@ public class UserServiceImpl implements UserService {
         
         if (req.getPassword().equals(req.getConfirmPassword())) {
             user.setPassword(passwordEncoder.encode(req.getPassword()));
-        } // Set password trực tiếp không cần encode
-        else{
+            userRepository.save(user);
+            log.info("Password updated for user: {}", user.getUsername());
+        } else {
             log.info("Compare password failed");
-            //throw new RuntimeException("Password not match");
+            throw new RuntimeException("Password not match");
         }
-        userRepository.save(user);
-        log.info("After password for user: {}", user.getUsername());
-        return;
     }
+
+    @Transactional
+    public void updatePassword(Integer userId, String newPassword) {
+        log.info("Updating password for user ID: {}", userId);
+        Users user = getUserEntityById(userId);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password updated for user: {}", user.getUsername());
+    }
+
     @Override
     @Transactional
     /**

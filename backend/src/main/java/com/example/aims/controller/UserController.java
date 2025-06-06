@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -121,5 +122,20 @@ public class UserController {
         return result;
     }
 
+    @Operation(summary = "Update User Password")
+    @PostMapping("/{userId}/update-password")
+    public Map<String, Object> updatePassword(@PathVariable Integer userId, @RequestBody Map<String, String> request) {
+        log.info("Updating password for user ID: {}", userId);
+        String newPassword = request.get("password");
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new RuntimeException("Password cannot be empty");
+        }
+        userService.updatePassword(userId, newPassword);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", HttpStatus.OK.value());
+        result.put("message", "Password updated successfully");
+        return result;
+    }
 
 }

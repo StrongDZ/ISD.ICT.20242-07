@@ -23,6 +23,7 @@ public class UserDetailsImpl implements UserDetails {
     @JsonIgnore
     private String password;
 
+    @JsonIgnore
     private Collection<? extends GrantedAuthority> authorities;
     private UserStatus userStatus;
 
@@ -48,6 +49,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUserStatus());
     }
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
@@ -103,5 +105,11 @@ public class UserDetailsImpl implements UserDetails {
 
     public UserStatus getUserStatus() {
         return userStatus;
+    }
+
+    public List<String> getRoles() {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
     }
 } 

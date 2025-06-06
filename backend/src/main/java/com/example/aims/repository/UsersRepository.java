@@ -9,6 +9,7 @@ import com.example.aims.model.Users;
 
 @Repository
 public interface UsersRepository extends JpaRepository<Users, Integer> {
-    Optional<Users> findByUsername(String username);
-    boolean existsByUsername(String username);
+   // Optional<Users> findByUsername(String username);
+   // boolean existsByUsername(String username);
+   Users findByUsername(String username);
 }

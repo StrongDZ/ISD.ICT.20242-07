@@ -10,19 +10,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import com.example.aims.common.UserStatus;
 import com.example.aims.common.UserType;
 import com.example.aims.controller.request.UserCreationRequest;
 import com.example.aims.controller.request.UserPasswordRequest;
 import com.example.aims.controller.request.UserUpdateRequest;
 import com.example.aims.controller.response.UserResponse;
-import com.example.aims.model.Users;
 import com.example.aims.repository.UsersRepository;
-
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
+import com.example.aims.model.Users;
 
 @Service
 @Slf4j(topic = "USER_SERVICE")
@@ -82,7 +81,6 @@ public class UserServiceImpl implements UserService {
     public UserResponse findByEmail(String email){
         return null;
     }
-
     public long save(UserCreationRequest req){
         log.info("Saving user {}", req);
         Users user = new Users();
@@ -152,5 +150,4 @@ public class UserServiceImpl implements UserService {
     private Users getUserEntityById(Integer id){
         return userRepository.findById(id).orElseThrow(()->new RuntimeException("User not found"));
     }
-
 }

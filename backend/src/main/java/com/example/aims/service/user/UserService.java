@@ -1,12 +1,10 @@
 package com.example.aims.service.user;
 
 import org.springframework.stereotype.Service;
-
 import com.example.aims.controller.request.UserCreationRequest;
 import com.example.aims.controller.request.UserPasswordRequest;
 import com.example.aims.controller.request.UserUpdateRequest;
 import com.example.aims.controller.response.UserResponse;
-
 import java.util.List;
 @Service
 public interface UserService {

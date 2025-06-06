@@ -88,15 +88,14 @@ public class UserController {
     @Operation(summary = "Update User")
     @PutMapping("/upd")
     public Map<String, Object> updateUser(@RequestBody UserUpdateRequest request) {
-
         userService.update(request);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", HttpStatus.ACCEPTED.value());
-        result.put("message", "user updated sucessfully");
+        result.put("message", "user updated successfully");
         result.put("data", "");
         return result;
     }
-
+    
     @Operation(summary = "Change User Password")
     @PatchMapping("/change_pwd")
     public Map<String, Object> changePassword(@RequestBody UserPasswordRequest request) {
@@ -119,22 +118,6 @@ public class UserController {
         result.put("status", HttpStatus.RESET_CONTENT.value());
         result.put("message", "delete user sucessfully");
         result.put("data", "");
-        return result;
-    }
-
-    @Operation(summary = "Update User Password")
-    @PostMapping("/{userId}/update-password")
-    public Map<String, Object> updatePassword(@PathVariable Integer userId, @RequestBody Map<String, String> request) {
-        log.info("Updating password for user ID: {}", userId);
-        String newPassword = request.get("password");
-        if (newPassword == null || newPassword.trim().isEmpty()) {
-            throw new RuntimeException("Password cannot be empty");
-        }
-        userService.updatePassword(userId, newPassword);
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("status", HttpStatus.OK.value());
-        result.put("message", "Password updated successfully");
         return result;
     }
 

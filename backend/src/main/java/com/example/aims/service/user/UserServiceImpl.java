@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public void update(UserUpdateRequest req){
-        //get user by ID;
+         //get user by ID;
 
         log.info("Updating User: {}", req);
         Users user = getUserEntityById(req.getId());
@@ -113,7 +113,6 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
         log.info("Updated user {}", user);
-
 
     }
     @Override

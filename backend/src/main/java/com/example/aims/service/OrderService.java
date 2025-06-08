@@ -130,10 +130,9 @@ public class OrderService {
     
     private Order createOrder(Users customer) {
         Order order = new Order();
-        order.setOrderID(UUID.randomUUID().toString());
         order.setCustomer(customer);
         order.setStatus("PENDING");
-        return orderRepository.save(order);
+        return order;
     }
     
     private double createOrderItemsAndUpdateProducts(Order order, List<CartItem> cartItems) {
@@ -172,11 +171,11 @@ public class OrderService {
         deliveryInfoRepository.save(deliveryInfo);
     }
     
-    private void createPaymentTransaction(Order order) {
+    private void createPaymentTransaction(Order order, double totalPrice) {
         PaymentTransaction paymentTransaction = new PaymentTransaction();
-        paymentTransaction.setOrderID(order.getOrderID());
         paymentTransaction.setOrder(order);
         paymentTransaction.setDatetime(new Date());
+        paymentTransaction.setAmount(totalPrice);
     
         paymentTransactionRepository.save(paymentTransaction);
     }
@@ -186,7 +185,6 @@ public class OrderService {
         double deliveryFee = 5.0;
     
         Invoice invoice = new Invoice();
-        invoice.setOrderID(order.getOrderID());
         invoice.setOrder(order);
         invoice.setProductPriceExcludingVAT(totalPrice);
         invoice.setProductPriceIncludingVAT(totalPrice * (1 + vat));
@@ -201,20 +199,22 @@ public class OrderService {
 
     @Transactional
     public OrderDTO createOrderFromCart(Integer customerId, DeliveryInfoDTO deliveryInfoDTO) {
-    Users customer = validateAndGetCustomer(customerId);
-    List<CartItem> cartItems = getCartItemsForCustomer(customer);
+        Users customer = validateAndGetCustomer(customerId);
+        List<CartItem> cartItems = getCartItemsForCustomer(customer);
 
-    Order order = createOrder(customer);
-    double totalPrice = createOrderItemsAndUpdateProducts(order, cartItems);
-    
-    createDeliveryInfo(order.getOrderID(), deliveryInfoDTO);
-    createPaymentTransaction(order);
-    createInvoice(order, totalPrice);
-    
-    clearCart(customer);
+        Order order = createOrder(customer);
+        order = orderRepository.save(order);
+        
+        double totalPrice = createOrderItemsAndUpdateProducts(order, cartItems);
+        
+        createDeliveryInfo(order.getOrderID(), deliveryInfoDTO);
+        createPaymentTransaction(order, totalPrice);
+        createInvoice(order, totalPrice);
+        
+        clearCart(customer);
 
-    return convertToDTO(order);
-}
+        return convertToDTO(order);
+    }
 
     // @Transactional
     // public OrderDTO createOrderFromCart(Integer customerId, DeliveryInfoDTO deliveryInfoDTO) {

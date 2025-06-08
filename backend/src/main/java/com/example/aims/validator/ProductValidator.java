@@ -1,6 +1,6 @@
 package com.example.aims.validator;
 
-import com.example.aims.dto.ProductDTO;
+import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.exception.BadRequestException;
 import com.example.aims.repository.ProductRepository;
 import org.springframework.stereotype.Component;
@@ -32,4 +32,4 @@ public class ProductValidator {
             throw new BadRequestException("Invalid category: " + category);
         }
     }
-} 
+}

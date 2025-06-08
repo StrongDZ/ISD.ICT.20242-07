@@ -35,18 +35,25 @@ import java.util.Date;
 // It encapsulates transaction-related fields only – no mixed responsibilities.
 
 // ✅ OCP (Open-Closed Principle)
-// While the class doesn’t include logic, it's open to extension by adding new fields or utility methods without modifying existing structure.
+// While the class doesn’t include logic, it's open to extension by adding new
+// fields or utility methods without modifying existing structure.
 
 // ✅ LSP (Liskov Substitution Principle)
-// The class can be safely extended or used as a base entity. No overridden behavior that could violate substitutability.
+// The class can be safely extended or used as a base entity. No overridden
+// behavior that could violate substitutability.
 
 // ✅ ISP (Interface Segregation Principle)
-// Not applicable here – the class does not implement any interface, and it doesn't force unwanted methods on clients.
+// Not applicable here – the class does not implement any interface, and it
+// doesn't force unwanted methods on clients.
 
 // ⚠️ DIP (Dependency Inversion Principle)
-// Currently, this class depends directly on the `Order` entity through `@OneToOne`, which is normal in JPA for entity relationships.
-// 🔧 However, to respect DIP better in the service layer, avoid relying on full `PaymentTransaction` objects when only parts (e.g., `content`, `datetime`) are needed.
-// Instead, services can depend on abstraction (e.g., DTOs or interfaces) or pass only necessary fields.
+// Currently, this class depends directly on the `Order` entity through
+// `@OneToOne`, which is normal in JPA for entity relationships.
+// 🔧 However, to respect DIP better in the service layer, avoid relying on full
+// `PaymentTransaction` objects when only parts (e.g., `content`, `datetime`)
+// are needed.
+// Instead, services can depend on abstraction (e.g., DTOs or interfaces) or
+// pass only necessary fields.
 
 public class PaymentTransaction {
 
@@ -63,9 +70,16 @@ public class PaymentTransaction {
     @MapsId
     @JoinColumn(name = "orderID")
     private Order order;
-
-    private String content;
-
-    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "transaction_No")
+    private String transactionNo;
+    @Column(name = "transaction_bank")
+    private String transactionBank;
+    @Column(name = "transaction_status")
+    private String transactionStatus;
+    @Column(name = "card_type")
+    private String cardType;
+    @Column(name = "amount", nullable = false)
+    private Double amount;
+    @Column(name = "datetime", nullable = false)
     private Date datetime;
 }

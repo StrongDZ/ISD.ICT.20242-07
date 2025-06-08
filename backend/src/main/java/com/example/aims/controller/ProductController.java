@@ -80,4 +80,16 @@ public class ProductController {
             @RequestParam String keyword) {
         return ResponseEntity.ok(productService.searchProducts(keyword));
     }
+
+    // @Operation(summary = "Check Product's Quantity", description = "")
+    // @ApiResponses(value = {
+    //     @ApiResponse(responseCode = "200", description = "Successfully check product's quantity",
+    //             content = @Content(mediaType = "application/json", 
+    //             schema = @Schema(implementation = ProductDTO.class))),
+    //     @ApiResponse(responseCode = "500", description = "Internal server error")
+    // })
+    // @GetMapping("/check-quantity")
+    // public ResponseEntity<List
+
+    
 }

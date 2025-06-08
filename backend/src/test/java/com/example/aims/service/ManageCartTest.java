@@ -44,7 +44,7 @@ public class ManageCartTest {
     @Test
     public void test_add_new_product_to_cart_successfully() {
         // Arrange
-        String customerId = "customer123";
+        Integer customerId = 1;
         String productId = "product456";
         Integer quantity = 2;
 
@@ -70,7 +70,7 @@ public class ManageCartTest {
     @Test
     public void test_add_product_with_invalid_quantity_throws_exception() {
         // Arrange
-        String customerId = "customer123";
+        Integer customerId = 1;
         String productId = "product456";
         Integer quantity = 0;
 
@@ -90,7 +90,7 @@ public class ManageCartTest {
         @Test
     public void test_update_cart_item_successfully() {
         // Arrange
-        String customerId = "customer123";
+        Integer customerId = 1;
         String productId = "product456";
         int newQuantity = 3;
 
@@ -121,7 +121,7 @@ public class ManageCartTest {
     @Test
     public void test_update_cart_item_insufficient_stock_throws_exception() {
         // Arrange
-        String customerId = "customer123";
+        Integer customerId = 1;
         String productId = "product456";
         int newQuantity = 15;
 
@@ -145,7 +145,7 @@ public class ManageCartTest {
     @Test
     public void test_remove_cart_item_successfully() {
         // Arrange
-        String customerId = "customer123";
+        Integer customerId = 1;
         String productId = "product456";
         CartItem.CartItemId cartItemId = new CartItem.CartItemId(customerId, productId);
 
@@ -161,7 +161,7 @@ public class ManageCartTest {
     @Test
     public void test_remove_nonexistent_cart_item_throws_exception() {
         // Arrange
-        String customerId = "customer123";
+        Integer customerId = 1;
         String productId = "product456";
         CartItem.CartItemId cartItemId = new CartItem.CartItemId(customerId, productId);
 
@@ -177,9 +177,11 @@ public class ManageCartTest {
 
 
 
-    private Users createMockUser(String customerId) {
-        Users user = new Users("1", "customer", "hoangmanh", "manhlun123");
+    private Users createMockUser(Integer customerId) {
+        Users user = new Users();
         user.setId(customerId);
+        user.setUsername("hoangmanh");
+        user.setPassword("manhlun123");
         return user;
     }
 

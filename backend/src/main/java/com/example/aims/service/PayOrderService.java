@@ -1,11 +1,33 @@
 package com.example.aims.service;
 
+import com.example.aims.exception.PaymentException.AbnormalTransactionException;
+import com.example.aims.exception.PaymentException.AccountnotRegisterException;
+import com.example.aims.exception.PaymentException.BlockAccountException;
+import com.example.aims.exception.PaymentException.CustomerCancelException;
+import com.example.aims.exception.PaymentException.ExceedQuotasException;
+import com.example.aims.exception.PaymentException.InsufficientBalanceException;
+import com.example.aims.exception.PaymentException.OtherException;
+import com.example.aims.exception.PaymentException.PaymentException;
+import com.example.aims.exception.PaymentException.SystemMaintananceException;
+import com.example.aims.exception.PaymentException.TimeRunOutPaymentException;
+import com.example.aims.exception.PaymentException.WrongAccountAuthenException;
+import com.example.aims.exception.PaymentException.WrongOTPInputException;
+import com.example.aims.exception.PaymentException.WrongPasswordException;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
+import com.example.aims.repository.OrderRepository;
+import com.example.aims.repository.PaymentTransactionRepository;
+import com.example.aims.subsystem.VNPay.VNPaySubsystem;
+
+import jakarta.validation.constraints.NotNull;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,31 +60,28 @@ public class PayOrderService {
     // used.
     // → Suggestion: In future, pass only necessary fields (e.g., orderId,
     // totalAmount) to reduce coupling to Data level.
+    @Autowired
+    private final OrderRepository currentOrder; // Biến instance để giữ đơn hàng hiện tại (chỉ dùng cho test)
+    @Autowired
+    private final PaymentTransactionRepository currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
 
-    private Order currentOrder; // Biến instance để giữ đơn hàng hiện tại (chỉ dùng cho test)
-    private PaymentTransaction currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
+    private VNPaySubsystem vnpay = new VNPaySubsystem();
 
-    public void setCurrentOrderForTest(Order order) {
-        this.currentOrder = order;
+    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository) {
+        this.currentOrder = orderRepository;
+        this.currentPaymentTransaction = paymentTransactionRepository;
     }
 
-    public Optional<Order> findOrderById(String orderId) {
-        if (currentOrder != null && currentOrder.getOrderID().equals(orderId)) {
-            return Optional.of(currentOrder);
-        }
-        return Optional.empty();
-    }
+    // public Optional<Order> findOrderById(String orderId) {
+    // return Optional.ofNullable(currentOrder.findByOrderId(orderId));
+    // }
 
-    public Optional<PaymentTransaction> findPaymentTransactionByOrderId(String orderId) {
-        if (currentPaymentTransaction != null && currentPaymentTransaction.getOrder().getOrderID().equals(orderId)) {
-            return Optional.of(currentPaymentTransaction);
-        }
-        return Optional.empty();
-    }
-
-    @Transactional
-    public PaymentTransaction processPayment(String orderId, String content) {
-        Optional<Order> orderOptional = findOrderById(orderId);
+    // public Optional<PaymentTransaction> findPaymentTransactionByOrderId(String
+    // orderId) {
+    // return Optional.ofNullable(currentPaymentTransaction.findByOrderId(orderId));
+    // }
+    public String getPaymentURL(String orderId) {
+        Optional<Order> orderOptional = currentOrder.findByOrderID(orderId);
         if (orderOptional.isEmpty()) {
             throw new IllegalArgumentException("Order not found with ID: " + orderId);
         }
@@ -72,36 +91,69 @@ public class PayOrderService {
             throw new IllegalStateException(
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
+        return vnpay.getPaymentUrl(order); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
+    }
 
-        // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
-        boolean paymentSuccessful = true; // Tạm thời gán true để demo
+    public String processPayment(Map<String, String> allRequestParams) {
+        String responseCode = allRequestParams.get("vnp_ResponseCode");
+        if (responseCode.equals("00")) {
+            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, currentOrder);
 
-        if (paymentSuccessful) {
-            // 2. Cập nhật trạng thái đơn hàng thành CONFIRMED
-            order.setStatus("CONFIRMED");
-            // Không cần "lưu" vào store nữa
-
-            // 3. Tạo bản ghi giao dịch thanh toán
-            currentPaymentTransaction = new PaymentTransaction();
-            currentPaymentTransaction.setOrder(order); // Thiết lập mối quan hệ với Order
-            currentPaymentTransaction.setContent(content);
-            currentPaymentTransaction.setDatetime(new Date());
-
-            return currentPaymentTransaction;
-        } else {
-            // Xử lý trường hợp thanh toán thất bại
-            currentPaymentTransaction = new PaymentTransaction();
-            currentPaymentTransaction.setOrder(order);
-            currentPaymentTransaction.setContent(content);
-            currentPaymentTransaction.setDatetime(new Date());
-
-            throw new RuntimeException("Payment processing failed for order ID: " + orderId);
+            PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
+            String transactionNo = savedTransaction.getTransactionNo();
+            String orderID = allRequestParams.get("vnp_TxnRef");
+            Order order = currentOrder.findByOrderID(orderID)
+                    .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
+            order.setStatus("PENDING");
+            currentOrder.save(order);
+            sendMail(transactionNo);
+            return "redirect:" + "http://localhost:5173/payment-success";
+        } else if (responseCode.equals("24")) { // Payment decline
+            return "redirect:" + "http://localhost:5173/invoice";
+        } else { // Payment error
+            try {
+                responseCodeError(responseCode);
+            } catch (PaymentException e) {
+                System.out.println(e.getMessage());
+            }
+            return "redirect:" + "http://localhost:5173/payment-error";
         }
     }
 
-    public PaymentTransaction getPaymentTransactionByOrderId(String orderId) {
-        return findPaymentTransactionByOrderId(orderId).orElse(null);
+    public void sendMail(String transactionNo) {
     }
+
+    public void responseCodeError(@NotNull String responseCode) {
+        switch (responseCode) {
+            case "07":
+                throw new AbnormalTransactionException();
+            case "09":
+                throw new AccountnotRegisterException();
+            case "10":
+                throw new WrongAccountAuthenException();
+            case "11":
+                throw new TimeRunOutPaymentException();
+            case "12":
+                throw new BlockAccountException();
+            case "13":
+                throw new WrongOTPInputException();
+            case "24":
+                throw new CustomerCancelException();
+            case "51":
+                throw new InsufficientBalanceException();
+            case "65":
+                throw new ExceedQuotasException();
+            case "75":
+                throw new SystemMaintananceException();
+            case "79":
+                throw new WrongPasswordException();
+            case "99":
+                throw new OtherException();
+        }
+    }
+    // public PaymentTransaction getPaymentTransactionByOrderId(String orderId) {
+    // return findPaymentTransactionByOrderId(orderId).orElse(null);
+    // }
 
     // Không có nơi lưu trữ dữ liệu tập trung trong class này
 }

@@ -65,8 +65,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/api/test/**").permitAll()
-                    .requestMatchers("/api/**").permitAll()
-                    .requestMatchers("/user/**").permitAll()
+                    .requestMatchers("/api/user/add").permitAll()
+                    .requestMatchers("/api/user/**").authenticated()
                     .requestMatchers("/actuator/**", "/v3/**", "/webjars/**", "/swagger-ui*/*swagger-initializer.js", "/swagger-ui*/**", "/favicon.ico").permitAll()
                     .anyRequest().authenticated()
             );

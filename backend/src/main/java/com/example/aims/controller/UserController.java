@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,7 +29,7 @@ import com.example.aims.controller.response.UserResponse;
 import com.example.aims.service.user.UserService;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @Tag(name= "User Controller")
 @Slf4j(topic = "USER-CONTROLLER")
 public class UserController {
@@ -42,6 +43,7 @@ public class UserController {
 
     @Operation(summary = "Get User List")
     @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
     public Map<String, Object> getList(@RequestParam (required = false)String keyword,
                                        @RequestParam (defaultValue = "0") int page,
                                        @RequestParam (defaultValue = "20") int size)
@@ -58,6 +60,7 @@ public class UserController {
     }
     @Operation(summary = "Get User Detail")
     @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Map<String, Object> getUserDetail(@PathVariable Long userId) {
         // UserResponse userDetail = new UserResponse();
         // userDetail.setID(1);
@@ -87,6 +90,7 @@ public class UserController {
 
     @Operation(summary = "Update User")
     @PutMapping("/upd")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     public Map<String, Object> updateUser(@RequestBody UserUpdateRequest request) {
         userService.update(request);
         Map<String, Object> result = new LinkedHashMap<>();
@@ -98,6 +102,7 @@ public class UserController {
     
     @Operation(summary = "Change User Password")
     @PatchMapping("/change_pwd")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     public Map<String, Object> changePassword(@RequestBody UserPasswordRequest request) {
         userService.changePassword(request);
         log.info("Change password for user: {}", request);
@@ -110,6 +115,7 @@ public class UserController {
 
     @Operation(summary = "Delete User") // xóa mềm
     @DeleteMapping("/del/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Map<String, Object> deleteUser(@PathVariable Integer userId) {
         userService.delete(userId);
         log.info("Delete user with ID: {}", userId);

@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderDTO {
     private String id;
-    private String customerID;
+    private Integer customerID;
     private String status;
     private List<OrderItemDTO> items;
     private DeliveryInfoDTO deliveryInfo;

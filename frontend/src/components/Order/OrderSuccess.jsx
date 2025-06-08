@@ -177,11 +177,6 @@ const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders }) =
                     <Typography variant="body2">
                         <strong>Important:</strong> This is a VNPay order. Please complete the payment via VNPay by clicking the button below.
                     </Typography>
-                    <Box mt={2}>
-                        <Button variant="contained" color="success" onClick={() => window.open(paymentUrl, "_blank")}>
-                            Pay via VNPay
-                        </Button>
-                    </Box>
                 </Alert>
             )}
 

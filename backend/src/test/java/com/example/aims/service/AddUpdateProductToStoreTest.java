@@ -76,8 +76,8 @@
          dto.setGenre("Programming");
     
          // Mock: người quản lý đã tồn tại trong hệ thống
-         Users mockManager = new Users("manager001", "manager_user", "manager", "password123");
-         when(userRepository.findById("manager001")).thenReturn(Optional.of(mockManager));
+         Users mockManager = new Users(1, "manager_user", "manager", "password123");
+         when(userRepository.findById(1)).thenReturn(Optional.of(mockManager));
     
          // Mock các thao tác lưu
          when(productRepo.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -85,7 +85,7 @@
          when(shopItemRepository.save(any(ShopItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
     
          // Gọi hàm createProduct
-         ProductDTO result = productService.createProduct(dto, "manager001");
+         ProductDTO result = productService.createProduct(dto, 1);
     
          // Kiểm tra kết quả trả về
          assertEquals("P001", result.getProductID());
@@ -118,7 +118,7 @@
 
          // Gọi phương thức và kiểm tra ngoại lệ
          Exception ex = assertThrows(RuntimeException.class, () ->
-             productService.createProduct(dto, "manager001")
+             productService.createProduct(dto, 1)
          );
 
          // Kiểm tra thông báo lỗi
@@ -139,11 +139,11 @@
 
          // Giả lập: chưa tồn tại product
          when(productRepo.existsById("P002")).thenReturn(false);
-         when(userRepository.findById("manager001")).thenReturn(Optional.of(new Users()));
+         when(userRepository.findById(1)).thenReturn(Optional.of(new Users()));
 
          // Gọi phương thức và bắt lỗi
          Exception ex = assertThrows(RuntimeException.class, () ->
-             productService.createProduct(dto, "manager001")
+             productService.createProduct(dto, 1)
          );
 
          // Kiểm tra thông báo lỗi
@@ -334,9 +334,9 @@
          dto.setCategory("book");
 
          when(productRepo.existsById("P010")).thenReturn(false);
-         when(userRepository.findById("manager001")).thenReturn(Optional.empty());
+         when(userRepository.findById(1)).thenReturn(Optional.empty());
 
-         Exception ex = assertThrows(RuntimeException.class, () -> productService.createProduct(dto, "manager001"));
+         Exception ex = assertThrows(RuntimeException.class, () -> productService.createProduct(dto, 1));
          assertTrue(ex.getMessage().toLowerCase().contains("manager not found"));
      }
 

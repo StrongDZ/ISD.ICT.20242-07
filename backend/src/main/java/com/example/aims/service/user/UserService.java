@@ -1,4 +1,4 @@
-package com.example.aims.service;
+package com.example.aims.service.user;
 
 import org.springframework.stereotype.Service;
 
@@ -18,5 +18,4 @@ public interface UserService {
     void update(UserUpdateRequest req);
     void changePassword(UserPasswordRequest req);
     void delete(Integer id);
-
 }

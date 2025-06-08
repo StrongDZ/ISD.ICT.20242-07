@@ -131,14 +131,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Transactional
-    public void updatePassword(Integer userId, String newPassword) {
-        log.info("Updating password for user ID: {}", userId);
-        Users user = getUserEntityById(userId);
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-        log.info("Password updated for user: {}", user.getUsername());
-    }
 
     @Override
     @Transactional

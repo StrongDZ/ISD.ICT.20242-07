@@ -108,7 +108,7 @@ public class UserController {
         return result;
     }
 
-    @Operation(summary = "Delete User")
+    @Operation(summary = "Delete User") // xóa mềm
     @DeleteMapping("/del/{userId}")
     public Map<String, Object> deleteUser(@PathVariable Integer userId) {
         userService.delete(userId);

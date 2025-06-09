@@ -20,7 +20,7 @@ public class JwtResponseDTO {
     private String type = "Bearer";
     
     @JsonProperty("id")
-    private String id;
+    private Integer id;
     
     @JsonProperty("username")
     private String username;
@@ -31,7 +31,7 @@ public class JwtResponseDTO {
     @JsonProperty("roles")
     private List<String> roles;
 
-    public JwtResponseDTO(String token, String id, String username, String email, List<String> roles) {
+    public JwtResponseDTO(String token, Integer id, String username, String email, List<String> roles) {
         this.token = token;
         this.id = id;
         this.username = username;

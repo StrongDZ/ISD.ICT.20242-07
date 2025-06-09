@@ -2,6 +2,10 @@ package com.example.aims.security;
 
 import com.example.aims.model.Users;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import com.example.aims.common.UserStatus;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -13,10 +17,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Getter
+@Setter
 public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
 
-    private String id;
+    private Integer id;
     private String username;
     private String gmail;
     
@@ -27,7 +33,7 @@ public class UserDetailsImpl implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
     private UserStatus userStatus;
 
-    public UserDetailsImpl(String id, String username, String gmail, String password,
+    public UserDetailsImpl(Integer id, String username, String gmail, String password,
                            Collection<? extends GrantedAuthority> authorities, UserStatus userStatus) {
         this.id = id;
         this.username = username;
@@ -41,7 +47,7 @@ public class UserDetailsImpl implements UserDetails {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getType().name()));
 
         return new UserDetailsImpl(
-                String.valueOf(user.getId()),
+                user.getId(),
                 user.getUsername(),
                 user.getGmail(),
                 user.getPassword(),
@@ -55,7 +61,7 @@ public class UserDetailsImpl implements UserDetails {
         return authorities;
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 

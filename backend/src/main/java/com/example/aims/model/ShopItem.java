@@ -21,8 +21,8 @@ public class ShopItem {
     private Product product;
     
     @ManyToOne
-    @MapsId("userID")
-    @JoinColumn(name = "userid", insertable = false, updatable = false)
+    @MapsId("managerID")
+    @JoinColumn(name = "managerID")
     private Users manager;
     
     @Embeddable
@@ -31,6 +31,6 @@ public class ShopItem {
     @AllArgsConstructor
     public static class ShopItemId implements java.io.Serializable {
         private String productID;
-        private Integer userID;
+        private Integer managerID;
     }
 }

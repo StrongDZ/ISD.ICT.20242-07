@@ -16,8 +16,8 @@ public class CartItem {
     private CartItemId id;
     
     @ManyToOne
-    @MapsId("userID")
-    @JoinColumn(name = "userID", insertable = false, updatable = false)
+    @MapsId("customerID")
+    @JoinColumn(name = "customerID")
     private Users customer;
     
     @ManyToOne
@@ -32,7 +32,7 @@ public class CartItem {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CartItemId implements java.io.Serializable {
-        private Integer userID;
+        private Integer customerID;
         private String productID;
     }
 }

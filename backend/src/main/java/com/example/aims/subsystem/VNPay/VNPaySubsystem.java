@@ -36,7 +36,7 @@ public class VNPaySubsystem implements IPaymentSystem {
         Double orderTotal = orderEntity.getTotalAmount();
         int amount = (int) (orderTotal * 100);
         // Build content for payment
-        String content = orderEntity.getDeliveryInfo().getAddressDetail();
+        String content = orderEntity.getShippingAddress();
         if (content == null || content.isEmpty()) {
             content = "Order: " + orderEntity.getOrderID();
         }

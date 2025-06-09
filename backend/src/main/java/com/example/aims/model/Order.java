@@ -50,17 +50,19 @@ import java.util.Objects;
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String orderID;
 
     @ManyToOne
-    @JoinColumn(name = "userID")
+    @JoinColumn(name = "customerID")
     private Users customer;
 
     private String customerName;
     private String phoneNumber;
     private String status;
 
+
+    private String shippingAddress;
+    private String province;
     private Double totalAmount;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -81,5 +83,16 @@ public class Order {
         this.status = "APPROVED";
     }
 
+    public Order(String id, Users customer, String customerName, String phoneNumber, String status,
+             String shippingAddress, String province, Double totalAmount) {
+    this.orderID = id;
+    this.customer = customer;
+    this.customerName = customerName;
+    this.phoneNumber = phoneNumber;
+    this.status = status;
+    this.shippingAddress = shippingAddress;
+    this.province = province;
+    this.totalAmount = totalAmount;
+}
 
 }

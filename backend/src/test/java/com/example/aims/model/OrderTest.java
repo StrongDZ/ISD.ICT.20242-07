@@ -16,15 +16,8 @@ class OrderTest {
         
         // Tạo đối tượng Order (giả sử constructor của Order đã được cập nhật để nhận
         // đối tượng Users)
-        testthisOrder = new Order(
-    "1",
-    customerTest,
-    "Thùy Dương",
-    "0373629481",
-    "PENDING",
-    345.000,
-    null // hoặc một DeliveryInfo giả nếu cần
-);
+        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "PENDING", "Thị Cầu, Bắc Ninh",
+                "Bắc Ninh", 345.000);
     }
 
     @Test
@@ -34,7 +27,7 @@ class OrderTest {
 
     @Test
     void getShippingAddress() {
-        assertEquals("Thị Cầu, Bắc Ninh", testthisOrder.getDeliveryInfo().getAddressDetail());
+        assertEquals("Thị Cầu, Bắc Ninh", testthisOrder.getShippingAddress());
     }
 
     @Test
@@ -45,15 +38,8 @@ class OrderTest {
     @Test
     void checkOrderStatus() {
         assertEquals("PENDING", testthisOrder.checkOrderStatus());
-        testthisOrder = new Order(
-            "1",
-            customerTest,
-            "Thùy Dương",
-            "0373629481",
-            "PENDING",
-            345.000,
-            null // hoặc một DeliveryInfo giả nếu cần
-        );
+        testthisOrder = new Order("1", customerTest, "Thùy Dương", "0373629481", "ABCXYZ", "Bắc Ninh",
+                "Thị Cầu, Bắc Ninh", 345.000);
 
         assertEquals("Wrong input of Status", testthisOrder.checkOrderStatus());
     }

@@ -22,7 +22,7 @@ public class ShopItem {
     
     @ManyToOne
     @MapsId("userID")
-    @JoinColumn(name = "userid", insertable = false, updatable = false)
+    @JoinColumn(name = "userID", insertable = false, updatable = false)
     private Users manager;
     
     @Embeddable

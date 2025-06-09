@@ -20,7 +20,7 @@ public class CartController {
         @GetMapping
         public ResponseEntity<List<CartItemDTO>> getCartItems() {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String customerID = authentication.getName();
+            Integer customerID = Integer.valueOf(authentication.getName());
             
             return ResponseEntity.ok(cartService.getCartItems(customerID));
         }
@@ -28,7 +28,7 @@ public class CartController {
         @PostMapping("/{productId}")
         public ResponseEntity<CartItemDTO> addToCart(@PathVariable String productId, @RequestParam Integer quantity) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String customerID = authentication.getName();
+            Integer customerID = Integer.valueOf(authentication.getName());
             
             return ResponseEntity.ok(cartService.addToCart(customerID, productId, quantity));
         }
@@ -36,7 +36,7 @@ public class CartController {
         @PutMapping("{productId}")
         public ResponseEntity<CartItemDTO> updateCartItem(@PathVariable String productId, @RequestParam Integer quantity) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String customerID = authentication.getName();
+            Integer customerID = Integer.valueOf(authentication.getName());
             
             return ResponseEntity.ok(cartService.updateCartItem(customerID, productId, quantity));
         }
@@ -44,7 +44,7 @@ public class CartController {
         @DeleteMapping("{productId}")
         public ResponseEntity<Void> removeFromCart(@PathVariable String productId) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String customerID = authentication.getName();
+            Integer customerID = Integer.valueOf(authentication.getName());
             
             cartService.removeFromCart(customerID, productId);
             return ResponseEntity.noContent().build();
@@ -53,7 +53,7 @@ public class CartController {
         @DeleteMapping()
         public ResponseEntity<Void> clearCart() {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String customerID = authentication.getName();
+            Integer customerID = Integer.valueOf(authentication.getName());
             
             cartService.clearCart(customerID);
             return ResponseEntity.noContent().build();

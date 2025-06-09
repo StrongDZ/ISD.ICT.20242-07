@@ -1,4 +1,4 @@
-package com.example.aims.service.user;
+package com.example.aims.service;
 
 import java.util.List;
 
@@ -18,6 +18,7 @@ import com.example.aims.controller.request.UserUpdateRequest;
 import com.example.aims.controller.response.UserResponse;
 import com.example.aims.model.Users;
 import com.example.aims.repository.UsersRepository;
+import com.example.aims.service.user.UserService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -86,8 +87,8 @@ public class UserServiceImpl implements UserService {
     public long save(UserCreationRequest req){
         log.info("Saving user {}", req);
         Users user = new Users();
-        user.setUsername(req.getUsername());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setUsername(req.getUserName());
+        user.setPassword(req.getPassword());
         user.setGmail(req.getGmail());
         user.setType(req.getType());
         user.setUserStatus(UserStatus.NONE);
@@ -99,7 +100,7 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public void update(UserUpdateRequest req){
-         //get user by ID;
+        //get user by ID;
 
         log.info("Updating User: {}", req);
         Users user = getUserEntityById(req.getId());
@@ -114,6 +115,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         log.info("Updated user {}", user);
 
+
     }
     @Override
     @Transactional
@@ -123,15 +125,15 @@ public class UserServiceImpl implements UserService {
         
         if (req.getPassword().equals(req.getConfirmPassword())) {
             user.setPassword(passwordEncoder.encode(req.getPassword()));
-            userRepository.save(user);
-            log.info("Password updated for user: {}", user.getUsername());
-        } else {
+        } // Set password trực tiếp không cần encode
+        else{
             log.info("Compare password failed");
-            throw new RuntimeException("Password not match");
+            //throw new RuntimeException("Password not match");
         }
+        userRepository.save(user);
+        log.info("After password for user: {}", user.getUsername());
+        return;
     }
-
-
     @Override
     @Transactional
     /**

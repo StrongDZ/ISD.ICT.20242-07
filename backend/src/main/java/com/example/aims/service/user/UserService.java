@@ -18,4 +18,5 @@ public interface UserService {
     void update(UserUpdateRequest req);
     void changePassword(UserPasswordRequest req);
     void delete(Integer id);
+
 }

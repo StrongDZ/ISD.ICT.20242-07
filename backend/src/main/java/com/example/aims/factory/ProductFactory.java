@@ -1,45 +1,66 @@
 package com.example.aims.factory;
 
-import com.example.aims.exception.BadRequestException;
-import com.example.aims.strategy.ProductStrategy;
+import com.example.aims.dto.ProductDTO;
+import com.example.aims.model.*;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 public class ProductFactory {
-
-    private final Map<String, ProductStrategy> strategies;
-
-    public ProductFactory(List<ProductStrategy> strategies) {
-        this.strategies = strategies.stream()
-                .collect(Collectors.toMap(
-                        ProductStrategy::getProductType,
-                        Function.identity()));
+    public Product createProduct(ProductDTO dto) {
+        Product product = new Product();
+        product.setProductID(dto.getProductID());
+        product.setCategory(dto.getCategory());
+        product.setTitle(dto.getTitle());
+        product.setValue(dto.getValue());
+        product.setPrice(dto.getPrice());
+        product.setQuantity(dto.getQuantity());
+        product.setDescription(dto.getDescription());
+        product.setBarcode(dto.getBarcode());
+        product.setWarehouseEntryDate(dto.getWarehouseEntryDate());
+        product.setDimensions(dto.getDimensions());
+        product.setWeight(dto.getWeight());
+        product.setImageURL(dto.getImageURL());
+        return product;
     }
 
-    public ProductStrategy getStrategy(String productType) {
-        if (productType == null || productType.trim().isEmpty()) {
-            throw new BadRequestException("Product type cannot be null or empty");
-        }
-
-        String normalizedType = productType.toLowerCase().trim();
-        ProductStrategy strategy = strategies.get(normalizedType);
-
-        if (strategy == null) {
-            throw new BadRequestException("Unsupported product type: " + productType +
-                    ". Supported types are: " + String.join(", ", strategies.keySet()));
-        }
-
-        return strategy;
+    public Book createBook(ProductDTO dto, Product product) {
+        Book book = new Book();
+        book.setProductID(product.getProductID());
+        book.setProduct(product);
+        book.setCoverType(dto.getCoverType());
+        book.setAuthors(dto.getAuthors());
+        book.setPublisher(dto.getPublisher());
+        book.setNumberOfPages(dto.getNumberOfPages());
+        book.setLanguage(dto.getLanguage());
+        book.setGenre(dto.getGenre());
+        book.setPubDate(dto.getPubDate());
+        return book;
     }
 
-    public List<String> getSupportedTypes() {
-        return strategies.keySet().stream()
-                .sorted()
-                .collect(Collectors.toList());
+    public CD createCD(ProductDTO dto, Product product) {
+        CD cd = new CD();
+        cd.setProductID(product.getProductID());
+        cd.setProduct(product);
+        cd.setTracklist(dto.getTracklist());
+        cd.setArtist(dto.getArtist());
+        cd.setReleaseDate(dto.getReleaseDate());
+        cd.setRecordLabel(dto.getRecordLabel());
+        cd.setMusicType(dto.getMusicType());
+        return cd;
     }
-}
+
+    public DVD createDVD(ProductDTO dto, Product product) {
+        DVD dvd = new DVD();
+        dvd.setProductID(product.getProductID());
+        dvd.setProduct(product);
+        dvd.setDiscType(dto.getDiscType());
+        dvd.setRuntime(dto.getRuntime());
+        dvd.setStudio(dto.getStudio());
+        dvd.setDirector(dto.getDirector());
+        dvd.setSubtitle(dto.getSubtitle());
+        dvd.setReleaseDate(dto.getReleaseDate());
+        dvd.setLanguage(dto.getLanguage());
+        dvd.setGenre(dto.getGenre());
+        return dvd;
+    }
+} 

@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthRequest {
+public class LoginRequestDTO {
     
-    @NotBlank(message = "Usersname is required")
+    @NotBlank(message = "Username không được để trống")
     private String username;
     
-    @NotBlank(message = "Password is required")
+    @NotBlank(message = "Password không được để trống")
     private String password;
-}
+} 

@@ -10,7 +10,7 @@ import lombok.ToString;
 @ToString
 public class UserUpdateRequest implements Serializable {
     private Integer id;
-    private String Username;
+    private String username;
     private String password;
     private String gmail;
     private String type;

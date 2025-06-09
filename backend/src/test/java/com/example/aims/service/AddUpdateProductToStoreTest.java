@@ -1,377 +1,366 @@
- package com.example.aims.service;
+package com.example.aims.service;
 
- import com.example.aims.dto.ProductDTO;
- import com.example.aims.repository.*;
- import com.example.aims.service.ProductService;
- import org.junit.jupiter.api.BeforeEach;
- import org.junit.jupiter.api.Test;
- import org.mockito.ArgumentCaptor;
- import org.mockito.Mockito;
+import com.example.aims.dto.products.BookDTO;
+import com.example.aims.dto.products.CdDTO;
+import com.example.aims.dto.products.DvdDTO;
+import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.exception.BadRequestException;
+import com.example.aims.exception.ResourceNotFoundException;
+import com.example.aims.factory.ProductFactory;
+import com.example.aims.service.product.ProductServiceImpl;
+import com.example.aims.strategy.ProductStrategy;
 
- import com.example.aims.model.Book;
- import com.example.aims.model.CD;
- import com.example.aims.model.DVD;
- import com.example.aims.model.Product;
- import com.example.aims.model.ShopItem;
- import com.example.aims.model.Users;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
- import java.time.LocalDate;
- import java.time.ZoneId;
- import java.util.Date;
- import java.util.Optional;
+import java.util.Date;
 
- import static org.junit.jupiter.api.Assertions.*;
- import static org.mockito.ArgumentMatchers.any;
- import static org.mockito.ArgumentMatchers.anyString;
- import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
- public class AddUpdateProductToStoreTest {
-     private ProductRepository productRepo;
-     private BookRepository bookRepo;
-     private CDRepository cdRepo;
-     private DVDRepository dvdRepo;
-     private ProductService productService;
-     private ShopItemRepository shopItemRepository;
-     private UsersRepository userRepository;
+@ExtendWith(MockitoExtension.class)
+public class AddUpdateProductToStoreTest {
 
-     @BeforeEach
-     public void setUp() {
-         productRepo = mock(ProductRepository.class);
-         bookRepo = mock(BookRepository.class);
-         cdRepo = mock(CDRepository.class);
-         dvdRepo = mock(DVDRepository.class);
-         shopItemRepository = mock(ShopItemRepository.class);
-         userRepository = mock(UsersRepository.class);
+    @Mock
+    private ProductFactory productFactory;
 
-         productService = new ProductService(productRepo, bookRepo, cdRepo, dvdRepo, shopItemRepository, userRepository);
-     }
+    @Mock
+    private ProductStrategy bookStrategy;
 
-     // --- Test addProductToStore ---
-     // public void testAddProductSuccess() {
-     //     // Test adding a book product
-     //     ProductDTO dto = new ProductDTO("P001", "Book", "Java Basics", 5, 120000, 150000);
-     //     dto.setAuthors("John Doe");
-     //     dto.setPublisher("TechBooks");
-     //     dto.setGenre("Programming");
+    @Mock
+    private ProductStrategy cdStrategy;
 
-     //     when(productRepo.existsById("P001")).thenReturn(false);
-     //     Product added = productService.addProductToStore(dto);
-     //     assertEquals("P001", added.getId());
-     //     verify(productRepo, times(1)).save(any(Product.class));
-     //     verify(bookRepo, times(1)).save(any(Book.class));
-     // }
+    @Mock
+    private ProductStrategy dvdStrategy;
 
-     @Test
-     public void testAddProductSuccess() {
-         // Setup DTO dữ liệu mẫu cho Book
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("P001");
-         dto.setCategory("book");
-         dto.setTitle("Java Basics");
-         dto.setQuantity(5);
-         dto.setValue(120000d);
-         dto.setPrice(150000d);
-         dto.setAuthors("John Doe");
-         dto.setPublisher("TechBooks");
-         dto.setGenre("Programming");
-    
-         // Mock: người quản lý đã tồn tại trong hệ thống
-         Users mockManager = new Users(1, "manager_user", "manager", "password123");
-         when(userRepository.findById(1)).thenReturn(Optional.of(mockManager));
-    
-         // Mock các thao tác lưu
-         when(productRepo.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
-         when(bookRepo.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
-         when(shopItemRepository.save(any(ShopItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-    
-         // Gọi hàm createProduct
-         ProductDTO result = productService.createProduct(dto, 1);
-    
-         // Kiểm tra kết quả trả về
-         assertEquals("P001", result.getProductID());
-         assertEquals("book", result.getCategory());
-         assertEquals("Java Basics", result.getTitle());
-    
-         // Xác minh các phương thức lưu được gọi
-         verify(productRepo, times(1)).save(any(Product.class));
-         verify(bookRepo, times(1)).save(any(Book.class));
-         verify(shopItemRepository, times(1)).save(any(ShopItem.class));
-     }
-    
+    @InjectMocks
+    private ProductServiceImpl productService;
 
-     @Test
-     public void testAddProductDuplicateId() {
-         // Setup DTO với ID trùng lặp
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("P001");
-         dto.setCategory("book");
-         dto.setTitle("Java Basics");
-         dto.setQuantity(5);
-         dto.setValue(120000d);
-         dto.setPrice(150000d);
-         dto.setAuthors("John Doe");
-         dto.setPublisher("TechBooks");
-         dto.setGenre("Programming");
+    @BeforeEach
+    public void setUp() {
+        // Dùng lenient() để tránh lỗi unnecessary stubbing khi stub này không được dùng
+        // ở mọi test
+        lenient().when(productFactory.getStrategy("book")).thenReturn(bookStrategy);
+        lenient().when(productFactory.getStrategy("cd")).thenReturn(cdStrategy);
+        lenient().when(productFactory.getStrategy("dvd")).thenReturn(dvdStrategy);
+    }
 
-         // Giả lập product đã tồn tại
-         when(productRepo.existsById("P001")).thenReturn(true);
+    // --- Test createProduct (Add Product) ---
+    @Test
+    public void testCreateBookProductSuccess() {
+        // Arrange
+        BookDTO inputBookDTO = createTestBookDTO();
+        BookDTO expectedResult = createTestBookDTO();
+        expectedResult.setProductID("BK-123456");
 
-         // Gọi phương thức và kiểm tra ngoại lệ
-         Exception ex = assertThrows(RuntimeException.class, () ->
-             productService.createProduct(dto, 1)
-         );
+        when(bookStrategy.createProduct(any(ProductDTO.class))).thenReturn(expectedResult);
 
-         // Kiểm tra thông báo lỗi
-         assertTrue(ex.getMessage().toLowerCase().contains("already exists"));
-     }
-    
+        // Act
+        ProductDTO result = productService.createProduct(inputBookDTO, "manager001");
 
-     @Test
-     public void testAddProductInvalidCategory() {
-         // Tạo ProductDTO với category không hợp lệ
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("P002");
-         dto.setCategory("toy");  // Không nằm trong "book", "cd", "dvd"
-         dto.setTitle("Rubik");
-         dto.setQuantity(5);
-         dto.setValue(20000d);
-         dto.setPrice(30000d);
+        // Assert
+        assertNotNull(result);
+        assertTrue(result instanceof BookDTO);
+        BookDTO bookResult = (BookDTO) result;
+        assertEquals("BK-123456", bookResult.getProductID());
+        assertEquals("Java Programming", bookResult.getTitle());
+        assertEquals("book", bookResult.getCategory());
+        assertEquals("Robert Martin", bookResult.getAuthors());
 
-         // Giả lập: chưa tồn tại product
-         when(productRepo.existsById("P002")).thenReturn(false);
-         when(userRepository.findById(1)).thenReturn(Optional.of(new Users()));
+        verify(productFactory, times(1)).getStrategy("book");
+        verify(bookStrategy, times(1)).createProduct(inputBookDTO);
+    }
 
-         // Gọi phương thức và bắt lỗi
-         Exception ex = assertThrows(RuntimeException.class, () ->
-             productService.createProduct(dto, 1)
-         );
+    @Test
+    public void testCreateCDProductSuccess() {
+        // Arrange
+        CdDTO inputCdDTO = createTestCdDTO();
+        CdDTO expectedResult = createTestCdDTO();
+        expectedResult.setProductID("CD-123456");
 
-         // Kiểm tra thông báo lỗi
-         assertTrue(ex.getMessage().toLowerCase().contains("invalid category"));
-     }
-    
-     // --- Test updateProductToStore ---
-     @Test
-     public void testUpdateProductSuccess() {
-         // Tạo DTO đầu vào với thông tin cập nhật
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("P001");
-         dto.setCategory("DVD");
-         dto.setTitle("Avengers");
-         dto.setQuantity(8);
-         dto.setValue(150000d);
-         dto.setPrice(200000d);
-         dto.setDirector("Russo");
-         dto.setGenre("Action");
-         dto.setRuntime("120 minutes");
-         dto.setStudio("Marvel Studios");
-    
-         // Giả lập dữ liệu hiện có trong kho
-         Product existing = new Product();
-         existing.setProductID("P001");
-         existing.setCategory("DVD");
-         existing.setTitle("Avengers");
-         existing.setQuantity(5);
-         existing.setValue(100000d);
-         existing.setPrice(180000d);
-    
-         when(productRepo.findById("P001")).thenReturn(Optional.of(existing));
-    
-         // Giả lập việc tìm kiếm DVD
-         DVD existingDVD = new DVD();
-         existingDVD.setProductID("P001");
-         existingDVD.setProduct(existing); // liên kết ngược lại với Product
-    
-         when(dvdRepo.findById("P001")).thenReturn(Optional.of(existingDVD));
-    
-         // Gọi phương thức cập nhật
-         ProductDTO updated = productService.updateProduct("P001", dto);
-    
-         // Kiểm tra kết quả cập nhật Product
-         assertEquals(8, updated.getQuantity());
-         assertEquals(150000d, updated.getValue());
-         assertEquals(200000d, updated.getPrice());
-         assertEquals("Avengers", updated.getTitle());
-    
-         // Kiểm tra thông tin DVD đã được cập nhật đúng
-         assertEquals("Russo", existingDVD.getDirector());
-         assertEquals("Action", existingDVD.getGenre());
-         assertEquals("120 minutes", existingDVD.getRuntime());
-         assertEquals("Marvel Studios", existingDVD.getStudio());
-    
-         // Xác minh thao tác save được gọi đúng
-         verify(productRepo, times(1)).save(any(Product.class));
-         verify(dvdRepo, times(1)).save(any(DVD.class));
-     }
-    
-     @Test
-     public void testUpdateCDProductSuccess() {
-         // Tạo DTO đầu vào với thông tin cập nhật cho CD
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("C001");
-         dto.setCategory("CD");
-         dto.setTitle("Greatest Hits");
-         dto.setQuantity(7);
-         dto.setValue(80000d);
-         dto.setPrice(100000d);
-         dto.setArtist("Queen");
-         dto.setRecordLabel("EMI");
-         dto.setTracklist("Bohemian Rhapsody, Don't Stop Me Now");
-         dto.setMusicType("Rock");
-         dto.setReleaseDate(new Date());
+        when(cdStrategy.createProduct(any(ProductDTO.class))).thenReturn(expectedResult);
 
-         // Giả lập dữ liệu hiện có
-         Product existing = new Product();
-         existing.setProductID("C001");
-         existing.setCategory("CD");
-         existing.setTitle("Old CD");
-         existing.setQuantity(3);
-         existing.setValue(50000d);
-         existing.setPrice(70000d);
+        // Act
+        ProductDTO result = productService.createProduct(inputCdDTO, "manager001");
 
-         when(productRepo.findById("C001")).thenReturn(Optional.of(existing));
+        // Assert
+        assertNotNull(result);
+        assertTrue(result instanceof CdDTO);
+        CdDTO cdResult = (CdDTO) result;
+        assertEquals("CD-123456", cdResult.getProductID());
+        assertEquals("Greatest Hits", cdResult.getTitle());
+        assertEquals("cd", cdResult.getCategory());
+        assertEquals("Queen", cdResult.getArtist());
 
-         // Giả lập CD tương ứng
-         CD existingCD = new CD();
-         existingCD.setProductID("C001");
-         existingCD.setProduct(existing);
+        verify(productFactory, times(1)).getStrategy("cd");
+        verify(cdStrategy, times(1)).createProduct(inputCdDTO);
+    }
 
-         when(cdRepo.findById("C001")).thenReturn(Optional.of(existingCD));
+    @Test
+    public void testCreateDVDProductSuccess() {
+        // Arrange
+        DvdDTO inputDvdDTO = createTestDvdDTO();
+        DvdDTO expectedResult = createTestDvdDTO();
+        expectedResult.setProductID("DVD-123456");
 
-         // Gọi phương thức cập nhật
-         ProductDTO updated = productService.updateProduct("C001", dto);
+        when(dvdStrategy.createProduct(any(ProductDTO.class))).thenReturn(expectedResult);
 
-         // Kiểm tra kết quả cập nhật Product
-         assertEquals("Greatest Hits", updated.getTitle());
-         assertEquals(7, updated.getQuantity());
-         assertEquals(80000d, updated.getValue());
-         assertEquals(100000d, updated.getPrice());
+        // Act
+        ProductDTO result = productService.createProduct(inputDvdDTO, "manager001");
 
-         // Kiểm tra thông tin CD cập nhật đúng
-         assertEquals("Queen", existingCD.getArtist());
-         assertEquals("EMI", existingCD.getRecordLabel());
-         assertEquals("Bohemian Rhapsody, Don't Stop Me Now", existingCD.getTracklist());
-         assertEquals("Rock", existingCD.getMusicType());
-         assertEquals(dto.getReleaseDate(), existingCD.getReleaseDate());
+        // Assert
+        assertNotNull(result);
+        assertTrue(result instanceof DvdDTO);
+        DvdDTO dvdResult = (DvdDTO) result;
+        assertEquals("DVD-123456", dvdResult.getProductID());
+        assertEquals("Avengers", dvdResult.getTitle());
+        assertEquals("dvd", dvdResult.getCategory());
+        assertEquals("Russo Brothers", dvdResult.getDirector());
 
-         // Xác minh thao tác save được gọi đúng
-         verify(productRepo, times(1)).save(any(Product.class));
-         verify(cdRepo, times(1)).save(any(CD.class));
-     }
+        verify(productFactory, times(1)).getStrategy("dvd");
+        verify(dvdStrategy, times(1)).createProduct(inputDvdDTO);
+    }
 
-     @Test
-     public void testUpdateBookProductSuccess() {
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("B001");
-         dto.setCategory("Book");
-         dto.setTitle("Clean Code");
-         dto.setQuantity(10);
-         dto.setValue(120000d);
-         dto.setPrice(150000d);
-         dto.setCoverType("Hardcover");
-         dto.setAuthors("Robert C. Martin");
-         dto.setPublisher("Prentice Hall");
-         dto.setNumberOfPages(464);
-         dto.setLanguage("English");
-         dto.setGenre("Software Engineering");
-         dto.setPubDate(new Date());
+    @Test
+    public void testCreateProductInvalidCategory() {
+        // Arrange
+        BookDTO bookDTO = createTestBookDTO();
+        bookDTO.setCategory("invalid_category");
 
-         Product existing = new Product();
-         existing.setProductID("B001");
-         existing.setCategory("Book");
+        when(productFactory.getStrategy("invalid_category"))
+                .thenThrow(new BadRequestException("Unsupported product type: invalid_category"));
 
-         Book existingBook = new Book();
-         existingBook.setProductID("B001");
-         existingBook.setProduct(existing);
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> productService.createProduct(bookDTO, "manager001"));
 
-         when(productRepo.findById("B001")).thenReturn(Optional.of(existing));
-         when(bookRepo.findById("B001")).thenReturn(Optional.of(existingBook));
+        assertTrue(exception.getMessage().contains("Unsupported product type"));
+        verify(productFactory, times(1)).getStrategy("invalid_category");
+    }
 
-         ProductDTO updated = productService.updateProduct("B001", dto);
+    @Test
+    public void testCreateProductStrategyThrowsException() {
+        // Arrange
+        BookDTO bookDTO = createTestBookDTO();
 
-         assertEquals("Clean Code", updated.getTitle());
-         assertEquals(10, updated.getQuantity());
-         assertEquals("Robert C. Martin", existingBook.getAuthors());
-         assertEquals("Hardcover", existingBook.getCoverType());
-         assertEquals("Prentice Hall", existingBook.getPublisher());
-         assertEquals(464, existingBook.getNumberOfPages());
-         assertEquals("English", existingBook.getLanguage());
-         assertEquals("Software Engineering", existingBook.getGenre());
-         assertEquals(dto.getPubDate(), existingBook.getPubDate());
+        when(bookStrategy.createProduct(any(ProductDTO.class)))
+                .thenThrow(new RuntimeException("Product with this ID already exists"));
 
-         verify(productRepo, times(1)).save(any(Product.class));
-         verify(bookRepo, times(1)).save(any(Book.class));
-     }
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> productService.createProduct(bookDTO, "manager001"));
 
+        assertEquals("Product with this ID already exists", exception.getMessage());
+        verify(productFactory, times(1)).getStrategy("book");
+        verify(bookStrategy, times(1)).createProduct(bookDTO);
+    }
 
-        
-     @Test
-     public void testUpdateProductNotFound() {
-         // Tạo DTO với thông tin cập nhật
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("P404");
-         dto.setCategory("DVD");
-         dto.setTitle("Ghost");
-         dto.setQuantity(1);
-         dto.setValue(10000d);
-         dto.setPrice(12000d);
-    
-         // Giả lập không tìm thấy sản phẩm trong kho
-         when(productRepo.findById("P404")).thenReturn(Optional.empty());
-    
-         // Gọi hàm và kiểm tra ngoại lệ được ném ra
-         Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P404", dto));
-         assertTrue(ex.getMessage().contains("not found"));
-     }
+    // --- Test updateProduct ---
+    @Test
+    public void testUpdateBookProductSuccess() {
+        // Arrange
+        String productId = "BK-123456";
+        BookDTO inputBookDTO = createTestBookDTO();
+        inputBookDTO.setTitle("Updated Java Programming");
+        inputBookDTO.setPrice(200000.0);
 
+        BookDTO expectedResult = createTestBookDTO();
+        expectedResult.setProductID(productId);
+        expectedResult.setTitle("Updated Java Programming");
+        expectedResult.setPrice(200000.0);
 
-    
+        when(bookStrategy.updateProduct(eq(productId), any(ProductDTO.class))).thenReturn(expectedResult);
 
-     @Test
-     public void testCreateProduct_ManagerNotFound() {
-         ProductDTO dto = new ProductDTO();
-         dto.setProductID("P010");
-         dto.setCategory("book");
+        // Act
+        ProductDTO result = productService.updateProduct(productId, inputBookDTO);
 
-         when(productRepo.existsById("P010")).thenReturn(false);
-         when(userRepository.findById(1)).thenReturn(Optional.empty());
+        // Assert
+        assertNotNull(result);
+        assertTrue(result instanceof BookDTO);
+        BookDTO bookResult = (BookDTO) result;
+        assertEquals(productId, bookResult.getProductID());
+        assertEquals("Updated Java Programming", bookResult.getTitle());
+        assertEquals(200000.0, bookResult.getPrice());
 
-         Exception ex = assertThrows(RuntimeException.class, () -> productService.createProduct(dto, 1));
-         assertTrue(ex.getMessage().toLowerCase().contains("manager not found"));
-     }
+        verify(productFactory, times(1)).getStrategy("book");
+        verify(bookStrategy, times(1)).updateProduct(productId, inputBookDTO);
+    }
 
-     @Test
-     public void testUpdateProduct_SaveError() {
-         ProductDTO dto = new ProductDTO();
-         dto.setCategory("book");
+    @Test
+    public void testUpdateCDProductSuccess() {
+        // Arrange
+        String productId = "CD-123456";
+        CdDTO inputCdDTO = createTestCdDTO();
+        inputCdDTO.setTitle("Updated Greatest Hits");
+        inputCdDTO.setQuantity(15);
 
-         Product existing = new Product();
-         existing.setProductID("P001");
-         existing.setCategory("book");
+        CdDTO expectedResult = createTestCdDTO();
+        expectedResult.setProductID(productId);
+        expectedResult.setTitle("Updated Greatest Hits");
+        expectedResult.setQuantity(15);
 
-         when(productRepo.findById("P001")).thenReturn(Optional.of(existing));
-         when(bookRepo.findById("P001")).thenReturn(Optional.of(new Book()));
+        when(cdStrategy.updateProduct(eq(productId), any(ProductDTO.class))).thenReturn(expectedResult);
 
-         // Giả lập lỗi khi save
-         when(bookRepo.save(any(Book.class))).thenThrow(new RuntimeException("Database error"));
+        // Act
+        ProductDTO result = productService.updateProduct(productId, inputCdDTO);
 
-         Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P001", dto));
+        // Assert
+        assertNotNull(result);
+        assertTrue(result instanceof CdDTO);
+        CdDTO cdResult = (CdDTO) result;
+        assertEquals(productId, cdResult.getProductID());
+        assertEquals("Updated Greatest Hits", cdResult.getTitle());
+        assertEquals(15, cdResult.getQuantity());
 
-         assertTrue(ex.getMessage().contains("Database error"));
-     }
-     @Test
-     public void testUpdateProduct_InvalidCategory() {
-         ProductDTO dto = new ProductDTO();
-         dto.setCategory("toy");  // category không hợp lệ
+        verify(productFactory, times(1)).getStrategy("cd");
+        verify(cdStrategy, times(1)).updateProduct(productId, inputCdDTO);
+    }
 
-         when(productRepo.findById("P001")).thenReturn(Optional.of(new Product()));
+    @Test
+    public void testUpdateDVDProductSuccess() {
+        // Arrange
+        String productId = "DVD-123456";
+        DvdDTO inputDvdDTO = createTestDvdDTO();
+        inputDvdDTO.setTitle("Updated Avengers");
+        inputDvdDTO.setValue(180000.0);
 
-         Exception ex = assertThrows(RuntimeException.class, () -> productService.updateProduct("P001", dto));
+        DvdDTO expectedResult = createTestDvdDTO();
+        expectedResult.setProductID(productId);
+        expectedResult.setTitle("Updated Avengers");
+        expectedResult.setValue(180000.0);
 
-         assertTrue(ex.getMessage().contains("Invalid category"));
-     }
+        when(dvdStrategy.updateProduct(eq(productId), any(ProductDTO.class))).thenReturn(expectedResult);
 
+        // Act
+        ProductDTO result = productService.updateProduct(productId, inputDvdDTO);
 
+        // Assert
+        assertNotNull(result);
+        assertTrue(result instanceof DvdDTO);
+        DvdDTO dvdResult = (DvdDTO) result;
+        assertEquals(productId, dvdResult.getProductID());
+        assertEquals("Updated Avengers", dvdResult.getTitle());
+        assertEquals(180000.0, dvdResult.getValue());
 
-    
- }
+        verify(productFactory, times(1)).getStrategy("dvd");
+        verify(dvdStrategy, times(1)).updateProduct(productId, inputDvdDTO);
+    }
+
+    @Test
+    public void testUpdateProductNotFound() {
+        // Arrange
+        String productId = "NONEXISTENT-123";
+        BookDTO bookDTO = createTestBookDTO();
+
+        when(bookStrategy.updateProduct(eq(productId), any(ProductDTO.class)))
+                .thenThrow(new ResourceNotFoundException("Product", "id", productId));
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> productService.updateProduct(productId, bookDTO));
+
+        assertTrue(exception.getMessage().contains("not found"));
+        assertTrue(exception.getMessage().contains(productId));
+        verify(productFactory, times(1)).getStrategy("book");
+        verify(bookStrategy, times(1)).updateProduct(productId, bookDTO);
+    }
+
+    @Test
+    public void testUpdateProductInvalidCategory() {
+        // Arrange
+        String productId = "INVALID-123";
+        BookDTO bookDTO = createTestBookDTO();
+        bookDTO.setCategory("invalid_category");
+
+        when(productFactory.getStrategy("invalid_category"))
+                .thenThrow(new BadRequestException("Unsupported product type: invalid_category"));
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> productService.updateProduct(productId, bookDTO));
+
+        assertTrue(exception.getMessage().contains("Unsupported product type"));
+        verify(productFactory, times(1)).getStrategy("invalid_type");
+    }
+
+    @Test
+    public void testUpdateProductStrategyError() {
+        // Arrange
+        String productId = "BK-123456";
+        BookDTO bookDTO = createTestBookDTO();
+
+        when(bookStrategy.updateProduct(eq(productId), any(ProductDTO.class)))
+                .thenThrow(new RuntimeException("Database connection error"));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> productService.updateProduct(productId, bookDTO));
+
+        assertEquals("Database connection error", exception.getMessage());
+        verify(productFactory, times(1)).getStrategy("book");
+        verify(bookStrategy, times(1)).updateProduct(productId, bookDTO);
+    }
+
+    // --- Helper Methods ---
+    private BookDTO createTestBookDTO() {
+        BookDTO bookDTO = new BookDTO();
+
+        bookDTO.setTitle("Java Programming");
+        bookDTO.setCategory("book");
+        bookDTO.setPrice(150000.0);
+        bookDTO.setValue(120000.0);
+        bookDTO.setQuantity(10);
+        bookDTO.setDescription("A comprehensive Java programming book");
+
+        bookDTO.setAuthors("Robert Martin");
+        bookDTO.setPublisher("Prentice Hall");
+        bookDTO.setNumberOfPages(500);
+        bookDTO.setLanguage("English");
+        bookDTO.setGenre("Programming");
+        bookDTO.setCoverType("Hardcover");
+        bookDTO.setPubDate(new Date());
+
+        return bookDTO;
+    }
+
+    private CdDTO createTestCdDTO() {
+        CdDTO cdDTO = new CdDTO();
+        cdDTO.setTitle("Greatest Hits");
+        cdDTO.setCategory("cd");
+        cdDTO.setPrice(100000.0);
+        cdDTO.setValue(80000.0);
+        cdDTO.setQuantity(5);
+        cdDTO.setDescription("Best of Queen");
+
+        cdDTO.setArtist("Queen");
+        cdDTO.setRecordLabel("EMI");
+        cdDTO.setMusicType("Rock");
+        cdDTO.setTracklist("Bohemian Rhapsody, Don't Stop Me Now");
+        cdDTO.setReleaseDate(new Date());
+
+        return cdDTO;
+    }
+
+    private DvdDTO createTestDvdDTO() {
+        DvdDTO dvdDTO = new DvdDTO();
+        dvdDTO.setTitle("Avengers");
+        dvdDTO.setCategory("dvd");
+        dvdDTO.setPrice(200000.0);
+        dvdDTO.setValue(150000.0);
+        dvdDTO.setQuantity(3);
+        dvdDTO.setDescription("Marvel superhero movie");
+
+        dvdDTO.setDirector("Russo Brothers");
+        dvdDTO.setStudio("Marvel Studios");
+        dvdDTO.setRuntime("120 minutes");
+        dvdDTO.setDiscType("Blu-ray");
+        dvdDTO.setSubtitle("English, Vietnamese");
+
+        return dvdDTO;
+    }
+}

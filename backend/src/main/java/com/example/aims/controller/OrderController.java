@@ -29,11 +29,15 @@ public class OrderController {
     //     return ResponseEntity.ok(orderService.getCustomerOrders(customerID));
     // }
 
-    @GetMapping("/orders/{orderId}")
+    @GetMapping("{orderId}")
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable String orderId) {
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 
+    // @PostMapping("/delivery-info")
+    // public ResponseEntity<DeliveryInfoDTO> createDeliveryInfo(@RequestBody DeliveryInfoDTO deliveryInfoDTO) {
+
+    // }
     // @PostMapping("/orders")
     // public ResponseEntity<OrderDTO> createOrder(@RequestBody InvoiceDTO invoiceDTO) {
     //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

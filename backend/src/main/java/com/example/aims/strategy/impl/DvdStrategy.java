@@ -8,21 +8,20 @@ import com.example.aims.model.DVD;
 import com.example.aims.repository.DVDRepository;
 import com.example.aims.strategy.ProductStrategy;
 import com.example.aims.util.IdGenerator;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class DvdStrategy implements ProductStrategy {
 
     private final DVDRepository dvdRepository;
     private final DvdMapper dvdMapper;
-
-    public DvdStrategy(DVDRepository dvdRepository, DvdMapper dvdMapper) {
-        this.dvdRepository = dvdRepository;
-        this.dvdMapper = dvdMapper;
-    }
 
     @Override
     public ProductDTO createProduct(ProductDTO productDTO) {

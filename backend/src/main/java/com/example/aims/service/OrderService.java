@@ -109,8 +109,7 @@ public class OrderService {
     }
 
     public OrderDTO getOrderById(String orderId) {
-        Integer id = Integer.valueOf(orderId);  // Chuyển String sang Integer
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
         return convertToDTO(order);

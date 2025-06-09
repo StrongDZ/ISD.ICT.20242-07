@@ -8,21 +8,21 @@ import com.example.aims.model.Book;
 import com.example.aims.repository.BookRepository;
 import com.example.aims.strategy.ProductStrategy;
 import com.example.aims.util.IdGenerator;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class BookStrategy implements ProductStrategy {
 
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
 
-    public BookStrategy(BookRepository bookRepository, BookMapper bookMapper) {
-        this.bookRepository = bookRepository;
-        this.bookMapper = bookMapper;
-    }
 
     @Override
     public ProductDTO createProduct(ProductDTO productDTO) {

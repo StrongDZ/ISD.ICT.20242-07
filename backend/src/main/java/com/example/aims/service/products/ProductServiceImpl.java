@@ -1,4 +1,4 @@
-package com.example.aims.service.product;
+package com.example.aims.service.products;
 
 import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.factory.ProductFactory;
@@ -42,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public @Valid ProductDTO createProduct(ProductDTO productDTO, String managerID) {
+    public @Valid ProductDTO createProduct(ProductDTO productDTO, Integer managerID) {
         String productType = productDTO.getCategory();
         ProductStrategy strategy = productFactory.getStrategy(productType);
         return strategy.createProduct(productDTO);

@@ -1,15 +1,21 @@
 package com.example.aims.controller;
 
-import com.example.aims.dto.ProductDTO;
-import com.example.aims.service.ProductService;
+import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.service.products.ProductService;
+import com.example.aims.validator.OnRequest;
+import com.example.aims.security.UserDetailsImpl;
+
+
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/manager")
 @CrossOrigin(origins = "*")
+@Validated(OnRequest.class)
 public class ManagerController {
 
     private final ProductService productService;
@@ -19,17 +25,20 @@ public class ManagerController {
     }
 
     @PostMapping("/products")
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Integer managerID = Integer.parseInt(authentication.getName());
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Integer managerID = userDetails.getId();
 
-        
-        return ResponseEntity.ok(productService.createProduct(productDTO, managerID));
+        ProductDTO response = productService.createProduct(productDTO, managerID);
+        // Response DTO sẽ có productID được validate theo OnResponse group
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/products/{id}")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable String id, @RequestBody ProductDTO productDTO) {
-        return ResponseEntity.ok(productService.updateProduct(id, productDTO));
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable String id,
+            @Valid @RequestBody ProductDTO productDTO) {
+        ProductDTO response = productService.updateProduct(id, productDTO);
+        // Response DTO sẽ có productID được validate theo OnResponse group
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/products/{id}")

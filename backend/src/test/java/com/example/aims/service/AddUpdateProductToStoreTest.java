@@ -7,7 +7,7 @@ import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.exception.BadRequestException;
 import com.example.aims.exception.ResourceNotFoundException;
 import com.example.aims.factory.ProductFactory;
-import com.example.aims.service.product.ProductServiceImpl;
+import com.example.aims.service.products.ProductServiceImpl;
 import com.example.aims.strategy.ProductStrategy;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +61,7 @@ public class AddUpdateProductToStoreTest {
         when(bookStrategy.createProduct(any(ProductDTO.class))).thenReturn(expectedResult);
 
         // Act
-        ProductDTO result = productService.createProduct(inputBookDTO, "manager001");
+        ProductDTO result = productService.createProduct(inputBookDTO, 1);
 
         // Assert
         assertNotNull(result);
@@ -86,7 +86,7 @@ public class AddUpdateProductToStoreTest {
         when(cdStrategy.createProduct(any(ProductDTO.class))).thenReturn(expectedResult);
 
         // Act
-        ProductDTO result = productService.createProduct(inputCdDTO, "manager001");
+        ProductDTO result = productService.createProduct(inputCdDTO, 1);
 
         // Assert
         assertNotNull(result);
@@ -111,7 +111,7 @@ public class AddUpdateProductToStoreTest {
         when(dvdStrategy.createProduct(any(ProductDTO.class))).thenReturn(expectedResult);
 
         // Act
-        ProductDTO result = productService.createProduct(inputDvdDTO, "manager001");
+        ProductDTO result = productService.createProduct(inputDvdDTO, 1);
 
         // Assert
         assertNotNull(result);
@@ -137,7 +137,7 @@ public class AddUpdateProductToStoreTest {
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(bookDTO, "manager001"));
+                () -> productService.createProduct(bookDTO, 1));
 
         assertTrue(exception.getMessage().contains("Unsupported product type"));
         verify(productFactory, times(1)).getStrategy("invalid_category");
@@ -153,7 +153,7 @@ public class AddUpdateProductToStoreTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> productService.createProduct(bookDTO, "manager001"));
+                () -> productService.createProduct(bookDTO, 1));
 
         assertEquals("Product with this ID already exists", exception.getMessage());
         verify(productFactory, times(1)).getStrategy("book");
@@ -285,7 +285,7 @@ public class AddUpdateProductToStoreTest {
                 () -> productService.updateProduct(productId, bookDTO));
 
         assertTrue(exception.getMessage().contains("Unsupported product type"));
-        verify(productFactory, times(1)).getStrategy("invalid_type");
+        verify(productFactory, times(1)).getStrategy("invalid_category");
     }
 
     @Test

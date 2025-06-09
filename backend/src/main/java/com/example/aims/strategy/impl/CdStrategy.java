@@ -8,21 +8,20 @@ import com.example.aims.model.CD;
 import com.example.aims.repository.CDRepository;
 import com.example.aims.strategy.ProductStrategy;
 import com.example.aims.util.IdGenerator;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class CdStrategy implements ProductStrategy {
 
     private final CDRepository cdRepository;
     private final CdMapper cdMapper;
-
-    public CdStrategy(CDRepository cdRepository, CdMapper cdMapper) {
-        this.cdRepository = cdRepository;
-        this.cdMapper = cdMapper;
-    }
 
     @Override
     public ProductDTO createProduct(ProductDTO productDTO) {

@@ -41,4 +41,6 @@ public class Product {
     private String imageURL;
     private boolean isRushEligible;
 
+    
+
 }

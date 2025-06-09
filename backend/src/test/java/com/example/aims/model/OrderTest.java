@@ -13,18 +13,27 @@ class OrderTest {
     void setUp() {
         // Tạo đối tượng Users bằng AllArgsConstructor
         Users customerTest = new Users(1, "Customer", "thoconbexinh", "112233");
-        
+
         // Tạo đối tượng Order (giả sử constructor của Order đã được cập nhật để nhận
         // đối tượng Users)
+
+        DeliveryInfo deliveryInfoTest = new DeliveryInfo(
+                "1",
+                "Bắc Ninh",
+                "Thị Cầu",
+                "19/220 Trai Ca",
+                "0373629481",
+                "Thùy Dương",
+                "thoconbexinh@gmail.com");
         testthisOrder = new Order(
-    "1",
-    customerTest,
-    "Thùy Dương",
-    "0373629481",
-    "PENDING",
-    345.000,
-    null // hoặc một DeliveryInfo giả nếu cần
-);
+                "1",
+                customerTest,
+                "Thùy Dương",
+                "0373629481",
+                "PENDING",
+                345.000,
+                deliveryInfoTest
+        );
     }
 
     @Test
@@ -34,7 +43,7 @@ class OrderTest {
 
     @Test
     void getShippingAddress() {
-        assertEquals("Thị Cầu, Bắc Ninh", testthisOrder.getDeliveryInfo().getAddressDetail());
+        assertEquals("19/220 Trai Ca", testthisOrder.getDeliveryInfo().getAddressDetail());
     }
 
     @Test
@@ -46,13 +55,13 @@ class OrderTest {
     void checkOrderStatus() {
         assertEquals("PENDING", testthisOrder.checkOrderStatus());
         testthisOrder = new Order(
-            "1",
-            customerTest,
-            "Thùy Dương",
-            "0373629481",
-            "PENDING",
-            345.000,
-            null // hoặc một DeliveryInfo giả nếu cần
+                "1",
+                customerTest,
+                "Thùy Dương",
+                "0373629481",
+                "PENDING1",
+                345.000,
+                null // hoặc một DeliveryInfo giả nếu cần
         );
 
         assertEquals("Wrong input of Status", testthisOrder.checkOrderStatus());

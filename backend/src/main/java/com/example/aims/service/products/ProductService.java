@@ -1,4 +1,4 @@
-package com.example.aims.service.product;
+package com.example.aims.service.products;
 
 import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.validator.OnResponse;
@@ -16,7 +16,7 @@ public interface ProductService {
     ProductDTO getProductById(String productId);
 
     @Valid
-    ProductDTO createProduct(ProductDTO productDTO, String managerID);
+    ProductDTO createProduct(ProductDTO productDTO, Integer managerID);
 
     @Valid
     ProductDTO updateProduct(String productId, ProductDTO productDTO);

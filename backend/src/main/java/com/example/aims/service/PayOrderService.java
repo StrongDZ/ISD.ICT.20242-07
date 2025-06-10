@@ -117,7 +117,7 @@ public class PayOrderService {
             sendMail(transactionNo);
             return "redirect:" + "http://localhost:3001/payment-success?orderId=" + orderID;
         } else if (responseCode.equals("24")) { // Payment decline
-            return "redirect:" + "http://localhost:3001/invoice";
+            return "redirect:" + "http://localhost:3001/payment-decline";
         } else { // Payment error
             try {
                 responseCodeError(responseCode);
@@ -159,9 +159,9 @@ public class PayOrderService {
                 throw new OtherException();
         }
     }
-    // public PaymentTransaction getPaymentTransactionByOrderId(String orderId) {
-    // return findPaymentTransactionByOrderId(orderId).orElse(null);
-    // }
+     public PaymentTransaction getPaymentTransactionHistory(String orderId) {
+     return vnpay.getTransactionInfo(null, null);
+     }
 
     // Không có nơi lưu trữ dữ liệu tập trung trong class này
 }

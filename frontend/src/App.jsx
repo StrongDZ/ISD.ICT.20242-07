@@ -23,7 +23,7 @@ import LoginPage from "./pages/LoginPage/LoginPage";
 // Admin Pages
 import AdminDashboard from "./pages/AdminPages/AdminDashboard";
 import UserManagementPage from "./pages/AdminPages/UserManagementPage";
-
+import PaymentSuccessPage from "./pages/PaymentPages/PaymentSuccessPage";
 // Manager Pages
 import ManagerDashboard from "./pages/ManagerPages/ManagerDashboard";
 import ProductManagementPage from "./pages/ManagerPages/ProductManagementPage";
@@ -84,6 +84,8 @@ function App() {
                                     <Route path="/manager" element={<ManagerDashboard />} />
                                     <Route path="/manager/products" element={<ProductManagementPage />} />
                                     <Route path="/manager/orders" element={<OrderManagementPage />} />
+                                    <Route path="/payment-success" element={<PaymentSuccessPage />} />
+
                                 </Routes>
                             </Layout>
                         </Router>

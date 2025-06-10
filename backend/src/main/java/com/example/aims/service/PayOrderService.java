@@ -1,7 +1,10 @@
 package com.example.aims.service;
 
 import com.example.aims.common.OrderStatus;
+import com.example.aims.dto.OrderDTO;
 import com.example.aims.dto.PaymentOrderRequestDTO;
+import com.example.aims.dto.PaymentOrderResponseDTO;
+import com.example.aims.dto.TransactionDto;
 import com.example.aims.exception.PaymentException.AbnormalTransactionException;
 import com.example.aims.exception.PaymentException.AccountnotRegisterException;
 import com.example.aims.exception.PaymentException.BlockAccountException;
@@ -159,9 +162,28 @@ public class PayOrderService {
                 throw new OtherException();
         }
     }
-     public PaymentTransaction getPaymentTransactionHistory(String orderId) {
-     return vnpay.getTransactionInfo(null, null);
-     }
+
+    public TransactionDto getPaymentHistory(String orderId) {
+        PaymentTransaction paymentTransaction = currentPaymentTransaction.findByOrderID(orderId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Payment transaction not found for order ID: " + orderId));
+        TransactionDto transactionDto = new TransactionDto();
+        transactionDto.setTransactionNo(paymentTransaction.getTransactionNo());
+        transactionDto.setOrderID(paymentTransaction.getOrderID());
+        transactionDto.setDatetime(paymentTransaction.getDatetime());
+        transactionDto.setAmount(paymentTransaction.getAmount());
+        Order order= paymentTransaction.getOrder();
+        PaymentOrderResponseDTO orderDto = new PaymentOrderResponseDTO();
+        orderDto.setOrderID(order.getOrderID());
+        orderDto.setTotalAmount(order.getTotalAmount());
+        orderDto.setStatus(order.getStatus());
+        orderDto.setCustomerName(order.getCustomerName());
+        orderDto.setPhoneNumber(order.getPhoneNumber());
+        orderDto.setShippingAddress(order.getShippingAddress());
+        orderDto.setProvince(order.getProvince());
+        transactionDto.setOrder(orderDto);
+        return transactionDto;
+    }
 
     // Không có nơi lưu trữ dữ liệu tập trung trong class này
 }

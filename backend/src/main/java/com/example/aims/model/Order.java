@@ -56,13 +56,22 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "customerID")
     private Users customer;
-
+    @Column(name = "customer_name")
     private String customerName;
+    @Column(name = "phone_number")
     private String phoneNumber;
+
+    @Enumerated(EnumType.STRING) // Lưu trữ giá trị enum dưới dạng chuỗi trong cơ sở dữ liệu
+    @Column(name = "status")
     private OrderStatus status;
 
+    @Column(name = "shipping_address")
     private String shippingAddress;
+
+    @Column(name = "province")
     private String province;
+
+     @Column(name = "total_amount")
     private Double totalAmount;
 
     @OneToOne(cascade = CascadeType.ALL)

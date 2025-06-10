@@ -73,3 +73,4 @@ INSERT INTO public.dvd (productid, director, disc_type, genre, language, release
 ('D008', 'Oscar Wilde', 'Blu-ray', 'Fantasy', 'English', DATE '2023-07-15', '2h 25m', 'Epic Studios', 'English, German'),
 ('D009', 'Zoe Clarke', 'DVD', 'Thriller', 'English', DATE '2022-11-11', '1h 55m', 'EdgeFilm', 'English'),
 ('D010', 'Hugo Steiner', 'Blu-ray', 'War', 'German', DATE '2021-05-08', '2h 15m', 'EuropaFilm', 'German, English');
+

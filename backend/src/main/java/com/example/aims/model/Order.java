@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+import com.example.aims.common.OrderStatus;
 
 // Functional Cohesion – All methods and fields are related to the single
 // responsibility: managing an order
@@ -58,7 +59,7 @@ public class Order {
 
     private String customerName;
     private String phoneNumber;
-    private String status;
+    private OrderStatus status;
 
 
     private String shippingAddress;
@@ -69,21 +70,19 @@ public class Order {
     @JoinColumn(name = "orderID")
     private DeliveryInfo deliveryInfo;
 
-    public String checkOrderStatus(){
-        if(!Objects.equals(this.status, "PENDING") && !Objects.equals(this.status, "REJECTED") && !Objects.equals(this.status, "APPROVED")){
-            return "Wrong input of Status";
+    public OrderStatus checkOrderStatus() {
+        try {
+            return this.status;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Wrong input of Status: " + this.status);
         }
-        else return this.status;
-    }
-    public void changeRejectOrder(){
-        this.status = "REJECTED";
     }
 
-    public void changeApproveOrder(){
-        this.status = "APPROVED";
+    public void changeRejectOrder() {
+        this.status = OrderStatus.REJECTED;
     }
 
-    public Order(String id, Users customer, String customerName, String phoneNumber, String status,
+    public Order(String id, Users customer, String customerName, String phoneNumber, OrderStatus status,
              String shippingAddress, String province, Double totalAmount) {
     this.orderID = id;
     this.customer = customer;
@@ -94,5 +93,8 @@ public class Order {
     this.province = province;
     this.totalAmount = totalAmount;
 }
+    public void changeApproveOrder() {
+        this.status = OrderStatus.APPROVED;
+    }
 
 }

@@ -2,6 +2,7 @@ package com.example.aims.subsystem.VNPay;
 
 import java.util.Map;
 
+import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import java.text.ParseException;
@@ -11,7 +12,7 @@ import java.util.TimeZone;
 
 public class VNPayPayResponse {
 
-    public PaymentTransaction responeParsing(Map<String, String> response, OrderRepository orderRepository) {
+    public PaymentTransaction responeParsing(Map<String, String> response, Order order) {
         PaymentTransaction transaction = new PaymentTransaction();
         String bank = response.get("vnp_BankCode");
         String orderId = response.get("vnp_TxnRef");
@@ -37,7 +38,7 @@ public class VNPayPayResponse {
         transaction.setTransactionNo(transactionNo);
         transaction.setTransactionStatus(transactionStatus);
         transaction.setCardType(cardType);
-        transaction.setOrder(orderRepository.findById(orderId).orElse(null));
+        transaction.setOrder(order);
         return transaction;
     }
 

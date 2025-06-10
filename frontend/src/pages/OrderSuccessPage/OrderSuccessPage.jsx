@@ -16,10 +16,10 @@ const OrderSuccessPage = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!isAuthenticated()) {
+        /*if (!isAuthenticated()) {
             navigate("/login");
             return;
-        }
+        }*/
 
         const getOrderData = () => {
             try {

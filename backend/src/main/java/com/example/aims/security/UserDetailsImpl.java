@@ -44,7 +44,10 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public static UserDetailsImpl build(Users user) {
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getType().name()));
+        // List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getType().name()));
+        List<GrantedAuthority> authorities = List.of(
+    new SimpleGrantedAuthority("ROLE_" + user.getType().name())
+);
 
         return new UserDetailsImpl(
                 user.getId(),

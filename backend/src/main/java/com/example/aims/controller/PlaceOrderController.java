@@ -8,10 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.OrderDTO;
 import com.example.aims.dto.OrderRequestDTO;
-import com.example.aims.model.CartItem;
 import com.example.aims.security.UserDetailsImpl;
 import com.example.aims.service.PlaceOrderService;
 
@@ -24,27 +22,27 @@ public class PlaceOrderController {
     public PlaceOrderController(PlaceOrderService placeOrderService) {
         this.placeOrderService = placeOrderService;
     }
+
     @PostMapping("/create-order")
-    public ResponseEntity<OrderDTO> createOrder(UserDetailsImpl userDetails, @RequestBody OrderRequestDTO orderRequestDTO) {
+    public ResponseEntity<OrderDTO> createOrder(UserDetailsImpl userDetails, @RequestBody OrderRequestDTO request) {
+        Integer userId = (userDetails != null) ? userDetails.getId() : null;
+        OrderDTO order = (userId == null)
+                ? handleOrderNoAccount(request)
+                : handleOrderWithAccount(request, userId);
+        return ResponseEntity.ok(order);
+    }
 
-        Integer userId = userDetails.getId();
-        List<CartItem> cartItems = orderRequestDTO.getCartItems();
-        DeliveryInfoDTO deliveryInfoDTO = orderRequestDTO.getDeliveryInfo();
+    private OrderDTO handleOrderNoAccount(OrderRequestDTO request) {
+        return placeOrderService.createOrderNoAccount(
+                request.getCartItems(),
+                request.getDeliveryInfo());
+    }
 
-        if (userId == null) {
-            return ResponseEntity.ok(placeOrderService.createOrderNoAccount(
-                cartItems, 
-                deliveryInfoDTO
-            ));
-        } else {
-            return ResponseEntity.ok(placeOrderService.createOrderWithAccount(
-                cartItems, 
-                deliveryInfoDTO,
-                userId
-            ));   
-        }
-
-
-}
+    private OrderDTO handleOrderWithAccount(OrderRequestDTO request, Integer userId) {
+        return placeOrderService.createOrderWithAccount(
+                request.getCartItems(),
+                request.getDeliveryInfo(),
+                userId);
+    }
 
 }

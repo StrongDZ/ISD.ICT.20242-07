@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
 
     private final UsersRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
     public List<UserResponse> findAll(String keyword, String sort, int page, int size) {
@@ -113,6 +114,16 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
         log.info("Updated user {}", user);
+
+        // Gửi email thông báo cập nhật thông tin
+        try {
+            String subject = "Your account information has been updated";
+            String body = "Dear " + req.getUsername() + ",\n\nYour account information has been updated by the administrator.\n\nIf you did not request this change, please contact support.";
+            emailService.send(req.getGmail(), subject, body);
+            log.info("Sent update notification email to {}", req.getGmail());
+        } catch (Exception e) {
+            log.error("Failed to send update notification email: {}", e.getMessage());
+        }
 
     }
     @Override

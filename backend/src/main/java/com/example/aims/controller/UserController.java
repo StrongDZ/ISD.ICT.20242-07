@@ -27,6 +27,7 @@ import com.example.aims.controller.request.UserPasswordRequest;
 import com.example.aims.controller.request.UserUpdateRequest;
 import com.example.aims.controller.response.UserResponse;
 import com.example.aims.service.user.UserService;
+import com.example.aims.service.user.EmailService;
 
 @RestController
 @RequestMapping("/api/user")
@@ -37,8 +38,12 @@ public class UserController {
     @Autowired
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    @Autowired
+    private final EmailService emailService;
+
+    public UserController(UserService userService, EmailService emailService) {
         this.userService = userService;
+        this.emailService = emailService;
     }
 
     @Operation(summary = "Get User List")
@@ -93,6 +98,8 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     public Map<String, Object> updateUser(@RequestBody UserUpdateRequest request) {
         userService.update(request);
+    
+
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", HttpStatus.ACCEPTED.value());
         result.put("message", "user updated successfully");

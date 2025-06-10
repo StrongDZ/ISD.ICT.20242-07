@@ -9,6 +9,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.DeliveryProductDTO;
 import com.example.aims.dto.InvoiceDTO;
@@ -190,7 +191,7 @@ public class PlaceOrderService {
     private Order createOrder(Users customer) {
         Order order = new Order();
         order.setCustomer(customer);
-        order.setStatus("PENDING");
+        order.setStatus(OrderStatus.PENDING);
         return order;
     }
     
@@ -278,7 +279,7 @@ public class PlaceOrderService {
     public OrderDTO createOrderNoAccount(List<CartItem> cartItems, DeliveryInfoDTO deliveryInfoDTO) {
 
         Order order = new Order();
-        order.setStatus("PENDING");
+        order.setStatus(OrderStatus.PENDING);
         order = orderRepository.save(order);
         
         double totalPrice = createOrderItemsAndUpdateProducts(order, cartItems);

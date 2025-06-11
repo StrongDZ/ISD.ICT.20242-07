@@ -1,5 +1,10 @@
 package com.example.aims.service;
 
+import com.example.aims.common.OrderStatus;
+import com.example.aims.dto.OrderDTO;
+import com.example.aims.dto.PaymentOrderRequestDTO;
+import com.example.aims.dto.PaymentOrderResponseDTO;
+import com.example.aims.dto.TransactionDto;
 import com.example.aims.exception.PaymentException.AbnormalTransactionException;
 import com.example.aims.exception.PaymentException.AccountnotRegisterException;
 import com.example.aims.exception.PaymentException.BlockAccountException;
@@ -87,36 +92,42 @@ public class PayOrderService {
         }
         Order order = orderOptional.get();
 
-        if (!"PENDING".equals(order.getStatus())) {
+        if (OrderStatus.PENDING == order.getStatus()) {
             throw new IllegalStateException(
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
-        return vnpay.getPaymentUrl(order); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
+        PaymentOrderRequestDTO dto = new PaymentOrderRequestDTO();
+        dto.setOrderId(order.getOrderID());
+        dto.setAmount(order.getTotalAmount());
+        dto.setContent(
+                "Payment for order: " + order.getOrderID() + "Order created by: " + order.getCustomer().getGmail());
+        return vnpay.getPaymentUrl(dto); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
     }
 
     public String processPayment(Map<String, String> allRequestParams) {
         String responseCode = allRequestParams.get("vnp_ResponseCode");
         if (responseCode.equals("00")) {
-            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, currentOrder);
-
-            PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
-            String transactionNo = savedTransaction.getTransactionNo();
             String orderID = allRequestParams.get("vnp_TxnRef");
             Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
-            order.setStatus("PENDING");
+            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, order);
+
+            PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
+            String transactionNo = savedTransaction.getTransactionNo();
+
+            order.setStatus(OrderStatus.PENDING);
             currentOrder.save(order);
             sendMail(transactionNo);
-            return "redirect:" + "http://localhost:5173/payment-success";
+            return "redirect:" + "http://localhost:3001/payment-success?orderId=" + orderID;
         } else if (responseCode.equals("24")) { // Payment decline
-            return "redirect:" + "http://localhost:5173/invoice";
+            return "redirect:" + "http://localhost:3001/payment-decline";
         } else { // Payment error
             try {
                 responseCodeError(responseCode);
             } catch (PaymentException e) {
                 System.out.println(e.getMessage());
             }
-            return "redirect:" + "http://localhost:5173/payment-error";
+            return "redirect:" + "http://localhost:3001/payment-error";
         }
     }
 
@@ -151,9 +162,28 @@ public class PayOrderService {
                 throw new OtherException();
         }
     }
-    // public PaymentTransaction getPaymentTransactionByOrderId(String orderId) {
-    // return findPaymentTransactionByOrderId(orderId).orElse(null);
-    // }
+
+    public TransactionDto getPaymentHistory(String orderId) {
+        PaymentTransaction paymentTransaction = currentPaymentTransaction.findByOrderID(orderId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Payment transaction not found for order ID: " + orderId));
+        TransactionDto transactionDto = new TransactionDto();
+        transactionDto.setTransactionNo(paymentTransaction.getTransactionNo());
+        transactionDto.setOrderID(paymentTransaction.getOrderID());
+        transactionDto.setDatetime(paymentTransaction.getDatetime());
+        transactionDto.setAmount(paymentTransaction.getAmount());
+        Order order= paymentTransaction.getOrder();
+        PaymentOrderResponseDTO orderDto = new PaymentOrderResponseDTO();
+        orderDto.setOrderID(order.getOrderID());
+        orderDto.setTotalAmount(order.getTotalAmount());
+        orderDto.setStatus(order.getStatus());
+        orderDto.setCustomerName(order.getCustomerName());
+        orderDto.setPhoneNumber(order.getPhoneNumber());
+        orderDto.setShippingAddress(order.getShippingAddress());
+        orderDto.setProvince(order.getProvince());
+        transactionDto.setOrder(orderDto);
+        return transactionDto;
+    }
 
     // Không có nơi lưu trữ dữ liệu tập trung trong class này
 }

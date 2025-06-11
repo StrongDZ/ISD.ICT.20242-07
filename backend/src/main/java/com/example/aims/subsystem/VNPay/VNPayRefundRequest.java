@@ -15,6 +15,8 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+
+import com.example.aims.dto.TransactionDto;
 import com.example.aims.model.PaymentTransaction;
 
 public class VNPayRefundRequest {
@@ -22,12 +24,12 @@ public class VNPayRefundRequest {
         return "192.168.2.14";
     }
 
-    public String requestVNPayRefund(PaymentTransaction transaction) {
+    public String requestVNPayRefund(TransactionDto transaction) {
         Random random = new Random();
         String vnp_TxnRef = transaction.getOrderID();
-        String vnp_Amount = String.valueOf(transaction.getOrder().getTotalAmount() * 100); // Convert to VND
+        String vnp_Amount = String.valueOf(transaction.getAmount() * 100); // Convert to VND
         String vnp_OrderInfo = "Refund for Order ID: " + transaction.getOrderID();
-        String vnp_TransactionNo = transaction.getOrderID();
+        String vnp_TransactionNo = transaction.getTransactionNo();
         String vnp_TransactionDate = transaction.getDatetime().toString();
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -83,7 +85,7 @@ public class VNPayRefundRequest {
             }
             in.close();
             System.out.print(response);
-            return response.toString(); 
+            return response.toString();
         } catch (Exception e) {
             return e.getMessage();
         }

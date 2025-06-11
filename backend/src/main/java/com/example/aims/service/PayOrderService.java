@@ -1,5 +1,10 @@
 package com.example.aims.service;
 
+import com.example.aims.common.OrderStatus;
+import com.example.aims.dto.OrderDTO;
+import com.example.aims.dto.PaymentOrderRequestDTO;
+import com.example.aims.dto.PaymentOrderResponseDTO;
+import com.example.aims.dto.TransactionDto;
 import com.example.aims.exception.PaymentException.AbnormalTransactionException;
 import com.example.aims.exception.PaymentException.AccountnotRegisterException;
 import com.example.aims.exception.PaymentException.BlockAccountException;
@@ -18,12 +23,14 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.subsystem.VNPay.VNPaySubsystem;
+import org.springframework.mail.SimpleMailMessage;
 
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.Date;
 import java.util.List;
@@ -65,11 +72,15 @@ public class PayOrderService {
     @Autowired
     private final PaymentTransactionRepository currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
 
+    @Autowired
+    private final JavaMailSender javaMailSender;
+
     private VNPaySubsystem vnpay = new VNPaySubsystem();
 
-    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository) {
+    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository, JavaMailSender javaMailSender) {
         this.currentOrder = orderRepository;
         this.currentPaymentTransaction = paymentTransactionRepository;
+        this.javaMailSender = javaMailSender;
     }
 
     // public Optional<Order> findOrderById(String orderId) {
@@ -87,40 +98,70 @@ public class PayOrderService {
         }
         Order order = orderOptional.get();
 
-        if (!"PENDING".equals(order.getStatus())) {
+        if (order.getStatus() != OrderStatus.PENDING ) {
             throw new IllegalStateException(
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
-        return vnpay.getPaymentUrl(order); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
+        PaymentOrderRequestDTO dto = new PaymentOrderRequestDTO();
+        dto.setOrderId(order.getOrderID());
+        dto.setAmount(order.getTotalAmount());
+        dto.setContent(
+                "Payment for order: " + order.getOrderID() + "Order created by: " + order.getCustomer().getGmail());
+        return vnpay.getPaymentUrl(dto); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
     }
 
     public String processPayment(Map<String, String> allRequestParams) {
         String responseCode = allRequestParams.get("vnp_ResponseCode");
         if (responseCode.equals("00")) {
-            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, currentOrder);
-
-            PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
-            String transactionNo = savedTransaction.getTransactionNo();
             String orderID = allRequestParams.get("vnp_TxnRef");
             Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
-            order.setStatus("PENDING");
+            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, order);
+
+            PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
+            String transactionId = savedTransaction.getTransactionId();
+
+            order.setStatus(OrderStatus.PENDING);
             currentOrder.save(order);
-            sendMail(transactionNo);
-            return "redirect:" + "http://localhost:5173/payment-success";
+            sendMail(transactionId);
+            return "redirect:" + "http://localhost:3001/payment-success?orderId=" + orderID;
         } else if (responseCode.equals("24")) { // Payment decline
-            return "redirect:" + "http://localhost:5173/invoice";
+            return "redirect:" + "http://localhost:3001/payment-decline";
         } else { // Payment error
             try {
                 responseCodeError(responseCode);
             } catch (PaymentException e) {
                 System.out.println(e.getMessage());
             }
-            return "redirect:" + "http://localhost:5173/payment-error";
+            return "redirect:" + "http://localhost:3001/payment-error";
         }
     }
 
-    public void sendMail(String transactionNo) {
+    public void sendMail(String transactionId) {
+        PaymentTransaction paymentTransaction = currentPaymentTransaction
+                .findByTransactionId(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment transaction not found for transaction Id: " + transactionId));
+        Order order = paymentTransaction.getOrder();
+        String orderID = order.getOrderID();
+        String recvMail = order.getCustomer().getGmail();
+        String transactionLink = "localhost:3001/transaction-history?orderId=" + orderID;
+        String subject = "Payment Successful for Order ID: " + orderID;
+        String body = "Dear " + order.getCustomerName() + ",\n\n"
+                + "Your payment for Order ID: " + orderID + " has been successfully processed.\n"
+                + "Transaction ID: " + transactionId + "\n"
+                + "You can view your transaction details at: " + transactionLink + "\n\n"
+                + "Thank you for your purchase!\n\n"
+                + "Best regards,\nAIMS Team";
+        try {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setFrom("itss.aims.07@gmail.com");
+            mailMessage.setTo(recvMail);
+            mailMessage.setSubject(subject);
+            mailMessage.setText(body);
+            javaMailSender.send(mailMessage);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void responseCodeError(@NotNull String responseCode) {
@@ -151,9 +192,28 @@ public class PayOrderService {
                 throw new OtherException();
         }
     }
-    // public PaymentTransaction getPaymentTransactionByOrderId(String orderId) {
-    // return findPaymentTransactionByOrderId(orderId).orElse(null);
-    // }
+
+    public TransactionDto getPaymentHistory(String orderId) {
+        PaymentTransaction paymentTransaction = currentPaymentTransaction.findByTransactionId(orderId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Payment transaction not found for order ID: " + orderId));
+        TransactionDto transactionDto = new TransactionDto();
+        transactionDto.setTransactionNo(paymentTransaction.getTransactionNo());
+        transactionDto.setTransactionId(paymentTransaction.getTransactionId());
+        transactionDto.setDatetime(paymentTransaction.getDatetime());
+        transactionDto.setAmount(paymentTransaction.getAmount());
+        Order order = paymentTransaction.getOrder();
+        PaymentOrderResponseDTO orderDto = new PaymentOrderResponseDTO();
+        orderDto.setOrderID(order.getOrderID());
+        orderDto.setTotalAmount(order.getTotalAmount());
+        orderDto.setStatus(order.getStatus());
+        orderDto.setCustomerName(order.getCustomerName());
+        orderDto.setPhoneNumber(order.getPhoneNumber());
+        orderDto.setShippingAddress(order.getShippingAddress());
+        orderDto.setProvince(order.getProvince());
+        transactionDto.setOrder(orderDto);
+        return transactionDto;
+    }
 
     // Không có nơi lưu trữ dữ liệu tập trung trong class này
 }

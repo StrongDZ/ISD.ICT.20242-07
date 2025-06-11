@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+import com.example.aims.common.OrderStatus;
 
 // Functional Cohesion – All methods and fields are related to the single
 // responsibility: managing an order
@@ -50,36 +51,59 @@ import java.util.Objects;
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String orderID;
 
     @ManyToOne
-    @JoinColumn(name = "userID")
+    @JoinColumn(name = "customerID")
     private Users customer;
-
+    @Column(name = "customer_name")
     private String customerName;
+    @Column(name = "phone_number")
     private String phoneNumber;
-    private String status;
 
+    @Enumerated(EnumType.STRING) // Lưu trữ giá trị enum dưới dạng chuỗi trong cơ sở dữ liệu
+    @Column(name = "status")
+    private OrderStatus status;
+
+    @Column(name = "shipping_address")
+    private String shippingAddress;
+
+    @Column(name = "province")
+    private String province;
+
+     @Column(name = "total_amount")
     private Double totalAmount;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "orderID")
     private DeliveryInfo deliveryInfo;
 
-    public String checkOrderStatus(){
-        if(!Objects.equals(this.status, "PENDING") && !Objects.equals(this.status, "REJECTED") && !Objects.equals(this.status, "APPROVED")){
-            return "Wrong input of Status";
+    public OrderStatus checkOrderStatus() {
+        try {
+            return this.status;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Wrong input of Status: " + this.status);
         }
-        else return this.status;
-    }
-    public void changeRejectOrder(){
-        this.status = "REJECTED";
     }
 
-    public void changeApproveOrder(){
-        this.status = "APPROVED";
+    public void changeRejectOrder() {
+        this.status = OrderStatus.REJECTED;
     }
 
+    public Order(String id, Users customer, String customerName, String phoneNumber, OrderStatus status,
+            String shippingAddress, String province, Double totalAmount) {
+        this.orderID = id;
+        this.customer = customer;
+        this.customerName = customerName;
+        this.phoneNumber = phoneNumber;
+        this.status = status;
+        this.shippingAddress = shippingAddress;
+        this.province = province;
+        this.totalAmount = totalAmount;
+    }
+
+    public void changeApproveOrder() {
+        this.status = OrderStatus.APPROVED;
+    }
 
 }

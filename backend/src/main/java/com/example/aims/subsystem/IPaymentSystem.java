@@ -2,14 +2,15 @@ package com.example.aims.subsystem;
 
 import java.util.Map;
 
+import com.example.aims.dto.PaymentOrderRequestDTO;
+import com.example.aims.dto.TransactionDto;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
-import com.example.aims.repository.OrderRepository;
 
 public interface IPaymentSystem {
-    public String getPaymentUrl(Order order);
+    public String getPaymentUrl(PaymentOrderRequestDTO dto);
 
-    public String getRefundInfo(PaymentTransaction transaction);
+    public String getRefundInfo(TransactionDto dto);
 
-    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, OrderRepository orderRepository);
+    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, Order order);
 }

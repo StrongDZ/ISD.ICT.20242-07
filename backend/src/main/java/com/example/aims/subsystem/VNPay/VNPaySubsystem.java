@@ -2,6 +2,8 @@ package com.example.aims.subsystem.VNPay;
 
 import java.util.Map;
 
+import com.example.aims.dto.PaymentOrderRequestDTO;
+import com.example.aims.dto.TransactionDto;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
@@ -31,17 +33,17 @@ public class VNPaySubsystem implements IPaymentSystem {
     private final VNPayRefundRequest refundRequest = new VNPayRefundRequest();
     private final VNPayRefundResponse refundResponse = new VNPayRefundResponse();
 
-    public String getPaymentUrl(Order orderEntity) {
+    public String getPaymentUrl(PaymentOrderRequestDTO dto) {
         // Get amount
-        Double orderTotal = orderEntity.getTotalAmount();
+        Double orderTotal = dto.getAmount();
         int amount = (int) (orderTotal * 100);
         // Build content for payment
-        String content = orderEntity.getDeliveryInfo().getAddressDetail();
+        String content = dto.getContent();
         if (content == null || content.isEmpty()) {
-            content = "Order: " + orderEntity.getOrderID();
+            content = "Order: " + dto.getOrderId();
         }
         // Get order ID
-        String orderId = orderEntity.getOrderID();
+        String orderId = dto.getOrderId();
         // Generate request payment url
         try {
             return request.generateUrl(amount, content, orderId);
@@ -52,13 +54,14 @@ public class VNPaySubsystem implements IPaymentSystem {
     }
 
     @Override
-    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, OrderRepository orderRepository){
-        return response.responeParsing(vnPayResponse, orderRepository);
+    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, Order order) {
+        return response.responeParsing(vnPayResponse, order);
     }
 
     @Override
-    public String getRefundInfo(PaymentTransaction transaction){
-        String response = refundRequest.requestVNPayRefund(transaction);
+    public String getRefundInfo(TransactionDto dto) {
+        String response = refundRequest.requestVNPayRefund(dto);
         return refundResponse.parseResponse(response);
     }
+
 }

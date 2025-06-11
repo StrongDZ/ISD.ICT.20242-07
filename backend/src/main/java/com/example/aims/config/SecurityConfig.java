@@ -60,20 +60,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/auth/**").permitAll()
-                    .requestMatchers("/api/test/**").permitAll()
-                    .requestMatchers("/api/user/add").permitAll()
-                    .requestMatchers("/api/user/**").authenticated()
-                    .requestMatchers("/actuator/**", "/v3/**", "/webjars/**", "/swagger-ui*/*swagger-initializer.js", "/swagger-ui*/**", "/favicon.ico").permitAll()
-                    .anyRequest().authenticated()
-            );
-        
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/api/user/add").permitAll()
+                        .requestMatchers("/api/user/**").authenticated()
+                        .requestMatchers(
+                                "/", "/index.html", "/favicon.ico", "/manifest.json",
+                                "/logo192.png", "/logo512.png", "/static/**")
+                        .permitAll()
+                        .requestMatchers("/actuator/**", "/v3/**", "/webjars/**",
+                                "/swagger-ui*/*swagger-initializer.js", "/swagger-ui*/**")
+                        .permitAll()
+                        .anyRequest().authenticated());
+
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
 
@@ -81,6 +85,8 @@ public class SecurityConfig {
     public WebSecurityCustomizer ignoreResources() {
         return webSecurity -> webSecurity
                 .ignoring()
-                .requestMatchers("/actuator/**", "/v3/**", "/webjars/**", "/swagger-ui*/*swagger-initializer.js", "/swagger-ui*/**", "/favicon.ico");
+                .requestMatchers("/actuator/**", "/v3/**", "/webjars/**", "/swagger-ui*/*swagger-initializer.js",
+                        "/swagger-ui*/**", "/favicon.ico");
     }
+
 }

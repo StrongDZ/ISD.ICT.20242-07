@@ -23,20 +23,16 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.subsystem.VNPay.VNPaySubsystem;
-import org.springframework.mail.SimpleMailMessage;
+//import org.springframework.mail.SimpleMailMessage;
 
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.mail.javamail.JavaMailSender;
+//import org.springframework.mail.javamail.JavaMailSender;
 
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 // Communicational Cohesion – Methods share common data and purpose (processing payments), 
 // but test logic reduces clarity of single-purpose design
@@ -72,15 +68,16 @@ public class PayOrderService {
     @Autowired
     private final PaymentTransactionRepository currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
 
-    @Autowired
-    private final JavaMailSender javaMailSender;
+    //@Autowired
+    //private final JavaMailSender javaMailSender;
 
     private VNPaySubsystem vnpay = new VNPaySubsystem();
 
-    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository, JavaMailSender javaMailSender) {
+    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository){
+            //JavaMailSender javaMailSender) {
         this.currentOrder = orderRepository;
         this.currentPaymentTransaction = paymentTransactionRepository;
-        this.javaMailSender = javaMailSender;
+        //this.javaMailSender = javaMailSender;
     }
 
     // public Optional<Order> findOrderById(String orderId) {
@@ -98,7 +95,7 @@ public class PayOrderService {
         }
         Order order = orderOptional.get();
 
-        if (order.getStatus() != OrderStatus.PENDING ) {
+        if (order.getStatus() != OrderStatus.PENDING) {
             throw new IllegalStateException(
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
@@ -138,30 +135,33 @@ public class PayOrderService {
     }
 
     public void sendMail(String transactionId) {
-        PaymentTransaction paymentTransaction = currentPaymentTransaction
-                .findByTransactionId(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Payment transaction not found for transaction Id: " + transactionId));
-        Order order = paymentTransaction.getOrder();
-        String orderID = order.getOrderID();
-        String recvMail = order.getCustomer().getGmail();
-        String transactionLink = "localhost:3001/transaction-history?orderId=" + orderID;
-        String subject = "Payment Successful for Order ID: " + orderID;
-        String body = "Dear " + order.getCustomerName() + ",\n\n"
-                + "Your payment for Order ID: " + orderID + " has been successfully processed.\n"
-                + "Transaction ID: " + transactionId + "\n"
-                + "You can view your transaction details at: " + transactionLink + "\n\n"
-                + "Thank you for your purchase!\n\n"
-                + "Best regards,\nAIMS Team";
-        try {
-            SimpleMailMessage mailMessage = new SimpleMailMessage();
-            mailMessage.setFrom("itss.aims.07@gmail.com");
-            mailMessage.setTo(recvMail);
-            mailMessage.setSubject(subject);
-            mailMessage.setText(body);
-            javaMailSender.send(mailMessage);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        // PaymentTransaction paymentTransaction = currentPaymentTransaction
+        // .findByTransactionId(transactionId)
+        // .orElseThrow(() -> new IllegalArgumentException("Payment transaction not
+        // found for transaction Id: " + transactionId));
+        // Order order = paymentTransaction.getOrder();
+        // String orderID = order.getOrderID();
+        // String recvMail = order.getCustomer().getGmail();
+        // String transactionLink = "localhost:3001/transaction-history?orderId=" +
+        // orderID;
+        // String subject = "Payment Successful for Order ID: " + orderID;
+        // String body = "Dear " + order.getCustomerName() + ",\n\n"
+        // + "Your payment for Order ID: " + orderID + " has been successfully
+        // processed.\n"
+        // + "Transaction ID: " + transactionId + "\n"
+        // + "You can view your transaction details at: " + transactionLink + "\n\n"
+        // + "Thank you for your purchase!\n\n"
+        // + "Best regards,\nAIMS Team";
+        // try {
+        // SimpleMailMessage mailMessage = new SimpleMailMessage();
+        // mailMessage.setFrom("itss.aims.07@gmail.com");
+        // mailMessage.setTo(recvMail);
+        // mailMessage.setSubject(subject);
+        // mailMessage.setText(body);
+        // javaMailSender.send(mailMessage);
+        // }catch (Exception e){
+        // e.printStackTrace();
+        // }
     }
 
     public void responseCodeError(@NotNull String responseCode) {

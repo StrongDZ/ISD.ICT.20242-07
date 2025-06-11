@@ -23,12 +23,14 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.subsystem.VNPay.VNPaySubsystem;
+import org.springframework.mail.SimpleMailMessage;
 
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.Date;
 import java.util.List;
@@ -70,11 +72,15 @@ public class PayOrderService {
     @Autowired
     private final PaymentTransactionRepository currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
 
+    @Autowired
+    private final JavaMailSender javaMailSender;
+
     private VNPaySubsystem vnpay = new VNPaySubsystem();
 
-    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository) {
+    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository, JavaMailSender javaMailSender) {
         this.currentOrder = orderRepository;
         this.currentPaymentTransaction = paymentTransactionRepository;
+        this.javaMailSender = javaMailSender;
     }
 
     // public Optional<Order> findOrderById(String orderId) {
@@ -92,7 +98,7 @@ public class PayOrderService {
         }
         Order order = orderOptional.get();
 
-        if (OrderStatus.PENDING == order.getStatus()) {
+        if (order.getStatus() != OrderStatus.PENDING ) {
             throw new IllegalStateException(
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
@@ -113,11 +119,11 @@ public class PayOrderService {
             PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, order);
 
             PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
-            String transactionNo = savedTransaction.getTransactionNo();
+            String transactionId = savedTransaction.getTransactionId();
 
             order.setStatus(OrderStatus.PENDING);
             currentOrder.save(order);
-            sendMail(transactionNo);
+            sendMail(transactionId);
             return "redirect:" + "http://localhost:3001/payment-success?orderId=" + orderID;
         } else if (responseCode.equals("24")) { // Payment decline
             return "redirect:" + "http://localhost:3001/payment-decline";
@@ -131,7 +137,31 @@ public class PayOrderService {
         }
     }
 
-    public void sendMail(String transactionNo) {
+    public void sendMail(String transactionId) {
+        PaymentTransaction paymentTransaction = currentPaymentTransaction
+                .findByTransactionId(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment transaction not found for transaction Id: " + transactionId));
+        Order order = paymentTransaction.getOrder();
+        String orderID = order.getOrderID();
+        String recvMail = order.getCustomer().getGmail();
+        String transactionLink = "localhost:3001/transaction-history?orderId=" + orderID;
+        String subject = "Payment Successful for Order ID: " + orderID;
+        String body = "Dear " + order.getCustomerName() + ",\n\n"
+                + "Your payment for Order ID: " + orderID + " has been successfully processed.\n"
+                + "Transaction ID: " + transactionId + "\n"
+                + "You can view your transaction details at: " + transactionLink + "\n\n"
+                + "Thank you for your purchase!\n\n"
+                + "Best regards,\nAIMS Team";
+        try {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setFrom("itss.aims.07@gmail.com");
+            mailMessage.setTo(recvMail);
+            mailMessage.setSubject(subject);
+            mailMessage.setText(body);
+            javaMailSender.send(mailMessage);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void responseCodeError(@NotNull String responseCode) {
@@ -164,15 +194,15 @@ public class PayOrderService {
     }
 
     public TransactionDto getPaymentHistory(String orderId) {
-        PaymentTransaction paymentTransaction = currentPaymentTransaction.findByOrderID(orderId)
+        PaymentTransaction paymentTransaction = currentPaymentTransaction.findByTransactionId(orderId)
                 .orElseThrow(
                         () -> new IllegalArgumentException("Payment transaction not found for order ID: " + orderId));
         TransactionDto transactionDto = new TransactionDto();
         transactionDto.setTransactionNo(paymentTransaction.getTransactionNo());
-        transactionDto.setOrderID(paymentTransaction.getOrderID());
+        transactionDto.setTransactionId(paymentTransaction.getTransactionId());
         transactionDto.setDatetime(paymentTransaction.getDatetime());
         transactionDto.setAmount(paymentTransaction.getAmount());
-        Order order= paymentTransaction.getOrder();
+        Order order = paymentTransaction.getOrder();
         PaymentOrderResponseDTO orderDto = new PaymentOrderResponseDTO();
         orderDto.setOrderID(order.getOrderID());
         orderDto.setTotalAmount(order.getTotalAmount());

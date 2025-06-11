@@ -64,10 +64,10 @@ public class PaymentTransaction {
     // prefer passing only needed data to reduce coupling to Data level.
 
     @Id
-    private String orderID;
+    @Column(name = "transaction_Id")
+    private String transactionId;
 
     @OneToOne
-    @MapsId
     @JoinColumn(name = "orderID")
     private Order order;
     @Column(name = "transaction_No")

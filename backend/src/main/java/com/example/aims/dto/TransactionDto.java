@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 
 public class TransactionDto {
-    private String orderID;
+    private String transactionId;
     private String transactionNo;
     private Double amount;
     private Date datetime;

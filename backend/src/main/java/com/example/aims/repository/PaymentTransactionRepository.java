@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, String> {
-    Optional<PaymentTransaction> findByOrderID(String orderId);
+    Optional<PaymentTransaction> findByTransactionId(String transactionId);
 }

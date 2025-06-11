@@ -15,6 +15,8 @@ import com.example.aims.subsystem.VNPay.VNPaySubsystem;
 
 @RestController
 @RequestMapping("/api/payments")
+@CrossOrigin(origins = "*")
+
 public class PayOrderController {
     @Autowired
     private PayOrderService payOrderService;
@@ -36,7 +38,7 @@ public class PayOrderController {
 
     // Transaction history (test)
     @GetMapping("transaction_history")
-    public ResponseEntity<ResponseObject> getTransactionHistory(@RequestParam String orderId){
+    public ResponseEntity<ResponseObject> getTransactionHistory(@RequestParam String orderId) {
         TransactionDto transactionDto = payOrderService.getPaymentHistory(orderId);
         return ResponseEntity.ok(ResponseObject.builder()
                 .message("Get transaction history success")

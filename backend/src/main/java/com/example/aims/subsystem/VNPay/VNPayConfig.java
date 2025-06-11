@@ -9,7 +9,7 @@ class VNPayConfig {
     // VNPay configuration for payment
     protected static String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     // protected static String returnUrl = "http://localhost:5173/payment-success";
-    protected static String returnUrl = "https://0099-2401-d800-20b-48f4-846e-4bb2-b75f-6cb1.ngrok-free.app/api/vnpay-return";
+    protected static String returnUrl = "https://0099-2401-d800-20b-48f4-846e-4bb2-b75f-6cb1.ngrok-free.app/api/payments/vnpay-return";
     protected static String vnpayTmnCode = "DOIHA1RT";
     protected static String secretKey = "D651N17NCI55EOYGOM6XKRAJDHJ4Y2D7";
     protected static String vnpayVersion = "2.1.0";

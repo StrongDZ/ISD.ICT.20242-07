@@ -34,7 +34,7 @@ public class VNPayPayResponse {
         }
         transaction.setTransactionBank(bank);
         transaction.setAmount(Double.parseDouble(transactionAmount) / 100); // Convert from VND to original amount
-        transaction.setOrderID(orderId);
+        transaction.setTransactionId(orderId);
         transaction.setTransactionNo(transactionNo);
         transaction.setTransactionStatus(transactionStatus);
         transaction.setCardType(cardType);

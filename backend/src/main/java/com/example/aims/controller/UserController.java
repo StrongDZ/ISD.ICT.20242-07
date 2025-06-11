@@ -31,7 +31,7 @@ import com.example.aims.service.user.EmailService;
 
 @RestController
 @RequestMapping("/api/user")
-@Tag(name= "User Controller")
+@Tag(name = "User Controller")
 @Slf4j(topic = "USER-CONTROLLER")
 public class UserController {
 
@@ -39,20 +39,19 @@ public class UserController {
     private final UserService userService;
 
     @Autowired
-    private final EmailService emailService;
+     private final EmailService emailService;
 
     public UserController(UserService userService, EmailService emailService) {
         this.userService = userService;
-        this.emailService = emailService;
+         this.emailService = emailService;
     }
 
     @Operation(summary = "Get User List")
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public Map<String, Object> getList(@RequestParam (required = false)String keyword,
-                                       @RequestParam (defaultValue = "0") int page,
-                                       @RequestParam (defaultValue = "20") int size)
-    {
+    public Map<String, Object> getList(@RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         log.info("Get user list");
 
         List<UserResponse> userList = userService.findAll(keyword, "id", page, size);
@@ -63,6 +62,7 @@ public class UserController {
         result.put("data", userList);
         return result;
     }
+
     @Operation(summary = "Get User Detail")
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -83,12 +83,11 @@ public class UserController {
     @PostMapping("/add")
     public ResponseEntity<Long> createUser(@RequestBody UserCreationRequest request) {
 
-
-//        Map<String, Object> result = new LinkedHashMap<>();
-//        result.put("status", HttpStatus.CREATED.value());
-//        result.put("message", "user created sucessfully");
-//        result.put("data", 3);
-//        return result;
+        // Map<String, Object> result = new LinkedHashMap<>();
+        // result.put("status", HttpStatus.CREATED.value());
+        // result.put("message", "user created sucessfully");
+        // result.put("data", 3);
+        // return result;
         userService.save(request);
         return new ResponseEntity<>(1l, HttpStatus.CREATED);
     }
@@ -98,7 +97,6 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     public Map<String, Object> updateUser(@RequestBody UserUpdateRequest request) {
         userService.update(request);
-    
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", HttpStatus.ACCEPTED.value());
@@ -106,7 +104,7 @@ public class UserController {
         result.put("data", "");
         return result;
     }
-    
+
     @Operation(summary = "Change User Password")
     @PatchMapping("/change_pwd")
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")

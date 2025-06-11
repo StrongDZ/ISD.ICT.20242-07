@@ -17,18 +17,19 @@ import com.example.aims.dto.EmailRequest;
 @RequiredArgsConstructor
 @Slf4j(topic = "EMAIL-CONTROLLER")
 public class EmailController {
-    private final EmailService emailService;
+private final EmailService emailService;
 
-    @PostMapping("/send")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> sendEmail(@RequestBody EmailRequest request) {
-        log.info("Sending email to {}", request.getTo());
-        try {
-            emailService.send(request.getTo(), request.getSubject(), request.getBody());
-            return ResponseEntity.ok().body("Email sent successfully");
-        } catch (Exception e) {
-            log.error("Failed to send email: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Failed to send email: " + e.getMessage());
-        }
-    }
+@PostMapping("/send")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<?> sendEmail(@RequestBody EmailRequest request) {
+log.info("Sending email to {}", request.getTo());
+try {
+emailService.send(request.getTo(), request.getSubject(), request.getBody());
+return ResponseEntity.ok().body("Email sent successfully");
+} catch (Exception e) {
+log.error("Failed to send email: {}", e.getMessage());
+return ResponseEntity.badRequest().body("Failed to send email: " +
+e.getMessage());
+}
+}
 }

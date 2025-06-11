@@ -47,7 +47,7 @@ const LoginPage = () => {
 
       if (userRole === "ROLE_ADMIN") {
         navigate("/admin", { replace: true });
-      } else if (userRole === "PRODUCT_MANAGER") {
+      } else if (userRole === "ROLE_PRODUCTMANAGER") {
         navigate("/manager", { replace: true });
       } else {
         // For customers, go back to the previous page or home

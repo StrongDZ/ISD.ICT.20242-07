@@ -7,13 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Date;
 
-import javax.annotation.processing.Generated;
-
-/**
- * ✅ Base class for all product types using JOIN inheritance strategy.
- * ✅ High Cohesion: All fields and methods relate to common product attributes.
- * ✅ SRP Compliant: Only stores common product-related data.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,8 +32,6 @@ public class Product {
     private String dimensions;
     private Double weight;
     private String imageURL;
-    private boolean isRushEligible;
-
-    
+    private Boolean rushEligible;
 
 }

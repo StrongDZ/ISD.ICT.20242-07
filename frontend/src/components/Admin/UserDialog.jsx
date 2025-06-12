@@ -17,16 +17,15 @@ import {
     FormControlLabel,
     Switch,
     Alert,
+    FormHelperText,
 } from "@mui/material";
 import { Save, Cancel, Person, Email, Phone, LocationOn } from "@mui/icons-material";
 
 const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
     const [formData, setFormData] = useState({
         username: "",
-        fullName: "",
         email: "",
-        phone: "",
-        address: "",
+        password: "",
         role: "CUSTOMER",
         isActive: true,
         department: "",
@@ -38,22 +37,18 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
         if (user) {
             setFormData({
                 username: user.username || "",
-                fullName: user.fullName || "",
                 email: user.email || "",
-                phone: user.phone || "",
-                address: user.address || "",
+                password: "",
                 role: user.role || "CUSTOMER",
-                isActive: user.isActive ?? true,
+                isActive: user.isActive !== undefined ? user.isActive : true,
                 department: user.department || "",
                 employeeId: user.employeeId || "",
             });
         } else if (mode === "add") {
             setFormData({
                 username: "",
-                fullName: "",
                 email: "",
-                phone: "",
-                address: "",
+                password: "",
                 role: "CUSTOMER",
                 isActive: true,
                 department: "",
@@ -82,20 +77,22 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
 
         if (!formData.username?.trim()) {
             newErrors.username = "Username is required";
-        }
-
-        if (!formData.fullName?.trim()) {
-            newErrors.fullName = "Full name is required";
+        } else if (formData.username.length < 3) {
+            newErrors.username = "Username must be at least 3 characters";
         }
 
         if (!formData.email?.trim()) {
             newErrors.email = "Email is required";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = "Please enter a valid email address";
+            newErrors.email = "Invalid email format";
         }
 
-        if (!formData.phone?.trim()) {
-            newErrors.phone = "Phone number is required";
+        if (mode === "add") {
+            if (!formData.password) {
+                newErrors.password = "Password is required";
+            } else if (formData.password.length < 6) {
+                newErrors.password = "Password must be at least 6 characters";
+            }
         }
 
         if (!formData.role) {
@@ -193,6 +190,7 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                         <TextField
                             fullWidth
                             label="Username *"
+                            name="username"
                             value={formData.username}
                             onChange={(e) => handleFieldChange("username", e.target.value)}
                             error={!!errors.username}
@@ -205,20 +203,8 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                     <Grid item xs={12} sm={6}>
                         <TextField
                             fullWidth
-                            label="Full Name *"
-                            value={formData.fullName}
-                            onChange={(e) => handleFieldChange("fullName", e.target.value)}
-                            error={!!errors.fullName}
-                            helperText={errors.fullName}
-                            disabled={mode === "view"}
-                            required
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                        <TextField
-                            fullWidth
                             label="Email *"
+                            name="email"
                             type="email"
                             value={formData.email}
                             onChange={(e) => handleFieldChange("email", e.target.value)}
@@ -232,36 +218,21 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6}>
-                        <TextField
-                            fullWidth
-                            label="Phone Number *"
-                            value={formData.phone}
-                            onChange={(e) => handleFieldChange("phone", e.target.value)}
-                            error={!!errors.phone}
-                            helperText={errors.phone}
-                            disabled={mode === "view"}
-                            InputProps={{
-                                startAdornment: <Phone sx={{ mr: 1, color: "action.active" }} />,
-                            }}
-                            required
-                        />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                        <TextField
-                            fullWidth
-                            label="Address"
-                            multiline
-                            rows={2}
-                            value={formData.address}
-                            onChange={(e) => handleFieldChange("address", e.target.value)}
-                            disabled={mode === "view"}
-                            InputProps={{
-                                startAdornment: <LocationOn sx={{ mr: 1, color: "action.active", alignSelf: "flex-start", mt: 1 }} />,
-                            }}
-                        />
-                    </Grid>
+                    {mode === "add" && (
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                label="Password *"
+                                name="password"
+                                type="password"
+                                value={formData.password}
+                                onChange={(e) => handleFieldChange("password", e.target.value)}
+                                error={!!errors.password}
+                                helperText={errors.password}
+                                required
+                            />
+                        </Grid>
+                    )}
 
                     {/* Role & Status */}
                     <Grid item xs={12}>
@@ -274,6 +245,7 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                         <FormControl fullWidth error={!!errors.role}>
                             <InputLabel>Role *</InputLabel>
                             <Select
+                                name="role"
                                 value={formData.role}
                                 onChange={(e) => handleFieldChange("role", e.target.value)}
                                 label="Role *"
@@ -313,6 +285,7 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                                 <TextField
                                     fullWidth
                                     label="Department"
+                                    name="department"
                                     value={formData.department}
                                     onChange={(e) => handleFieldChange("department", e.target.value)}
                                     disabled={mode === "view"}
@@ -323,6 +296,7 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                                 <TextField
                                     fullWidth
                                     label="Employee ID"
+                                    name="employeeId"
                                     value={formData.employeeId}
                                     onChange={(e) => handleFieldChange("employeeId", e.target.value)}
                                     disabled={mode === "view"}

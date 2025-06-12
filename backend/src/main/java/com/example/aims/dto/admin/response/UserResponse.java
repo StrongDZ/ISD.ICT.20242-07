@@ -1,4 +1,4 @@
-package com.example.aims.controller.response;
+package com.example.aims.dto.admin.response;
 
 import java.io.Serializable;
 

@@ -12,10 +12,10 @@ import org.springframework.util.StringUtils;
 
 import com.example.aims.common.UserStatus;
 import com.example.aims.common.UserType;
-import com.example.aims.controller.request.UserCreationRequest;
-import com.example.aims.controller.request.UserPasswordRequest;
-import com.example.aims.controller.request.UserUpdateRequest;
-import com.example.aims.controller.response.UserResponse;
+import com.example.aims.dto.admin.request.UserCreationRequest;
+import com.example.aims.dto.admin.request.UserPasswordRequest;
+import com.example.aims.dto.admin.request.UserUpdateRequest;
+import com.example.aims.dto.admin.response.UserResponse;
 import com.example.aims.model.Users;
 import com.example.aims.repository.UsersRepository;
 
@@ -146,21 +146,29 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     /**
-     * Delete user by id
+     * Block user by id
      * @param id
      */
-    public void delete(Integer id){
+    public void block(Integer id){
         log.info("Deleting user: {}", id);
 
         // Get user by id
         Users user = getUserEntityById(id);
        user.setUserStatus(UserStatus.BLOCKED);
         userRepository.save(user);
-        log.info("Deleted user id: {}", id);
+        log.info("Blocked user id: {}", id);
        return;
     }
     private Users getUserEntityById(Integer id){
         return userRepository.findById(id).orElseThrow(()->new RuntimeException("User not found"));
+    }
+
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        Users user = getUserEntityById(id);
+        userRepository.delete(user);
+        log.info("Hard deleted user id: {}", id);
     }
 
 }

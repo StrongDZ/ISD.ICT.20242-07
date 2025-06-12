@@ -1,4 +1,4 @@
-package com.example.aims.controller.request;
+package com.example.aims.dto.admin.request;
 import java.io.Serializable;
 
 import lombok.Getter;

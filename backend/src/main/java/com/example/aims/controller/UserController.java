@@ -22,10 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import com.example.aims.controller.request.UserCreationRequest;
-import com.example.aims.controller.request.UserPasswordRequest;
-import com.example.aims.controller.request.UserUpdateRequest;
-import com.example.aims.controller.response.UserResponse;
+
+import com.example.aims.dto.admin.request.UserCreationRequest;
+import com.example.aims.dto.admin.request.UserPasswordRequest;
+import com.example.aims.dto.admin.request.UserUpdateRequest;
+import com.example.aims.dto.admin.response.UserResponse;
 import com.example.aims.service.user.UserService;
 import com.example.aims.service.user.EmailService;
 
@@ -118,16 +119,28 @@ public class UserController {
         return result;
     }
 
-    @Operation(summary = "Delete User") // xóa mềm
-    @DeleteMapping("/del/{userId}")
+    @Operation(summary = "Block User") // xóa mềm
+    @DeleteMapping("/block/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Map<String, Object> deleteUser(@PathVariable Integer userId) {
-        userService.delete(userId);
-        log.info("Delete user with ID: {}", userId);
+    public Map<String, Object> blockUser(@PathVariable Integer userId) {
+        userService.block(userId);
+        log.info("Block user with ID: {}", userId);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", HttpStatus.RESET_CONTENT.value());
-        result.put("message", "delete user sucessfully");
+        result.put("message", "block user sucessfully");
+        result.put("data", "");
+        return result;
+    }
+
+    @Operation(summary = "Delete User (Hard Delete)")
+    @DeleteMapping("/delete/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Map<String, Object> deleteUser(@PathVariable Integer userId) {
+        userService.delete(userId);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", HttpStatus.OK.value());
+        result.put("message", "User deleted successfully");
         result.put("data", "");
         return result;
     }

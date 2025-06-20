@@ -16,7 +16,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 
-import com.example.aims.dto.TransactionDto;
+import com.example.aims.dto.transaction.TransactionDto;
+import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.model.PaymentTransaction;
 
 public class VNPayRefundRequest {
@@ -24,7 +25,7 @@ public class VNPayRefundRequest {
         return "192.168.2.14";
     }
 
-    public String requestVNPayRefund(TransactionDto transaction) {
+    public String requestVNPayRefund(TransactionResponseDTO transaction) {
         Random random = new Random();
         String vnp_TxnRef = transaction.getTransactionId();
         String vnp_Amount = String.valueOf(transaction.getAmount() * 100); // Convert to VND

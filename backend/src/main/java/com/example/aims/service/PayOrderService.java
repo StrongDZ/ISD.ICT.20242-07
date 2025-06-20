@@ -1,10 +1,13 @@
 package com.example.aims.service;
 
 import com.example.aims.common.OrderStatus;
-import com.example.aims.dto.OrderDTO;
+import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.PaymentOrderRequestDTO;
 import com.example.aims.dto.PaymentOrderResponseDTO;
-import com.example.aims.dto.TransactionDto;
+import com.example.aims.dto.UsersDTO;
+import com.example.aims.dto.order.OrderDTO;
+import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.exception.PaymentException.AbnormalTransactionException;
 import com.example.aims.exception.PaymentException.AccountnotRegisterException;
 import com.example.aims.exception.PaymentException.BlockAccountException;
@@ -68,16 +71,16 @@ public class PayOrderService {
     @Autowired
     private final PaymentTransactionRepository currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
 
-    //@Autowired
-    //private final JavaMailSender javaMailSender;
+    // @Autowired
+    // private final JavaMailSender javaMailSender;
 
     private VNPaySubsystem vnpay = new VNPaySubsystem();
 
-    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository){
-            //JavaMailSender javaMailSender) {
+    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository) {
+        // JavaMailSender javaMailSender) {
         this.currentOrder = orderRepository;
         this.currentPaymentTransaction = paymentTransactionRepository;
-        //this.javaMailSender = javaMailSender;
+        // this.javaMailSender = javaMailSender;
     }
 
     // public Optional<Order> findOrderById(String orderId) {
@@ -113,7 +116,29 @@ public class PayOrderService {
             String orderID = allRequestParams.get("vnp_TxnRef");
             Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
-            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, order);
+            OrderResponseDTO orderDto = new OrderResponseDTO();
+            orderDto.setOrderID(order.getOrderID());
+            orderDto.setTotalAmount(order.getTotalAmount());
+            orderDto.setStatus(order.getStatus());
+            orderDto.setCustomerName(order.getCustomerName());
+            orderDto.setPhoneNumber(order.getPhoneNumber());
+            orderDto.setShippingAddress(order.getShippingAddress());
+            orderDto.setProvince(order.getProvince());
+            orderDto.setDeliveryInfo(new DeliveryInfoDTO(
+                    order.getDeliveryInfo().getRecipientName(),
+                    order.getDeliveryInfo().getPhoneNumber(),
+                    order.getDeliveryInfo().getAddressDetail(),
+                    order.getDeliveryInfo().getDistrict(),
+                    order.getDeliveryInfo().getCity(),
+                    order.getDeliveryInfo().getMail()));
+            orderDto.setCustomer(new UsersDTO(
+                    order.getCustomer().getId(),
+                    order.getCustomer().getUsername(),
+                    order.getCustomer().getPassword(),
+                    order.getCustomer().getGmail(),
+                    order.getCustomer().getType(),
+                    order.getCustomer().getUserStatus()));
+            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, orderDto);
 
             PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
             String transactionId = savedTransaction.getTransactionId();

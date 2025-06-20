@@ -1,7 +1,8 @@
-package com.example.aims.dto;
+package com.example.aims.dto.order;
 
 import java.util.List;
 
+import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.model.CartItem;
 
 import lombok.AllArgsConstructor;

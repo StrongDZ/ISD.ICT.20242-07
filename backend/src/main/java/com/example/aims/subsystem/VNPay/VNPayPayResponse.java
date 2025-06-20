@@ -2,17 +2,22 @@ package com.example.aims.subsystem.VNPay;
 
 import java.util.Map;
 
+import com.example.aims.dto.order.OrderDTO;
+import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.model.DeliveryInfo;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
+import com.example.aims.model.Users;
 import com.example.aims.repository.OrderRepository;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+
 public class VNPayPayResponse {
 
-    public PaymentTransaction responeParsing(Map<String, String> response, Order order) {
+    public PaymentTransaction responeParsing(Map<String, String> response, OrderResponseDTO order) {
         PaymentTransaction transaction = new PaymentTransaction();
         String bank = response.get("vnp_BankCode");
         String orderId = response.get("vnp_TxnRef");
@@ -38,7 +43,35 @@ public class VNPayPayResponse {
         transaction.setTransactionNo(transactionNo);
         transaction.setTransactionStatus(transactionStatus);
         transaction.setCardType(cardType);
-        transaction.setOrder(order);
+
+        DeliveryInfo deliveryInfo = new DeliveryInfo();
+        deliveryInfo.setAddressDetail(order.getDeliveryInfo().getAddressDetail());
+        deliveryInfo.setCity(order.getDeliveryInfo().getCity());
+        deliveryInfo.setDistrict(order.getDeliveryInfo().getDistrict());
+        deliveryInfo.setPhoneNumber(order.getDeliveryInfo().getPhoneNumber());
+        deliveryInfo.setRecipientName(order.getDeliveryInfo().getRecipientName());
+        deliveryInfo.setMail(order.getDeliveryInfo().getMail());
+
+        Users customer = new Users();
+        customer.setUsername(order.getCustomerName());
+        customer.setPassword(order.getCustomer().getPassword());
+        customer.setId(order.getCustomer().getId());
+        customer.setGmail(order.getCustomer().getGmail());
+        customer.getType();
+        customer.getUserStatus();
+
+        Order orderNew = new Order();
+        orderNew.setOrderID(order.getOrderID());
+        orderNew.setTotalAmount(order.getTotalAmount());
+        orderNew.setDeliveryInfo(deliveryInfo);
+        orderNew.setCustomer(customer);
+        orderNew.setShippingAddress(order.getShippingAddress());
+        orderNew.setCustomerName(order.getCustomerName());
+        orderNew.setPhoneNumber(order.getPhoneNumber());
+        orderNew.setStatus(order.getStatus());
+        orderNew.setProvince(order.getProvince());
+
+        transaction.setOrder(orderNew);
         return transaction;
     }
 

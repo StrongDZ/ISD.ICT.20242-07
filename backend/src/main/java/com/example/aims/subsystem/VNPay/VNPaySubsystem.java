@@ -3,7 +3,10 @@ package com.example.aims.subsystem.VNPay;
 import java.util.Map;
 
 import com.example.aims.dto.PaymentOrderRequestDTO;
-import com.example.aims.dto.TransactionDto;
+import com.example.aims.dto.order.OrderDTO;
+import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.dto.transaction.TransactionDto;
+import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
@@ -54,12 +57,12 @@ public class VNPaySubsystem implements IPaymentSystem {
     }
 
     @Override
-    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, Order order) {
-        return response.responeParsing(vnPayResponse, order);
+    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, OrderResponseDTO orderDto) {
+        return response.responeParsing(vnPayResponse, orderDto);
     }
 
     @Override
-    public String getRefundInfo(TransactionDto dto) {
+    public String getRefundInfo(TransactionResponseDTO dto) {
         String response = refundRequest.requestVNPayRefund(dto);
         return refundResponse.parseResponse(response);
     }

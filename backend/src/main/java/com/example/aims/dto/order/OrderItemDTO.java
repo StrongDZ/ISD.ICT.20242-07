@@ -1,4 +1,4 @@
-package com.example.aims.dto;
+package com.example.aims.dto.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

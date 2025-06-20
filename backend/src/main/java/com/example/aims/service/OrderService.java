@@ -2,8 +2,8 @@ package com.example.aims.service;
 
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.InvoiceDTO;
-import com.example.aims.dto.OrderDTO;
-import com.example.aims.dto.OrderItemDTO;
+import com.example.aims.dto.order.OrderDTO;
+import com.example.aims.dto.order.OrderItemDTO;
 import com.example.aims.model.*;
 import com.example.aims.repository.*;
 

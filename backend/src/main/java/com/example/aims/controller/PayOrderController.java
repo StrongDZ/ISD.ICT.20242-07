@@ -1,7 +1,7 @@
 package com.example.aims.controller;
 
 import com.example.aims.dto.ResponseObject;
-import com.example.aims.dto.TransactionDto;
+import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.service.*;
 
 import java.util.Map;
@@ -37,7 +37,7 @@ public class PayOrderController {
     }
 
     // Transaction history (test)
-    @GetMapping("transaction_history")
+    @GetMapping("/transaction_history")
     public ResponseEntity<ResponseObject> getTransactionHistory(@RequestParam String orderId) {
         TransactionDto transactionDto = payOrderService.getPaymentHistory(orderId);
         return ResponseEntity.ok(ResponseObject.builder()

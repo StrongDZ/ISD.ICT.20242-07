@@ -2,11 +2,11 @@ package com.example.aims.service;
 
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.PaymentOrderRequestDTO;
-import com.example.aims.dto.PaymentOrderResponseDTO;
 import com.example.aims.dto.UsersDTO;
 import com.example.aims.dto.order.OrderDTO;
-import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.dto.order.request.PaymentOrderRequestDTO;
+import com.example.aims.dto.order.response.OrderResponseDTO;
+import com.example.aims.dto.order.response.PaymentOrderResponseDTO;
 import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.exception.PaymentException.AbnormalTransactionException;
 import com.example.aims.exception.PaymentException.AccountnotRegisterException;
@@ -25,6 +25,7 @@ import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
+import com.example.aims.subsystem.IPaymentSystem;
 import com.example.aims.subsystem.VNPay.VNPaySubsystem;
 //import org.springframework.mail.SimpleMailMessage;
 
@@ -74,8 +75,7 @@ public class PayOrderService {
     // @Autowired
     // private final JavaMailSender javaMailSender;
 
-    private VNPaySubsystem vnpay = new VNPaySubsystem();
-
+    private IPaymentSystem vnpay = new VNPaySubsystem();
     public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository) {
         // JavaMailSender javaMailSender) {
         this.currentOrder = orderRepository;

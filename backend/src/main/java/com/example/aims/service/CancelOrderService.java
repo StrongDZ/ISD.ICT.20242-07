@@ -3,7 +3,7 @@ package com.example.aims.service;
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.UsersDTO;
-import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.dto.order.response.OrderResponseDTO;
 import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.model.DeliveryInfo;
@@ -12,6 +12,7 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.model.Users;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
+import com.example.aims.subsystem.IPaymentSystem;
 import com.example.aims.subsystem.VNPay.VNPaySubsystem;
 
 import jakarta.persistence.Id;
@@ -20,7 +21,7 @@ import jakarta.transaction.Transaction;
 public class CancelOrderService {
     private PaymentTransactionRepository paymentTransactionRepository;
     private OrderRepository orderRepository;
-    private VNPaySubsystem vnpay = new VNPaySubsystem();
+    private IPaymentSystem vnpay = new VNPaySubsystem();
 
     public CancelOrderService(PaymentTransactionRepository paymentTransactionRepository,
             OrderRepository orderRepository) {

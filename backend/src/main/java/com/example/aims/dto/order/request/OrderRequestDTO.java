@@ -1,4 +1,4 @@
-package com.example.aims.dto.order;
+package com.example.aims.dto.order.request;
 
 import java.util.List;
 

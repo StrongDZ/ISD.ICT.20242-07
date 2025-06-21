@@ -2,9 +2,9 @@ package com.example.aims.subsystem.VNPay;
 
 import java.util.Map;
 
-import com.example.aims.dto.PaymentOrderRequestDTO;
 import com.example.aims.dto.order.OrderDTO;
-import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.dto.order.request.PaymentOrderRequestDTO;
+import com.example.aims.dto.order.response.OrderResponseDTO;
 import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.model.Order;

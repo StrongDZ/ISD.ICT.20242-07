@@ -3,7 +3,7 @@ package com.example.aims.subsystem.VNPay;
 import java.util.Map;
 
 import com.example.aims.dto.order.OrderDTO;
-import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.dto.order.response.OrderResponseDTO;
 import com.example.aims.model.DeliveryInfo;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;

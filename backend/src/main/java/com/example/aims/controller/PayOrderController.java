@@ -1,6 +1,6 @@
 package com.example.aims.controller;
 
-import com.example.aims.dto.ResponseObject;
+import com.example.aims.dto.PayOrderResponseObjectDTO;
 import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.service.*;
 
@@ -38,9 +38,9 @@ public class PayOrderController {
 
     // Transaction history (test)
     @GetMapping("/transaction_history")
-    public ResponseEntity<ResponseObject> getTransactionHistory(@RequestParam String orderId) {
+    public ResponseEntity<PayOrderResponseObjectDTO> getTransactionHistory(@RequestParam String orderId) {
         TransactionDto transactionDto = payOrderService.getPaymentHistory(orderId);
-        return ResponseEntity.ok(ResponseObject.builder()
+        return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
                 .message("Get transaction history success")
                 .responseCode(HttpStatus.OK.value())
                 .data(transactionDto)

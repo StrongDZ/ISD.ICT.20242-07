@@ -2,8 +2,8 @@ package com.example.aims.dto.transaction;
 
 import java.util.Date;
 
-import com.example.aims.dto.PaymentOrderResponseDTO;
-import com.example.aims.dto.order.OrderResponseDTO;
+import com.example.aims.dto.order.response.OrderResponseDTO;
+import com.example.aims.dto.order.response.PaymentOrderResponseDTO;
 import com.example.aims.model.Order;
 
 import lombok.AllArgsConstructor;

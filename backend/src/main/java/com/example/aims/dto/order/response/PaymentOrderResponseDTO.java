@@ -1,4 +1,4 @@
-package com.example.aims.dto;
+package com.example.aims.dto.order.response;
 
 import com.example.aims.common.OrderStatus;
 

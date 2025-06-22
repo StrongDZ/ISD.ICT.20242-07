@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.example.aims.dto.order.OrderDTO;
-import com.example.aims.dto.order.request.OrderRequestDTO;
+import com.example.aims.dto.order.OrderRequestDTO;
 import com.example.aims.security.UserDetailsImpl;
 import com.example.aims.service.PlaceOrderService;
 

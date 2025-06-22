@@ -1,5 +1,6 @@
 package com.example.aims.dto;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 /**
  * ✅ This class represents delivery address information used in placing a rush order.

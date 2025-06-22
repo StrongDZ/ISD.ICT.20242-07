@@ -16,15 +16,19 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 
-import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
-import com.example.aims.model.PaymentTransaction;
 
 public class VNPayRefundRequest {
     private String getIPAddr() {
         return "192.168.2.14";
     }
 
+    /**
+     * This method is used to request a refund from VNPay.
+     *
+     * @param transaction The transaction details for which the refund is requested.
+     * @return A string response from the VNPay API indicating the result of the refund request.
+     */
     public String requestVNPayRefund(TransactionResponseDTO transaction) {
         Random random = new Random();
         String vnp_TxnRef = transaction.getTransactionId();

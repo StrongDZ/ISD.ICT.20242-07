@@ -2,13 +2,11 @@ package com.example.aims.subsystem.VNPay;
 
 import java.util.Map;
 
-import com.example.aims.dto.order.OrderDTO;
-import com.example.aims.dto.order.response.OrderResponseDTO;
+import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.model.DeliveryInfo;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.model.Users;
-import com.example.aims.repository.OrderRepository;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,7 +15,14 @@ import java.util.TimeZone;
 
 public class VNPayPayResponse {
 
-    public PaymentTransaction responeParsing(Map<String, String> response, OrderResponseDTO order) {
+    /**
+     * Parses the response from VNPay and constructs a PaymentTransaction object.
+     *
+     * @param response The response map from VNPay containing transaction details.
+     * @param order    The OrderResponseDTO containing order details.
+     * @return A PaymentTransaction object populated with the parsed data.
+     */
+    public PaymentTransaction responeParsing(Map<String, String> response, PaymentOrderResponseFromReturnDTO order) {
         PaymentTransaction transaction = new PaymentTransaction();
         String bank = response.get("vnp_BankCode");
         String orderId = response.get("vnp_TxnRef");

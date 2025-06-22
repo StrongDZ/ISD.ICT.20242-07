@@ -1,27 +1,27 @@
 package com.example.aims.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.example.aims.common.OrderStatus;
-import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.UsersDTO;
-import com.example.aims.dto.order.response.OrderResponseDTO;
-import com.example.aims.dto.transaction.TransactionDto;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
-import com.example.aims.model.DeliveryInfo;
+import com.example.aims.mapper.TransactionMapper;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
-import com.example.aims.model.Users;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.subsystem.IPaymentSystem;
-import com.example.aims.subsystem.VNPay.VNPaySubsystem;
 
-import jakarta.persistence.Id;
-import jakarta.transaction.Transaction;
-
+@Service
 public class CancelOrderService {
+    @Autowired
     private PaymentTransactionRepository paymentTransactionRepository;
+    @Autowired
     private OrderRepository orderRepository;
-    private IPaymentSystem vnpay; //new VNPaySubsystem();
+    @Autowired
+    private IPaymentSystem vnpay; // new VNPaySubsystem();
+    @Autowired
+    private TransactionMapper transactionMapper;
 
     public CancelOrderService(PaymentTransactionRepository paymentTransactionRepository,
             OrderRepository orderRepository, IPaymentSystem vnpay) {
@@ -33,8 +33,9 @@ public class CancelOrderService {
     /**
      * Cancels an order by its ID and processes the refund if applicable.
      *
-     * @param orderId        The ID of the order to cancel.
-     * @param transactionId  The ID of the payment transaction associated with the order.
+     * @param orderId       The ID of the order to cancel.
+     * @param transactionId The ID of the payment transaction associated with the
+     *                      order.
      * @return A message indicating the result of the cancellation.
      */
     public String cancelOrder(String orderId, String transactionId) {
@@ -51,34 +52,8 @@ public class CancelOrderService {
             PaymentTransaction paymentTransaction = paymentTransactionRepository.findByTransactionId(transactionId)
                     .orElseThrow(() -> new RuntimeException("Payment transaction not found"));
             if (paymentTransaction != null) {
-                UsersDTO customerDto = new UsersDTO(order.getCustomer().getId(),
-                        order.getCustomer().getUsername(),
-                        order.getCustomer().getPassword(),
-                        order.getCustomer().getGmail(),
-                        order.getCustomer().getType(), order.getCustomer().getUserStatus());
 
-                DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO(
-                        order.getDeliveryInfo().getRecipientName(),
-                        order.getDeliveryInfo().getPhoneNumber(),
-                        order.getDeliveryInfo().getAddressDetail(),
-                        order.getDeliveryInfo().getDistrict(),
-                        order.getDeliveryInfo().getCity(),
-                        order.getDeliveryInfo().getMail());
-                OrderResponseDTO orderResponse = new OrderResponseDTO(order.getOrderID(), customerDto,
-                        order.getCustomerName(), order.getPhoneNumber(),
-                        order.getStatus(),
-                        order.getShippingAddress(),
-                        order.getProvince(),
-                        order.getTotalAmount(),
-                        deliveryInfo);
-
-                TransactionResponseDTO transaction = new TransactionResponseDTO();
-                transaction.setOrder(orderResponse);
-                transaction.setTransactionId(paymentTransaction.getTransactionId());
-                transaction.setTransactionNo(paymentTransaction.getTransactionNo());
-                transaction.setAmount(paymentTransaction.getAmount());
-                transaction.setDatetime(paymentTransaction.getDatetime());
-                // Call the VNPay subsystem to process the refund
+                TransactionResponseDTO transaction = transactionMapper.toTransactionResponseDTO(paymentTransaction);
                 String refundInfo = vnpay.getRefundInfo(transaction);
                 if (refundInfo != null) {
 

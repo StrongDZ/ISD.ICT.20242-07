@@ -2,9 +2,7 @@ package com.example.aims.dto.transaction;
 
 import java.util.Date;
 
-import com.example.aims.dto.order.response.OrderResponseDTO;
-import com.example.aims.dto.order.response.PaymentOrderResponseDTO;
-import com.example.aims.model.Order;
+import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,5 +17,5 @@ public class TransactionResponseDTO {
     private String transactionNo;
     private Double amount;
     private Date datetime;
-    private OrderResponseDTO order;
+    private PaymentOrderResponseFromReturnDTO order;
 }

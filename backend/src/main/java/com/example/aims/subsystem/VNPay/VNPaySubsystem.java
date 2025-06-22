@@ -2,14 +2,12 @@ package com.example.aims.subsystem.VNPay;
 
 import java.util.Map;
 
-import com.example.aims.dto.order.OrderDTO;
-import com.example.aims.dto.order.request.PaymentOrderRequestDTO;
-import com.example.aims.dto.order.response.OrderResponseDTO;
-import com.example.aims.dto.transaction.TransactionDto;
+import org.springframework.stereotype.Component;
+
+import com.example.aims.dto.order.PaymentOrderRequestDTO;
+import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
-import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
-import com.example.aims.repository.OrderRepository;
 import com.example.aims.subsystem.IPaymentSystem;
 
 // Functional Cohesion – All fields and methods support the single purpose of integrating with VNPay payment system
@@ -17,25 +15,23 @@ import com.example.aims.subsystem.IPaymentSystem;
 // 🔧 Suggestion: Implement actual payment URL logic; split refund logic if needed in future
 
 // 🔧 Improvement suggestions:
-// - Implement the real logic of getPaymentUrl() to interact with VNPay's API or signature generation.
 // - Extract URL generation or formatting logic to a helper class if it grows complex.
 // - Consider separating refund functionality (if added later) into a distinct service if logic becomes too heavy.
 
+@Component
 public class VNPaySubsystem implements IPaymentSystem {
-
-    // 🔗 Coupling:
-    // Stamp Coupling – This class accepts an Order object and accesses only
-    // selected fields
-    // (e.g., order.getTotalAmount(), order.getShippingAddress(), order.getId()).
-    // → Suggestion: Refactor method signatures to accept only required fields
-    // (e.g., amount, orderId, address)
-    // to reduce to Data Coupling and improve modularity/testability.
 
     private final VNPayPayRequest request = new VNPayPayRequest();
     private final VNPayPayResponse response = new VNPayPayResponse();
     private final VNPayRefundRequest refundRequest = new VNPayRefundRequest();
     private final VNPayRefundResponse refundResponse = new VNPayRefundResponse();
 
+    /**
+     * Generates a payment URL for the given order request.
+     *
+     * @param dto The payment order request DTO containing order details.
+     * @return A string representing the payment URL for the order.
+     */
     public String getPaymentUrl(PaymentOrderRequestDTO dto) {
         // Get amount
         Double orderTotal = dto.getAmount();
@@ -56,11 +52,29 @@ public class VNPaySubsystem implements IPaymentSystem {
         }
     }
 
+    /**
+     * Retrieves transaction information based on the VNPay response and order
+     * details.
+     *
+     * @param vnPayResponse The response map from VNPay containing transaction
+     *                      details.
+     * @param orderDto      The order response DTO containing order details.
+     * @return A PaymentTransaction object containing parsed transaction
+     *         information.
+     */
     @Override
-    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, OrderResponseDTO orderDto) {
+    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse,
+            PaymentOrderResponseFromReturnDTO orderDto) {
         return response.responeParsing(vnPayResponse, orderDto);
     }
 
+    /**
+     * Processes a refund request for a transaction.
+     *
+     * @param dto The transaction response DTO containing details of the transaction
+     *            to be refunded.
+     * @return A string containing the refund information or status.
+     */
     @Override
     public String getRefundInfo(TransactionResponseDTO dto) {
         String response = refundRequest.requestVNPayRefund(dto);

@@ -1,4 +1,4 @@
-package com.example.aims.dto.order.response;
+package com.example.aims.dto.order;
 
 import com.example.aims.common.OrderStatus;
 
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymentOrderResponseDTO {
+public class PaymentOrderRetrievalDTO {
     private String orderID;
     private String customerName;
     private String phoneNumber;

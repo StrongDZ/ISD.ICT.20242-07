@@ -18,6 +18,15 @@ public class VNPayPayRequest {
         return "192.168.2.1";
     }
 
+    /**
+     * Generates a payment URL for VNPay.
+     *
+     * @param amount   The amount to be paid in VND.
+     * @param content  The content of the payment.
+     * @param orderId  The order ID associated with the payment.
+     * @return A string representing the payment URL.
+     * @throws UnsupportedEncodingException If encoding fails.
+     */
     protected String generateUrl(int amount, String content, String orderId) throws UnsupportedEncodingException {
         // This method should implement the logic to generate the payment URL
         // using VNPay's API or signature generation.

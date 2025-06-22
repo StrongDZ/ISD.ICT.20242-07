@@ -1,35 +1,19 @@
 package com.example.aims.service;
 
 import com.example.aims.common.OrderStatus;
-import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.UsersDTO;
-import com.example.aims.dto.order.OrderDTO;
-import com.example.aims.dto.order.request.PaymentOrderRequestDTO;
-import com.example.aims.dto.order.response.OrderResponseDTO;
-import com.example.aims.dto.order.response.PaymentOrderResponseDTO;
-import com.example.aims.dto.transaction.TransactionDto;
-import com.example.aims.exception.PaymentException.AbnormalTransactionException;
-import com.example.aims.exception.PaymentException.AccountnotRegisterException;
-import com.example.aims.exception.PaymentException.BlockAccountException;
-import com.example.aims.exception.PaymentException.CustomerCancelException;
-import com.example.aims.exception.PaymentException.ExceedQuotasException;
-import com.example.aims.exception.PaymentException.InsufficientBalanceException;
-import com.example.aims.exception.PaymentException.OtherException;
+import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
+import com.example.aims.dto.order.PaymentOrderRetrievalDTO;
+import com.example.aims.dto.order.PaymentOrderRequestDTO;
+import com.example.aims.dto.transaction.TransactionRetrievalDTO;
 import com.example.aims.exception.PaymentException.PaymentException;
-import com.example.aims.exception.PaymentException.SystemMaintananceException;
-import com.example.aims.exception.PaymentException.TimeRunOutPaymentException;
-import com.example.aims.exception.PaymentException.WrongAccountAuthenException;
-import com.example.aims.exception.PaymentException.WrongOTPInputException;
-import com.example.aims.exception.PaymentException.WrongPasswordException;
+import com.example.aims.mapper.OrderMapper;
+import com.example.aims.mapper.VNPayErrorMapper;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.subsystem.IPaymentSystem;
-import com.example.aims.subsystem.VNPay.VNPaySubsystem;
 //import org.springframework.mail.SimpleMailMessage;
-
-import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,10 +52,13 @@ public class PayOrderService {
     // → Suggestion: In future, pass only necessary fields (e.g., orderId,
     // totalAmount) to reduce coupling to Data level.
     @Autowired
-    private final OrderRepository currentOrder; // Biến instance để giữ đơn hàng hiện tại (chỉ dùng cho test)
+    private final OrderRepository currentOrder;
     @Autowired
-    private final PaymentTransactionRepository currentPaymentTransaction; // Biến instance cho giao dịch thanh toán
-
+    private final PaymentTransactionRepository currentPaymentTransaction;
+    @Autowired
+    private VNPayErrorMapper errorMapper;
+    @Autowired
+    private OrderMapper orderMapper;
     // @Autowired
     // private final JavaMailSender javaMailSender;
 
@@ -115,11 +102,7 @@ public class PayOrderService {
             throw new IllegalStateException(
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
-        PaymentOrderRequestDTO dto = new PaymentOrderRequestDTO();
-        dto.setOrderId(order.getOrderID());
-        dto.setAmount(order.getTotalAmount());
-        dto.setContent(
-                "Payment for order: " + order.getOrderID() + "Order created by: " + order.getCustomer().getGmail());
+        PaymentOrderRequestDTO dto = orderMapper.toPaymentOrderRequestDTO(order);
         return vnpay.getPaymentUrl(dto); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
     }
 
@@ -135,28 +118,8 @@ public class PayOrderService {
             String orderID = allRequestParams.get("vnp_TxnRef");
             Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
-            OrderResponseDTO orderDto = new OrderResponseDTO();
-            orderDto.setOrderID(order.getOrderID());
-            orderDto.setTotalAmount(order.getTotalAmount());
-            orderDto.setStatus(order.getStatus());
-            orderDto.setCustomerName(order.getCustomerName());
-            orderDto.setPhoneNumber(order.getPhoneNumber());
-            orderDto.setShippingAddress(order.getShippingAddress());
-            orderDto.setProvince(order.getProvince());
-            orderDto.setDeliveryInfo(new DeliveryInfoDTO(
-                    order.getDeliveryInfo().getRecipientName(),
-                    order.getDeliveryInfo().getPhoneNumber(),
-                    order.getDeliveryInfo().getAddressDetail(),
-                    order.getDeliveryInfo().getDistrict(),
-                    order.getDeliveryInfo().getCity(),
-                    order.getDeliveryInfo().getMail()));
-            orderDto.setCustomer(new UsersDTO(
-                    order.getCustomer().getId(),
-                    order.getCustomer().getUsername(),
-                    order.getCustomer().getPassword(),
-                    order.getCustomer().getGmail(),
-                    order.getCustomer().getType(),
-                    order.getCustomer().getUserStatus()));
+            PaymentOrderResponseFromReturnDTO orderDto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
+
             PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, orderDto);
 
             PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
@@ -170,7 +133,7 @@ public class PayOrderService {
             return "redirect:" + "http://localhost:3001/payment-decline";
         } else { // Payment error
             try {
-                responseCodeError(responseCode);
+                errorMapper.responseCodeError(responseCode);
             } catch (PaymentException e) {
                 System.out.println(e.getMessage());
             }
@@ -214,69 +177,25 @@ public class PayOrderService {
     }
 
     /**
-     * Handles different response codes from the payment gateway and throws
-     * appropriate exceptions.
-     * 
-     * @param responseCode The response code from the payment gateway.
-     * @throws PaymentException if the response code indicates an error.
-     */
-    public void responseCodeError(@NotNull String responseCode) {
-        switch (responseCode) {
-            case "07":
-                throw new AbnormalTransactionException();
-            case "09":
-                throw new AccountnotRegisterException();
-            case "10":
-                throw new WrongAccountAuthenException();
-            case "11":
-                throw new TimeRunOutPaymentException();
-            case "12":
-                throw new BlockAccountException();
-            case "13":
-                throw new WrongOTPInputException();
-            case "24":
-                throw new CustomerCancelException();
-            case "51":
-                throw new InsufficientBalanceException();
-            case "65":
-                throw new ExceedQuotasException();
-            case "75":
-                throw new SystemMaintananceException();
-            case "79":
-                throw new WrongPasswordException();
-            case "99":
-                throw new OtherException();
-        }
-    }
-
-    /**
      * Retrieves the payment history for a given order ID.
      * 
      * @param orderId The ID of the order for which to retrieve the payment history.
      * @return A TransactionDto containing the payment transaction details.
      * @throws IllegalArgumentException if the payment transaction is not found.
      */
-    public TransactionDto getPaymentHistory(String orderId) {
+    public TransactionRetrievalDTO getPaymentHistory(String orderId) {
         PaymentTransaction paymentTransaction = currentPaymentTransaction.findByTransactionId(orderId)
                 .orElseThrow(
                         () -> new IllegalArgumentException("Payment transaction not found for order ID: " + orderId));
-        TransactionDto transactionDto = new TransactionDto();
+        TransactionRetrievalDTO transactionDto = new TransactionRetrievalDTO();
         transactionDto.setTransactionNo(paymentTransaction.getTransactionNo());
         transactionDto.setTransactionId(paymentTransaction.getTransactionId());
         transactionDto.setDatetime(paymentTransaction.getDatetime());
         transactionDto.setAmount(paymentTransaction.getAmount());
         Order order = paymentTransaction.getOrder();
-        PaymentOrderResponseDTO orderDto = new PaymentOrderResponseDTO();
-        orderDto.setOrderID(order.getOrderID());
-        orderDto.setTotalAmount(order.getTotalAmount());
-        orderDto.setStatus(order.getStatus());
-        orderDto.setCustomerName(order.getCustomerName());
-        orderDto.setPhoneNumber(order.getPhoneNumber());
-        orderDto.setShippingAddress(order.getShippingAddress());
-        orderDto.setProvince(order.getProvince());
+        PaymentOrderRetrievalDTO orderDto = orderMapper.toPaymentOrderRetrievalDTO(order);
         transactionDto.setOrder(orderDto);
         return transactionDto;
     }
 
-    // Không có nơi lưu trữ dữ liệu tập trung trong class này
 }

@@ -21,14 +21,22 @@ import jakarta.transaction.Transaction;
 public class CancelOrderService {
     private PaymentTransactionRepository paymentTransactionRepository;
     private OrderRepository orderRepository;
-    private IPaymentSystem vnpay = new VNPaySubsystem();
+    private IPaymentSystem vnpay; //new VNPaySubsystem();
 
     public CancelOrderService(PaymentTransactionRepository paymentTransactionRepository,
-            OrderRepository orderRepository) {
+            OrderRepository orderRepository, IPaymentSystem vnpay) {
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.orderRepository = orderRepository;
+        this.vnpay = vnpay;
     }
 
+    /**
+     * Cancels an order by its ID and processes the refund if applicable.
+     *
+     * @param orderId        The ID of the order to cancel.
+     * @param transactionId  The ID of the payment transaction associated with the order.
+     * @return A message indicating the result of the cancellation.
+     */
     public String cancelOrder(String orderId, String transactionId) {
         Order order = orderRepository.findByOrderID(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));

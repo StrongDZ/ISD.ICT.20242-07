@@ -75,11 +75,16 @@ public class PayOrderService {
     // @Autowired
     // private final JavaMailSender javaMailSender;
 
-    private IPaymentSystem vnpay = new VNPaySubsystem();
-    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository) {
+    private IPaymentSystem vnpay; // = new VNPaySubsystem();
+
+    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository,
+            IPaymentSystem vnpay) {
+        // ,
+        // @Autowired) {
         // JavaMailSender javaMailSender) {
         this.currentOrder = orderRepository;
         this.currentPaymentTransaction = paymentTransactionRepository;
+        this.vnpay = vnpay;
         // this.javaMailSender = javaMailSender;
     }
 
@@ -91,6 +96,14 @@ public class PayOrderService {
     // orderId) {
     // return Optional.ofNullable(currentPaymentTransaction.findByOrderId(orderId));
     // }
+
+    /**
+     * Generates a payment URL for the given order ID.
+     * 
+     * @param orderId
+     * @return The payment URL for the order.
+     * @throws IllegalArgumentException if the order is not found.
+     */
     public String getPaymentURL(String orderId) {
         Optional<Order> orderOptional = currentOrder.findByOrderID(orderId);
         if (orderOptional.isEmpty()) {
@@ -110,6 +123,12 @@ public class PayOrderService {
         return vnpay.getPaymentUrl(dto); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
     }
 
+    /**
+     * Processes the payment response from VNPay.
+     * 
+     * @param allRequestParams The parameters received from the payment gateway.
+     * @return A redirect URL based on the payment response.
+     */
     public String processPayment(Map<String, String> allRequestParams) {
         String responseCode = allRequestParams.get("vnp_ResponseCode");
         if (responseCode.equals("00")) {
@@ -159,6 +178,11 @@ public class PayOrderService {
         }
     }
 
+    /**
+     * Sends a confirmation email after a successful payment.
+     * 
+     * @param transactionId The ID of the payment transaction.
+     */
     public void sendMail(String transactionId) {
         // PaymentTransaction paymentTransaction = currentPaymentTransaction
         // .findByTransactionId(transactionId)
@@ -189,6 +213,13 @@ public class PayOrderService {
         // }
     }
 
+    /**
+     * Handles different response codes from the payment gateway and throws
+     * appropriate exceptions.
+     * 
+     * @param responseCode The response code from the payment gateway.
+     * @throws PaymentException if the response code indicates an error.
+     */
     public void responseCodeError(@NotNull String responseCode) {
         switch (responseCode) {
             case "07":
@@ -218,6 +249,13 @@ public class PayOrderService {
         }
     }
 
+    /**
+     * Retrieves the payment history for a given order ID.
+     * 
+     * @param orderId The ID of the order for which to retrieve the payment history.
+     * @return A TransactionDto containing the payment transaction details.
+     * @throws IllegalArgumentException if the payment transaction is not found.
+     */
     public TransactionDto getPaymentHistory(String orderId) {
         PaymentTransaction paymentTransaction = currentPaymentTransaction.findByTransactionId(orderId)
                 .orElseThrow(

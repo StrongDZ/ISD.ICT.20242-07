@@ -60,9 +60,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-        .cors()
-        .and()
-            .csrf(csrf -> csrf.disable())
+                .cors()
+                .and()
+                .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll()
@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/add").permitAll()
                         .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers("/api/cancel-order/**").permitAll()
+                        .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/api/user/**").authenticated()
                         .requestMatchers(
                                 "/", "/index.html", "/favicon.ico", "/manifest.json",

@@ -11,7 +11,8 @@ CREATE TABLE Product (
     warehouseEntryDate DATE,
     dimensions VARCHAR,
     weight DOUBLE PRECISION,
-    imageURL VARCHAR
+    imageURL VARCHAR,
+    rushEligible BOOLEAN
 );
 
 -- Bảng Book kế thừa Product

@@ -1,8 +1,8 @@
 package com.example.aims.controller;
 
 import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.dto.PagedResponse;
 import com.example.aims.service.products.ProductService;
-import com.example.aims.validator.OnRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,14 +28,22 @@ public class ViewProductController {
         this.productService = productService;
     }
 
-    @Operation(summary = "Get all products", description = "Retrieves a list of all available products")
+    @Operation(summary = "Get all products", description = "Retrieves a list of all available products with optional pagination")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the list of products", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<?> getAllProducts(
+            @Parameter(description = "Page number (0-based)") @RequestParam(required = false) Integer page,
+            @Parameter(description = "Page size") @RequestParam(required = false) Integer size) {
+        if (page != null && size != null) {
+            PagedResponse<ProductDTO> pagedProducts = productService.getAllProducts(page, size);
+            return ResponseEntity.ok(pagedProducts);
+        } else {
+            List<ProductDTO> products = productService.getAllProducts();
+            return ResponseEntity.ok(products);
+        }
     }
 
     @Operation(summary = "Get product by ID", description = "Retrieves a product by its ID")
@@ -50,25 +58,41 @@ public class ViewProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @Operation(summary = "Get products by category", description = "Retrieves products by their category")
+    @Operation(summary = "Get products by category", description = "Retrieves products by their category with optional pagination")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the products", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<ProductDTO>> getProductsByCategory(
-            @Parameter(description = "Category of products to be retrieved (e.g., book, cd, dvd)", required = true) @PathVariable String category) {
-        return ResponseEntity.ok(productService.getProductsByCategory(category));
+    public ResponseEntity<?> getProductsByCategory(
+            @Parameter(description = "Category of products to be retrieved (e.g., book, cd, dvd)", required = true) @PathVariable String category,
+            @Parameter(description = "Page number (0-based)") @RequestParam(required = false) Integer page,
+            @Parameter(description = "Page size") @RequestParam(required = false) Integer size) {
+        if (page != null && size != null) {
+            PagedResponse<ProductDTO> pagedProducts = productService.getProductsByCategory(category, page, size);
+            return ResponseEntity.ok(pagedProducts);
+        } else {
+            List<ProductDTO> products = productService.getProductsByCategory(category);
+            return ResponseEntity.ok(products);
+        }
     }
 
-    @Operation(summary = "Search products", description = "Searches for products by keyword in title")
+    @Operation(summary = "Search products", description = "Searches for products by keyword in title with optional pagination")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the products", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/search")
-    public ResponseEntity<List<ProductDTO>> searchProducts(
-            @Parameter(description = "Keyword to search in product titles", required = true) @RequestParam String keyword) {
-        return ResponseEntity.ok(productService.searchProducts(keyword));
+    public ResponseEntity<?> searchProducts(
+            @Parameter(description = "Keyword to search in product titles", required = true) @RequestParam String keyword,
+            @Parameter(description = "Page number (0-based)") @RequestParam(required = false) Integer page,
+            @Parameter(description = "Page size") @RequestParam(required = false) Integer size) {
+        if (page != null && size != null) {
+            PagedResponse<ProductDTO> pagedProducts = productService.searchProducts(keyword, page, size);
+            return ResponseEntity.ok(pagedProducts);
+        } else {
+            List<ProductDTO> products = productService.searchProducts(keyword);
+            return ResponseEntity.ok(products);
+        }
     }
 }

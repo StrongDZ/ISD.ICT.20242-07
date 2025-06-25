@@ -23,12 +23,14 @@ import LoginPage from "./pages/LoginPage/LoginPage";
 // Admin Pages
 import AdminDashboard from "./pages/AdminPages/AdminDashboard";
 import UserManagementPage from "./pages/AdminPages/UserManagementPage";
-import PaymentSuccess from "./pages/PaymentPages/PaymentSuccessPage";
 // Manager Pages
 import ManagerDashboard from "./pages/ManagerPages/ManagerDashboard";
 import ProductManagementPage from "./pages/ManagerPages/ProductManagementPage";
 import OrderManagementPage from "./pages/ManagerPages/OrderManagementPage";
 
+
+import PaymentSuccess from "./pages/PaymentPages/PaymentSuccessPage";
+import PaymentHistory from "./pages/PaymentPages/PaymentHistoryPage";
 // Theme configuration
 const theme = createTheme({
     palette: {
@@ -86,6 +88,7 @@ function App() {
                                     <Route path="/manager/orders" element={<OrderManagementPage />} />
                                     <Route path="/payment-success" element={<PaymentSuccess />} />
 
+                                    <Route path="/payment-history" element={<PaymentHistory />} />
                                 </Routes>
                             </Layout>
                         </Router>

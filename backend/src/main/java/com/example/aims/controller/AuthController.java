@@ -1,9 +1,7 @@
 package com.example.aims.controller;
 
-import com.example.aims.common.UserStatus;
 import com.example.aims.dto.JwtResponseDTO;
 import com.example.aims.dto.LoginRequestDTO;
-import com.example.aims.model.Users;
 import com.example.aims.security.JwtUtils;
 import com.example.aims.security.UserDetailsImpl;
 import com.example.aims.service.user.UserService;
@@ -17,10 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
+    
 @Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController

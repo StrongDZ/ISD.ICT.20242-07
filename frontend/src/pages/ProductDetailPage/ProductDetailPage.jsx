@@ -16,6 +16,7 @@ import {
     Snackbar,
     Breadcrumbs,
     Link,
+    CircularProgress,
 } from "@mui/material";
 import { Add, Remove, ShoppingCart, ArrowBack, Favorite, Share } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
@@ -35,36 +36,46 @@ const ProductDetailPage = () => {
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [cartMessage, setCartMessage] = useState("");
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
     useEffect(() => {
-        loadProductDetails();
+        if (id) {
+            loadProductDetails();
+        }
     }, [id]);
 
     const loadProductDetails = async () => {
         try {
             setLoading(true);
-            // Load product by ID
-            const allProducts = productService.getMockProducts();
-            const foundProduct = allProducts.find((p) => p.productID === id);
+            setError(null);
 
-            if (!foundProduct) {
-                navigate("/products");
-                return;
-            }
-
-            setProduct(foundProduct);
+            const productData = await productService.getProductById(id);
+            setProduct(productData);
 
             // Load related products (same category)
-            const related = allProducts.filter((p) => p.category === foundProduct.category && p.productID !== id).slice(0, 4);
+            const allProducts = productService.getMockProducts();
+            const related = allProducts.filter((p) => p.category === productData.category && p.productID !== id).slice(0, 4);
             setRelatedProducts(related);
-        } catch (error) {
-            console.error("Error loading product:", error);
-            setSnackbar({
-                open: true,
-                message: "Failed to load product details",
-                severity: "error",
-            });
+        } catch (err) {
+            console.error("Error loading product details:", err);
+            setError(err.message || "Failed to load product details");
+
+            // Try to find product in mock data as fallback
+            try {
+                const mockProducts = productService.getMockProducts();
+                const mockProduct = mockProducts.find((p) => p.productID === id);
+                if (mockProduct) {
+                    setProduct(mockProduct);
+                    setError(null);
+                } else {
+                    setError("Product not found");
+                }
+            } catch (mockError) {
+                setError("Product not found");
+            }
         } finally {
             setLoading(false);
         }
@@ -79,25 +90,26 @@ const ProductDetailPage = () => {
 
     const handleQuantityChange = (change) => {
         const newQuantity = quantity + change;
-        if (newQuantity >= 1 && newQuantity <= product.quantity) {
+        if (newQuantity >= 1 && newQuantity <= (product?.quantity || 0)) {
             setQuantity(newQuantity);
         }
     };
 
     const handleAddToCart = async () => {
         try {
+            setAddingToCart(true);
+            setCartMessage("");
+
             await addToCart(product, quantity);
-            setSnackbar({
-                open: true,
-                message: `Added ${quantity} ${product.title} to cart!`,
-                severity: "success",
-            });
-        } catch (error) {
-            setSnackbar({
-                open: true,
-                message: "Failed to add product to cart",
-                severity: "error",
-            });
+            setCartMessage("Product added to cart successfully!");
+
+            // Reset quantity after successful add
+            setQuantity(1);
+        } catch (err) {
+            console.error("Error adding to cart:", err);
+            setCartMessage("Failed to add product to cart");
+        } finally {
+            setAddingToCart(false);
         }
     };
 
@@ -341,10 +353,26 @@ const ProductDetailPage = () => {
         return <LoadingSpinner message="Loading product details..." />;
     }
 
+    if (error && !product) {
+        return (
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {error}
+                </Alert>
+                <Button startIcon={<ArrowBack />} onClick={() => navigate("/products")}>
+                    Back to Products
+                </Button>
+            </Container>
+        );
+    }
+
     if (!product) {
         return (
             <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Alert severity="error">Product not found</Alert>
+                <Alert severity="info">Product not found</Alert>
+                <Button startIcon={<ArrowBack />} onClick={() => navigate("/products")} sx={{ mt: 2 }}>
+                    Back to Products
+                </Button>
             </Container>
         );
     }
@@ -471,8 +499,15 @@ const ProductDetailPage = () => {
                                     </IconButton>
                                 </Box>
                             </Box>
-                            <Button variant="contained" size="large" startIcon={<ShoppingCart />} onClick={handleAddToCart} fullWidth sx={{ mb: 2 }}>
-                                Add to Cart - {formatPrice(product.price * quantity)}
+                            <Button
+                                variant="contained"
+                                startIcon={addingToCart ? <CircularProgress size={20} /> : <ShoppingCart />}
+                                onClick={handleAddToCart}
+                                disabled={product.quantity === 0 || addingToCart}
+                                size="large"
+                                sx={{ mb: 2 }}
+                            >
+                                {addingToCart ? "Adding..." : "Add to Cart"}
                             </Button>
                             <Box sx={{ display: "flex", gap: 1 }}>
                                 <Button variant="outlined" startIcon={<Favorite />} fullWidth>
@@ -482,6 +517,15 @@ const ProductDetailPage = () => {
                                     Share
                                 </Button>
                             </Box>
+                            {cartMessage && (
+                                <Alert
+                                    severity={cartMessage.includes("successfully") ? "success" : "error"}
+                                    sx={{ mt: 1 }}
+                                    onClose={() => setCartMessage("")}
+                                >
+                                    {cartMessage}
+                                </Alert>
+                            )}
                         </Paper>
                     )}
 

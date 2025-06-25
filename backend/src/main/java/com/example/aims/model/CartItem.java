@@ -11,22 +11,21 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "CartItems")
 public class CartItem {
-    
     @EmbeddedId
     private CartItemId id;
-    
+
     @ManyToOne
     @MapsId("userID")
     @JoinColumn(name = "userID", insertable = false, updatable = false)
     private Users customer;
-    
+
     @ManyToOne
     @MapsId("productID")
     @JoinColumn(name = "productID")
     private Product product;
-    
+
     private Integer quantity;
-    
+
     @Embeddable
     @Data
     @NoArgsConstructor

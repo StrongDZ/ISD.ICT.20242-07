@@ -31,7 +31,7 @@ public class VNPayRefundRequest {
      */
     public String requestVNPayRefund(TransactionResponseDTO transaction) {
         Random random = new Random();
-        String vnp_TxnRef = transaction.getTransactionId();
+        String vnp_TxnRef = transaction.getOrder().getOrderID();
         String vnp_Amount = String.valueOf(transaction.getAmount() * 100); // Convert to VND
         String vnp_OrderInfo = "Refund for Order ID: " + transaction.getTransactionId();
         String vnp_TransactionNo = transaction.getTransactionNo();

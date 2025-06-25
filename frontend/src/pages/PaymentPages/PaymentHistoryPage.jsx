@@ -25,7 +25,7 @@ const PaymentHistory = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const API_BASE = "http://localhost:8080/api";
+    const API_BASE = "http://localhost:8080/api/payments";
 
     const orderId = new URLSearchParams(location.search).get("orderId");
 
@@ -35,7 +35,7 @@ const PaymentHistory = () => {
                 const [orderRes, productRes, transRes] = await Promise.all([
                     axios.get(`${API_BASE}/order_info?id=${orderId}`),
                     axios.get(`${API_BASE}/order_product?id=${orderId}`),
-                    axios.get(`${API_BASE}/transaction_history?transaction_id=${orderId}`),
+                    axios.get(`${API_BASE}/transaction_history?orderId=${orderId}`),
                 ]);
 
                 if (orderRes.data.responseCode === 200) {

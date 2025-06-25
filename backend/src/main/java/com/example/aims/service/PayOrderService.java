@@ -151,7 +151,7 @@ public class PayOrderService {
         Order order = paymentTransaction.getOrder();
         String orderID = order.getOrderID();
         String recvMail = order.getCustomer().getGmail();
-        String transactionLink = "localhost:3001/transaction-history?orderId=" +
+        String transactionLink = "localhost:3001/payment-history?orderId=" +
                 orderID;
         String subject = "Payment Successful for Order ID: " + orderID;
         String body = "Dear " + order.getCustomerName() + ",\n\n"
@@ -194,4 +194,5 @@ public class PayOrderService {
         return transactionDto;
     }
 
+    
 }

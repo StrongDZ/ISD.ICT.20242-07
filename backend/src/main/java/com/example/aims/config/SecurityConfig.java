@@ -69,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/user/add").permitAll()
                         .requestMatchers("/api/payments/**").permitAll()
+                        .requestMatchers("/api/cancel-order/**").permitAll()
                         .requestMatchers("/api/user/**").authenticated()
                         .requestMatchers(
                                 "/", "/index.html", "/favicon.ico", "/manifest.json",

@@ -116,25 +116,25 @@ public class PayOrderService {
             Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
             PaymentOrderResponseFromReturnDTO orderDto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
-
+            System.out.println("Order DTO: " + orderDto);
             PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, orderDto);
-
+            System.out.println("Payment Transaction: " + paymentTransaction);
             PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
             String transactionId = savedTransaction.getTransactionId();
-
+            System.out.println("Saved Transaction ID: " + transactionId);
             order.setStatus(OrderStatus.PENDING);
             currentOrder.save(order);
             sendMail(transactionId);
-            return "redirect:" + "http://localhost:3001/payment-success?orderId=" + orderID;
+            return "http://localhost:3001/payment-success?orderId=" + orderID;
         } else if (responseCode.equals("24")) { // Payment decline
-            return "redirect:" + "http://localhost:3001/payment-decline";
+            return "http://localhost:3001/payment-decline";
         } else { // Payment error
             try {
                 errorMapper.responseCodeError(responseCode);
             } catch (PaymentException e) {
                 System.out.println(e.getMessage());
             }
-            return "redirect:" + "http://localhost:3001/payment-error";
+            return "http://localhost:3001/payment-error";
         }
     }
 
@@ -194,5 +194,4 @@ public class PayOrderService {
         return transactionDto;
     }
 
-    
 }

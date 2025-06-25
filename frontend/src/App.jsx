@@ -30,6 +30,8 @@ import OrderManagementPage from "./pages/ManagerPages/OrderManagementPage";
 
 
 import PaymentSuccess from "./pages/PaymentPages/PaymentSuccessPage";
+import PaymentError from "./pages/PaymentPages/PaymentErrorPage";
+import PaymentDecline from "./pages/PaymentPages/PaymentDeclinePage";
 import PaymentHistory from "./pages/PaymentPages/PaymentHistoryPage";
 // Theme configuration
 const theme = createTheme({
@@ -87,7 +89,8 @@ function App() {
                                     <Route path="/manager/products" element={<ProductManagementPage />} />
                                     <Route path="/manager/orders" element={<OrderManagementPage />} />
                                     <Route path="/payment-success" element={<PaymentSuccess />} />
-
+                                    <Route path="/payment-error" element={<PaymentError />} />
+                                    <Route path="/payment-decline" element={<PaymentDecline />} />
                                     <Route path="/payment-history" element={<PaymentHistory />} />
                                 </Routes>
                             </Layout>

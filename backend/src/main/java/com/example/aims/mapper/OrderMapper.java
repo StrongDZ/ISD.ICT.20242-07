@@ -11,11 +11,9 @@ import com.example.aims.model.Order;
 
 @Component
 public class OrderMapper {
-    @Autowired
-    private DeliveryInfoMapper deliveryInfoMapper;
+    @Autowired DeliveryInfoMapper deliveryInfoMapper;
 
-    @Autowired
-    private UsersMapper customerMapper;
+    @Autowired UsersMapper customerMapper;
 
     /**
      * Converts an Order entity to an OrderResponseDTO.

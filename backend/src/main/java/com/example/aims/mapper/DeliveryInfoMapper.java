@@ -7,7 +7,7 @@ import com.example.aims.model.DeliveryInfo;
 
 @Mapper(componentModel = "spring")
 public interface DeliveryInfoMapper {
-    DeliveryInfo toEntity(DeliveryInfo deliveryInfo);
+    DeliveryInfo toEntity(DeliveryInfoDTO deliveryInfoDTO);
 
     DeliveryInfoDTO toDto(DeliveryInfo deliveryInfo);
 }

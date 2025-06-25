@@ -79,25 +79,29 @@ public class PayOrderController {
                 .build());
     }
 
-    @GetMapping("/order_info")
-    public ResponseEntity<PayOrderResponseObjectDTO> getOrderInfo(@RequestParam String orderId) {
-        TransactionRetrievalDTO transactionDto = payOrderService.getOrderInfo(orderId);
-        return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
-                .message("Get order info success")
-                .responseCode(HttpStatus.OK.value())
-                .data(transactionDto)
-                .build());
-    }
+    // @GetMapping("/order_info")
+    // public ResponseEntity<PayOrderResponseObjectDTO> getOrderInfo(@RequestParam
+    // String orderId) {
+    // TransactionRetrievalDTO transactionDto =
+    // payOrderService.getOrderInfo(orderId);
+    // return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
+    // .message("Get order info success")
+    // .responseCode(HttpStatus.OK.value())
+    // .data(transactionDto)
+    // .build());
+    // }
 
-    @GetMapping("/order_product")
-    public ResponseEntity<PayOrderResponseObjectDTO> getOrderProduct(@RequestParam String orderId) {
-        TransactionRetrievalDTO transactionDto = payOrderService.getOrderProduct(orderId);
-        return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
-                .message("Get order product success")
-                .responseCode(HttpStatus.OK.value())
-                .data(transactionDto)
-                .build());
-    }
+    // @GetMapping("/order_product")
+    // public ResponseEntity<PayOrderResponseObjectDTO>
+    // getOrderProduct(@RequestParam String orderId) {
+    // TransactionRetrievalDTO transactionDto =
+    // payOrderService.getOrderProduct(orderId);
+    // return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
+    // .message("Get order product success")
+    // .responseCode(HttpStatus.OK.value())
+    // .data(transactionDto)
+    // .build());
+    // }
 
     // @GetMapping("/vnpay-refund")
 

@@ -2,9 +2,19 @@ import api from "./api";
 
 export const productService = {
     // Get all products with pagination
-    getAllProducts: async (page = 1, limit = 20) => {
+    getAllProducts: async (page = 0, size = 20) => {
         try {
-            const response = await api.get(`/products?page=${page}&limit=${limit}`);
+            const response = await api.get(`/products?page=${page}&size=${size}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to fetch products");
+        }
+    },
+
+    // Get all products without pagination (for compatibility)
+    getAllProductsNoPagination: async () => {
+        try {
+            const response = await api.get(`/products`);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to fetch products");
@@ -21,20 +31,40 @@ export const productService = {
         }
     },
 
-    // Get products by category
-    getProductsByCategory: async (category, page = 1, limit = 20) => {
+    // Get products by category with pagination
+    getProductsByCategory: async (category, page = 0, size = 20) => {
         try {
-            const response = await api.get(`/products/category/${category}?page=${page}&limit=${limit}`);
+            const response = await api.get(`/products/category/${category}?page=${page}&size=${size}`);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to fetch products by category");
         }
     },
 
-    // Search products
-    searchProducts: async (keyword, page = 1, limit = 20) => {
+    // Get products by category without pagination (for compatibility)
+    getProductsByCategoryNoPagination: async (category) => {
         try {
-            const response = await api.get(`/products/search?keyword=${encodeURIComponent(keyword)}&page=${page}&limit=${limit}`);
+            const response = await api.get(`/products/category/${category}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to fetch products by category");
+        }
+    },
+
+    // Search products with pagination
+    searchProducts: async (keyword, page = 0, size = 20) => {
+        try {
+            const response = await api.get(`/products/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to search products");
+        }
+    },
+
+    // Search products without pagination (for compatibility)
+    searchProductsNoPagination: async (keyword) => {
+        try {
+            const response = await api.get(`/products/search?keyword=${encodeURIComponent(keyword)}`);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to search products");

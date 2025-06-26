@@ -1,6 +1,6 @@
 INSERT INTO public.product (
     productid, barcode, category, description, dimensions, imageurl,
-    is_rush_eligible, price, quantity, title, value, warehouse_entry_date, weight
+    rushEligible, price, quantity, title, value, warehouseEntryDate, weight
 ) VALUES
 -- Books
 ('B001', '9781234567890', 'Book', 'Mystery novel in London', '20x13x3 cm', 'https://drive.google.com/file/d/1MMD7eQ1V8tJhaE91WekgA94Kvs7WMZjn/view?usp=drive_link', true, 15.99, 100, 'The London Enigma', 4.5, DATE '2025-06-10', 0.5),
@@ -38,7 +38,7 @@ INSERT INTO public.product (
 ('D009', '3210987654329', 'DVD', 'Thriller', '19x13.5x1.5 cm', 'https://example.com/dvd9.jpg', false, 12.00, 50, 'Deep Vault', 4.1, DATE '2025-04-18', 0.15),
 ('D010', '3210987654330', 'DVD', 'Historical war film', '19x13.5x1.5 cm', 'https://example.com/dvd10.jpg', true, 13.90, 26, 'Legacy of Steel', 4.4, DATE '2025-03-29', 0.16);
 
-INSERT INTO public.book (productid, authors, cover_type, genre, language, number_of_pages, pub_date, publisher) VALUES
+INSERT INTO public.book (productid, authors, coverType, genre, language, numberOfPages, pubDate, publisher) VALUES
 ('B001', 'Arthur Doyle', 'Hardcover', 'Mystery', 'English', 350, DATE '2024-11-01', 'Mystery House Publishing'),
 ('B002', 'Lucia Roman', 'Paperback', 'Historical', 'English', 420, DATE '2023-10-10', 'Golden Scrolls'),
 ('B003', 'Mark A. Liu', 'Paperback', 'Sci-Fi', 'English', 390, DATE '2025-02-05', 'FuturePress'),
@@ -50,7 +50,7 @@ INSERT INTO public.book (productid, authors, cover_type, genre, language, number
 ('B009', 'Dina Lang', 'Paperback', 'Self-help', 'English', 290, DATE '2025-01-01', 'FocusHouse'),
 ('B010', 'Amira Snow', 'Hardcover', 'Poetry', 'English', 180, DATE '2023-03-11', 'LyricPress');
 
-INSERT INTO public.cd (productid, artist, music_type, record_label, release_date, tracklist) VALUES
+INSERT INTO public.cd (productid, artist, musicType, recordLabel, releaseDate, tracklist) VALUES
 ('C001', 'The Retro Kings', 'Rock', 'OldWave Records', DATE '1995-08-15', 'Intro, Thunder Road, Night Drive'),
 ('C002', 'Jazz Fusionists', 'Jazz', 'Blue Note', DATE '2020-07-22', 'Start, Flow, End'),
 ('C003', 'Folkway', 'Folk', 'Indie Tree', DATE '2019-11-10', 'Windsong, Riverbed, Home'),
@@ -62,7 +62,7 @@ INSERT INTO public.cd (productid, artist, music_type, record_label, release_date
 ('C009', 'A. Legrand', 'Classical', 'ClassicLine', DATE '2015-02-12', 'Sonata I, II, III'),
 ('C010', 'DJ Latino', 'Latin', 'Fiesta Mix', DATE '2023-12-01', 'Rumba, Salsa, Reggaeton');
 
-INSERT INTO public.dvd (productid, director, disc_type, genre, language, release_date, runtime, studio, subtitle) VALUES
+INSERT INTO public.dvd (productid, director, discType, genre, language, releaseDate, runtime, studio, subtitle) VALUES
 ('D001', 'Jane Stellar', 'Blu-ray', 'Sci-Fi', 'English', DATE '2023-12-20', '2h 10m', 'Nova Studios', 'English, Spanish'),
 ('D002', 'Robert Lin', 'DVD', 'Romance', 'English', DATE '2022-02-14', '1h 45m', 'Love Reel', 'English'),
 ('D003', 'Miko Tanaka', 'Blu-ray', 'Action', 'Japanese', DATE '2023-04-05', '2h 00m', 'Tokyo Lights', 'English, Japanese'),

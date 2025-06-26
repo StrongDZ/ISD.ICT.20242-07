@@ -1,15 +1,15 @@
 package com.example.aims.dto.products;
 
+import java.util.Date;
+
+import com.example.aims.validator.OnRequest;
+import com.example.aims.validator.OnResponse;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import lombok.Data;
-import java.util.Date;
-
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
-import com.example.aims.validator.OnRequest;
-import com.example.aims.validator.OnResponse;
+import lombok.Data;
 
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "category", visible = true)
@@ -34,5 +34,5 @@ public abstract class ProductDTO {
     private String dimensions;
     private Double weight;
     private String imageURL;
-    private Boolean isRushEligible;
+    private Boolean rushEligible;
 }

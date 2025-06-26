@@ -1,29 +1,29 @@
 package com.example.aims.service.products;
 
 import com.example.aims.dto.products.ProductDTO;
-import com.example.aims.validator.OnResponse;
+import com.example.aims.dto.PagedResponse;
 
-import org.springframework.validation.annotation.Validated;
-import jakarta.validation.Valid;
 import java.util.List;
 
-@Validated(OnResponse.class)
 public interface ProductService {
 
-    List<@Valid ProductDTO> getAllProducts();
+    List<ProductDTO> getAllProducts();
 
-    @Valid
+    PagedResponse<ProductDTO> getAllProducts(int page, int size);
+
     ProductDTO getProductById(String productId);
 
-    @Valid
     ProductDTO createProduct(ProductDTO productDTO, Integer managerID);
 
-    @Valid
     ProductDTO updateProduct(String productId, ProductDTO productDTO);
 
     void deleteProduct(String productId);
 
-    List<@Valid ProductDTO> searchProducts(String query);
+    List<ProductDTO> searchProducts(String query);
 
-    List<@Valid ProductDTO> getProductsByCategory(String category);
+    PagedResponse<ProductDTO> searchProducts(String query, int page, int size);
+
+    List<ProductDTO> getProductsByCategory(String category);
+
+    PagedResponse<ProductDTO> getProductsByCategory(String category, int page, int size);
 }

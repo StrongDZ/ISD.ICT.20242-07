@@ -75,14 +75,19 @@ public class PlaceOrderServiceTest {
         productDTO.setQuantity(2);
 
         InvoiceDTO invoice = new InvoiceDTO();
-        invoice.setCart(new DeliveryProductDTO[]{productDTO});
+        invoice.setCart(new DeliveryProductDTO[] { productDTO });
         invoice.setDeliveryInfo(deliveryInfo);
         invoice.setSubtotal(100);
         invoice.setDeliveryFee(20);
         invoice.setVat(10);
 
-        Product product = new Product();
+        Book product = new Book();
         product.setProductID("p1");
+        product.setCategory("book");
+        product.setTitle("Test Product");
+        product.setPrice(19.99);
+        product.setImageURL("http://example.com/image.jpg");
+        product.setRushEligible(true);
 
         // Mock behavior
         when(deliveryInfoRepository.save(deliveryInfo)).thenReturn(deliveryInfo);
@@ -105,7 +110,7 @@ public class PlaceOrderServiceTest {
         productDTO.setQuantity(1);
 
         InvoiceDTO invoice = new InvoiceDTO();
-        invoice.setCart(new DeliveryProductDTO[]{productDTO});
+        invoice.setCart(new DeliveryProductDTO[] { productDTO });
         invoice.setDeliveryInfo(new DeliveryInfo());
         invoice.setSubtotal(50);
         invoice.setDeliveryFee(10);
@@ -128,13 +133,13 @@ public class PlaceOrderServiceTest {
         productDTO.setQuantity(1);
 
         InvoiceDTO invoice = new InvoiceDTO();
-        invoice.setCart(new DeliveryProductDTO[]{productDTO});
+        invoice.setCart(new DeliveryProductDTO[] { productDTO });
         invoice.setDeliveryInfo(deliveryInfo);
         invoice.setSubtotal(100);
         invoice.setDeliveryFee(20);
         invoice.setVat(10);
 
-        Product product = new Product();
+        Book product = new Book();
         product.setProductID("p1");
 
         when(deliveryInfoRepository.save(any())).thenReturn(deliveryInfo);

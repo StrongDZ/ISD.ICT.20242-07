@@ -51,6 +51,7 @@ import com.example.aims.common.OrderStatus;
 public class Order {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String orderID;
 
     @ManyToOne

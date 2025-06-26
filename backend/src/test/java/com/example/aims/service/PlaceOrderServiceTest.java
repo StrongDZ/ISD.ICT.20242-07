@@ -28,9 +28,6 @@ public class PlaceOrderServiceTest {
     @Mock
     private DeliveryInfoRepository deliveryInfoRepository;
 
-    @Mock
-    private ProductOrderRepository productOrderRepository;
-
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);

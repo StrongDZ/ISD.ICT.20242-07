@@ -1,5 +1,7 @@
 package com.example.aims.dto;
 
+import com.example.aims.dto.products.ProductDTO;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItemDTO {
-    private String productID;
-    private String productTitle;
-    private Double productPrice;
+    private ProductDTO product;
     private Integer quantity;
-    private String imageURL;
+    private Integer customerId;
 }

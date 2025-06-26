@@ -13,7 +13,7 @@ import java.util.Date;
 @Entity
 @Table(name = "Product")
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Product {
+public abstract class Product {
 
     @Id
     private String productID;
@@ -33,5 +33,22 @@ public class Product {
     private Double weight;
     private String imageURL;
     private Boolean rushEligible;
+
+    /**
+     * Validates that there is sufficient stock for the requested quantity.
+     *
+     * @param requestedQuantity the quantity to validate against current stock
+     * @throws com.example.aims.exception.BadRequestException if insufficient stock
+     */
+    public void validateStock(Integer requestedQuantity) {
+        if (requestedQuantity == null || requestedQuantity <= 0) {
+            throw new com.example.aims.exception.BadRequestException("Quantity must be greater than zero");
+        }
+        
+        if (this.quantity < requestedQuantity) {
+            throw new com.example.aims.exception.BadRequestException(
+                    "Not enough stock available. Available: " + this.quantity);
+        }
+    }
 
 }

@@ -1,53 +1,60 @@
 import api from "./api";
 
 export const cartService = {
-    // Get cart items for authenticated user
+    // Get all cart items for current user
     getCartItems: async () => {
         try {
-            const response = await api.get("/customer/cart");
+            const response = await api.get("/cart");
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to fetch cart items");
+            console.error("Error fetching cart items:", error);
+            throw error;
         }
     },
 
-    // Add item to cart
-    addToCart: async (productId, quantity) => {
+    // Add product to cart
+    addToCart: async (productId, quantity = 1) => {
         try {
-            const response = await api.post(`/customer/cart/${productId}?quantity=${quantity}`);
+            const response = await api.post(`/cart/${productId}`, null, {
+                params: { quantity },
+            });
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to add item to cart");
+            console.error(`Error adding product ${productId} to cart:`, error);
+            throw error;
         }
     },
 
     // Update cart item quantity
     updateCartItem: async (productId, quantity) => {
         try {
-            const response = await api.put(`/customer/cart/${productId}?quantity=${quantity}`);
+            const response = await api.put(`/cart/${productId}`, null, {
+                params: { quantity },
+            });
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to update cart item");
+            console.error(`Error updating cart item ${productId}:`, error);
+            throw error;
         }
     },
 
-    // Remove item from cart
+    // Remove product from cart
     removeFromCart: async (productId) => {
         try {
-            await api.delete(`/customer/cart/${productId}`);
-            return true;
+            await api.delete(`/cart/${productId}`);
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to remove item from cart");
+            console.error(`Error removing product ${productId} from cart:`, error);
+            throw error;
         }
     },
 
     // Clear entire cart
     clearCart: async () => {
         try {
-            await api.delete("/customer/cart");
-            return true;
+            await api.delete("/cart");
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to clear cart");
+            console.error("Error clearing cart:", error);
+            throw error;
         }
     },
 

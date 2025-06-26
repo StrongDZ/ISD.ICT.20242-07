@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ import com.example.aims.model.Order;
 import com.example.aims.model.OrderItem;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.model.Product;
-import com.example.aims.model.ProductOrderEntity;
 import com.example.aims.model.Users;
 import com.example.aims.repository.CartItemRepository;
 import com.example.aims.repository.DeliveryInfoRepository;
@@ -30,9 +28,9 @@ import com.example.aims.repository.InvoiceRepository;
 import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
-import com.example.aims.repository.ProductOrderRepository;
 import com.example.aims.repository.ProductRepository;
 import com.example.aims.repository.UsersRepository;
+import com.example.aims.service.rush.PlaceRushOrderService;
 
 //***Cohesion: low to medium
 // In the case of the PlaceOrderService class:
@@ -85,12 +83,13 @@ public class PlaceOrderService {
     private final UsersRepository userRepository;
     private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
-    private final ProductOrderRepository productOrderRepository;
+    private final PlaceRushOrderService placeRushOrderService;
 
     public PlaceOrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             DeliveryInfoRepository deliveryInfoRepository, PaymentTransactionRepository paymentTransactionRepository,
             InvoiceRepository invoiceRepository, UsersRepository userRepository,
-            ProductRepository productRepository, CartItemRepository cartItemRepository, ProductOrderRepository productOrderRepository) {
+            ProductRepository productRepository, CartItemRepository cartItemRepository,
+            PlaceRushOrderService placeRushOrderService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.deliveryInfoRepository = deliveryInfoRepository;
@@ -99,26 +98,11 @@ public class PlaceOrderService {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.cartItemRepository = cartItemRepository;
-        this.productOrderRepository = productOrderRepository;
+        this.placeRushOrderService = placeRushOrderService;
     }
 
-    public boolean checkAddressForRushOrder(String address) {
-        return address.contains("Hà Nội");
-    }
-
-    public boolean checkRushOrder(DeliveryProductDTO[] deliveryProduct, DeliveryInfo deliveryInfo) {
-        boolean result = false;
-        System.out.println(checkAddressForRushOrder(deliveryInfo.getCity()));
-        if (!checkAddressForRushOrder(deliveryInfo.getCity())) {
-            return false;
-        }
-        for (DeliveryProductDTO product : deliveryProduct) {
-            if (product.isSupportRushOrder()) {
-                result = true;
-                break;
-            }
-        }
-        return result;
+    public boolean isRushOrderSupported(DeliveryInfoDTO deliveryInfo, List<Product> products) {
+        return placeRushOrderService.placeRushOrder(deliveryInfo, products).isSupported();
     }
 
     public Order createOrder(InvoiceDTO invoice) {
@@ -158,14 +142,14 @@ public class PlaceOrderService {
 
     private void saveProductOrders(DeliveryProductDTO[] products, Order newOrder) {
         for (DeliveryProductDTO product : products) {
-            ProductOrderEntity productOrder = new ProductOrderEntity();
-            productOrder.setOrder(newOrder);
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(newOrder);
 
             Product productEntity = getProductEntity(product.getId());
-            productOrder.setProduct(productEntity);
+            orderItem.setProduct(productEntity);
 
-            productOrder.setQuantity(product.getQuantity());
-            productOrderRepository.save(productOrder);
+            orderItem.setQuantity(product.getQuantity());
+            orderItemRepository.save(orderItem);
         }
     }
 
@@ -245,6 +229,7 @@ public class PlaceOrderService {
         double deliveryFee = 5.0;
     
         Invoice invoice = new Invoice();
+        invoice.setOrderID(order.getOrderID());
         invoice.setOrder(order);
         invoice.setProductPriceExcludingVAT(totalPrice);
         invoice.setProductPriceIncludingVAT(totalPrice * (1 + vat));
@@ -294,7 +279,9 @@ public class PlaceOrderService {
     private OrderDTO convertToDTO(Order order) {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getOrderID());
-        dto.setCustomerID(order.getCustomer().getId());
+        if (order.getCustomer() != null) {
+            dto.setCustomerID(order.getCustomer().getId());
+        }
         dto.setStatus(order.getStatus());
 
         // Get order items

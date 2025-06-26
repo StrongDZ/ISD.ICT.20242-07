@@ -1,21 +1,30 @@
 package com.example.aims.service.products;
 
 import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.dto.PagedResponse;
 import com.example.aims.factory.ProductFactory;
+import com.example.aims.model.Product;
+import com.example.aims.repository.ProductRepository;
 import com.example.aims.strategy.ProductStrategy;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "PRODUCT-SERVICE")
 public class ProductServiceImpl implements ProductService {
 
     private final ProductFactory productFactory;
+    private final ProductRepository productRepository;
 
     @Override
     public List<ProductDTO> getAllProducts() {
@@ -25,16 +34,31 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public PagedResponse<ProductDTO> getAllProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        List<ProductDTO> productDTOs = productPage.getContent().stream()
+                .map(product -> {
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    return strategy.getProductById(product.getProductID());
+                })
+                .collect(Collectors.toList());
+
+        return new PagedResponse<>(
+                productDTOs,
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements());
+    }
+
+    @Override
     public ProductDTO getProductById(String productId) {
-        for (String type : productFactory.getSupportedTypes()) {
-            try {
-                ProductStrategy strategy = productFactory.getStrategy(type);
-                return strategy.getProductById(productId);
-            } catch (Exception e) {
-                // ignore and try next
-            }
-        }
-        throw new RuntimeException("Product not found with id: " + productId);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+
+        ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+        return strategy.getProductById(productId);
     }
 
     @Override
@@ -53,32 +77,64 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(String productId) {
-        boolean deleted = false;
-        for (String type : productFactory.getSupportedTypes()) {
-            try {
-                ProductStrategy strategy = productFactory.getStrategy(type);
-                strategy.deleteProduct(productId);
-                deleted = true;
-                break;
-            } catch (Exception e) {
-                // ignore and try next
-            }
-        }
-        if (!deleted) {
-            throw new RuntimeException("Product not found with id: " + productId);
-        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+        strategy.deleteProduct(productId);
     }
 
     @Override
     public List<ProductDTO> searchProducts(String query) {
-        return productFactory.getSupportedTypes().stream()
-                .flatMap(type -> productFactory.getStrategy(type).searchProducts(query).stream())
+        List<Product> products = productRepository.findByTitleContainingIgnoreCase(query);
+        return products.stream()
+                .map(product -> {
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    return strategy.getProductById(product.getProductID());
+                })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PagedResponse<ProductDTO> searchProducts(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productRepository.findByTitleContainingIgnoreCase(query, pageable);
+
+        List<ProductDTO> productDTOs = productPage.getContent().stream()
+                .map(product -> {
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    return strategy.getProductById(product.getProductID());
+                })
+                .collect(Collectors.toList());
+
+        return new PagedResponse<>(
+                productDTOs,
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements());
     }
 
     @Override
     public List<ProductDTO> getProductsByCategory(String category) {
         ProductStrategy strategy = productFactory.getStrategy(category);
         return strategy.getAllProducts();
+    }
+
+    @Override
+    public PagedResponse<ProductDTO> getProductsByCategory(String category, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productRepository.findByCategory(category, pageable);
+
+        List<ProductDTO> productDTOs = productPage.getContent().stream()
+                .map(product -> {
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    return strategy.getProductById(product.getProductID());
+                })
+                .collect(Collectors.toList());
+
+        return new PagedResponse<>(
+                productDTOs,
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements());
     }
 }

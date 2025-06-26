@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import com.example.aims.subsystem.IPaymentSystem;
-import com.example.aims.subsystem.VNPay.VNPaySubsystem;
 
 @RestController
 @RequestMapping("/api/payments")

@@ -1,6 +1,6 @@
 package com.example.aims.dto;
 
-import com.example.aims.model.Product;
+import com.example.aims.dto.products.ProductDTO;
 import java.util.List;
 
 /**
@@ -17,7 +17,7 @@ import java.util.List;
  * - I (Interface Segregation Principle):
  *   Not applicable since this is a data transfer object without interfaces.
  * - D (Dependency Inversion Principle):
- *   This class depends on low-level data structures (Product), which is acceptable for a DTO.
+ *   This class depends on low-level data structures (ProductDTO), which is acceptable for a DTO.
  */
 public class PlaceRushOrderResponse {
 
@@ -28,10 +28,10 @@ public class PlaceRushOrderResponse {
     private String promptMessage;
 
     // ✅ Products eligible for rush delivery
-    private List<Product> rushProducts;
+    private List<ProductDTO> rushProducts;
 
     // ✅ Products not eligible for rush delivery
-    private List<Product> regularProducts;
+    private List<ProductDTO> regularProducts;
 
     // ✅ Getter for supported
     public boolean isSupported() {
@@ -54,22 +54,22 @@ public class PlaceRushOrderResponse {
     }
 
     // ✅ Getter for rush products
-    public List<Product> getRushProducts() {
+    public List<ProductDTO> getRushProducts() {
         return rushProducts;
     }
 
     // ✅ Setter for rush products
-    public void setRushProducts(List<Product> rushProducts) {
+    public void setRushProducts(List<ProductDTO> rushProducts) {
         this.rushProducts = rushProducts;
     }
 
     // ✅ Getter for regular products
-    public List<Product> getRegularProducts() {
+    public List<ProductDTO> getRegularProducts() {
         return regularProducts;
     }
 
     // ✅ Setter for regular products
-    public void setRegularProducts(List<Product> regularProducts) {
+    public void setRegularProducts(List<ProductDTO> regularProducts) {
         this.regularProducts = regularProducts;
     }
 }

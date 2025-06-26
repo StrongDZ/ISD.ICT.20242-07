@@ -31,6 +31,7 @@ import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.repository.ProductRepository;
 import com.example.aims.repository.UsersRepository;
 import com.example.aims.service.rush.PlaceRushOrderService;
+import com.example.aims.dto.products.ProductDTO;
 
 //***Cohesion: low to medium
 // In the case of the PlaceOrderService class:
@@ -101,7 +102,7 @@ public class PlaceOrderService {
         this.placeRushOrderService = placeRushOrderService;
     }
 
-    public boolean isRushOrderSupported(DeliveryInfoDTO deliveryInfo, List<Product> products) {
+    public boolean isRushOrderSupported(DeliveryInfoDTO deliveryInfo, List<ProductDTO> products) {
         return placeRushOrderService.placeRushOrder(deliveryInfo, products).isSupported();
     }
 

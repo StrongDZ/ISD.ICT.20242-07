@@ -2,7 +2,7 @@ package com.example.aims.service.rush;
 
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.PlaceRushOrderResponse;
-import com.example.aims.model.Product;
+import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.service.rush.eligibility.RushEligibility;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +15,11 @@ public class PlaceRushOrderService {
     // ✅ Dependency on abstractions, not concrete implementations.
     //    This follows the Dependency Inversion Principle (DIP).
     private final RushEligibility<DeliveryInfoDTO> addressEligibility;
-    private final RushEligibility<Product> productEligibility;
+    private final RushEligibility<ProductDTO> productEligibility;
 
     // ✅ Constructor-based dependency injection ensures better testability and loose coupling.
     public PlaceRushOrderService(RushEligibility<DeliveryInfoDTO> addressEligibility,
-                                 RushEligibility<Product> productEligibility) {
+                                 RushEligibility<ProductDTO> productEligibility) {
         this.addressEligibility = addressEligibility;
         this.productEligibility = productEligibility;
     }
@@ -34,15 +34,15 @@ public class PlaceRushOrderService {
      * ✅ LSP (Liskov Substitution Principle): Uses interface `RushEligibility<T>`, any implementation can be substituted.
      * ✅ DIP (Dependency Inversion Principle): Depends only on interfaces, not concrete classes.
      */
-    public PlaceRushOrderResponse placeRushOrder(DeliveryInfoDTO deliveryInfo, List<Product> products) {
+    public PlaceRushOrderResponse placeRushOrder(DeliveryInfoDTO deliveryInfo, List<ProductDTO> products) {
         // Determine if the delivery address qualifies for rush shipping
         boolean addressOk = addressEligibility.isRushAllowed(deliveryInfo);
 
-        List<Product> rushProducts = new ArrayList<>();
-        List<Product> regularProducts = new ArrayList<>();
+        List<ProductDTO> rushProducts = new ArrayList<>();
+        List<ProductDTO> regularProducts = new ArrayList<>();
 
         // Separate products into those eligible and not eligible for rush shipping
-        for (Product product : products) {
+        for (ProductDTO product : products) {
             if (productEligibility.isRushAllowed(product)) {
                 rushProducts.add(product);
             } else {

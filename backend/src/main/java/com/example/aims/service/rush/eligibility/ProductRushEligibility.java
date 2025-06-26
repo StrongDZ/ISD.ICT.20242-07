@@ -1,16 +1,16 @@
 package com.example.aims.service.rush.eligibility;
 
-import com.example.aims.model.Product;
+import com.example.aims.dto.products.ProductDTO;
 import org.springframework.stereotype.Component;
 
 /**
  * ✅ High Cohesion:
- * - This class is solely responsible for determining if a Product is eligible
+ * - This class is solely responsible for determining if a ProductDTO is eligible
  * for rush delivery.
  * - It encapsulates the logic related to product rush eligibility.
  *
  * ✅ S - Single Responsibility Principle (SRP):
- * - Only checks product’s rush eligibility status.
+ * - Only checks product's rush eligibility status.
  * - No other responsibilities like address validation or order handling.
  *
  * ✅ O - Open/Closed Principle (OCP):
@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
  * pattern.
  *
  * ✅ L - Liskov Substitution Principle (LSP):
- * - Implements the RushEligibility<Product> interface correctly.
- * - Can be replaced by any other implementation of RushEligibility<Product>
+ * - Implements the RushEligibility<ProductDTO> interface correctly.
+ * - Can be replaced by any other implementation of RushEligibility<ProductDTO>
  * without breaking client code.
  *
  * ✅ I - Interface Segregation Principle (ISP):
@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component;
  *
  * ✅ D - Dependency Inversion Principle (DIP):
  * - Depends only on the RushEligibility abstraction.
- * - No direct dependencies on concrete classes beyond Product, which is a
- * domain model.
+ * - No direct dependencies on concrete classes beyond ProductDTO, which is a
+ * data transfer object.
  */
 @Component
-public class ProductRushEligibility implements RushEligibility<Product> {
+public class ProductRushEligibility implements RushEligibility<ProductDTO> {
 
     /**
      * Checks if the product is eligible for rush delivery based on its internal
@@ -44,7 +44,7 @@ public class ProductRushEligibility implements RushEligibility<Product> {
      *         otherwise
      */
     @Override
-    public boolean isRushAllowed(Product product) {
+    public boolean isRushAllowed(ProductDTO product) {
         return product != null && product.getRushEligible();
     }
 }

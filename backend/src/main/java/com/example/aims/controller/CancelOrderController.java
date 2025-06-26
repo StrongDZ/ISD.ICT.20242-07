@@ -18,21 +18,6 @@ public class CancelOrderController {
     @Autowired
     private CancelOrderService cancelOrderService;
 
-    @GetMapping("/payment_test")
-    public String test() {
-        // New delivery info
-        DeliveryInfo deliveryInfoEntity = new DeliveryInfo();
-        deliveryInfoEntity.setAddress("Hanoi");
-        deliveryInfoEntity.setPhone("0123456789");
-        deliveryInfoEntity.setEmail("dontunderstandyou12345@gmail.com");
-        // Test payment
-        OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setId(1);
-        orderEntity.setOrderDate("2021-09-01");
-        orderEntity.setShippingFee(100000.0);
-        orderEntity.setDeliveryInfo(deliveryInfoEntity);
-        return "redirect:" + vnpay.getPaymentUrl(orderEntity);
-    }
     @GetMapping("/")
     public ResponseEntity<PayOrderResponseObjectDTO> cancelOrder(String orderId, String transactionId) {
         String message = cancelOrderService.cancelOrder(orderId, transactionId);

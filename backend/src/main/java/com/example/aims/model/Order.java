@@ -57,20 +57,10 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "customerID")
     private Users customer;
-    @Column(name = "customer_name")
-    private String customerName;
-    @Column(name = "phone_number")
-    private String phoneNumber;
 
     @Enumerated(EnumType.STRING) // Lưu trữ giá trị enum dưới dạng chuỗi trong cơ sở dữ liệu
     @Column(name = "status")
     private OrderStatus status;
-
-    @Column(name = "shipping_address")
-    private String shippingAddress;
-
-    @Column(name = "province")
-    private String province;
 
      @Column(name = "total_amount")
     private Double totalAmount;
@@ -91,17 +81,17 @@ public class Order {
         this.status = OrderStatus.REJECTED;
     }
 
-    public Order(String id, Users customer, String customerName, String phoneNumber, OrderStatus status,
-            String shippingAddress, String province, Double totalAmount) {
-        this.orderID = id;
-        this.customer = customer;
-        this.customerName = customerName;
-        this.phoneNumber = phoneNumber;
-        this.status = status;
-        this.shippingAddress = shippingAddress;
-        this.province = province;
-        this.totalAmount = totalAmount;
-    }
+    // public Order(String id, Users customer, String customerName, String phoneNumber, OrderStatus status,
+    //         String shippingAddress, String province, Double totalAmount) {
+    //     this.orderID = id;
+    //     this.customer = customer;
+    //     this.customerName = customerName;
+    //     this.phoneNumber = phoneNumber;
+    //     this.status = status;
+    //     this.shippingAddress = shippingAddress;
+    //     this.province = province;
+    //     this.totalAmount = totalAmount;
+    // }
 
     public void changeApproveOrder() {
         this.status = OrderStatus.APPROVED;

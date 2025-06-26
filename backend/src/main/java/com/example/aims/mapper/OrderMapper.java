@@ -29,10 +29,7 @@ public class OrderMapper {
         dto.setOrderID(order.getOrderID());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setStatus(order.getStatus());
-        dto.setCustomerName(order.getCustomerName());
-        dto.setPhoneNumber(order.getPhoneNumber());
-        dto.setShippingAddress(order.getShippingAddress());
-        dto.setProvince(order.getProvince());
+
 
         if (order.getDeliveryInfo() != null) {
             dto.setDeliveryInfo(deliveryInfoMapper.toDto(order.getDeliveryInfo()));
@@ -58,10 +55,7 @@ public class OrderMapper {
         dto.setOrderID(order.getOrderID());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setStatus(order.getStatus());
-        dto.setCustomerName(order.getCustomerName());
-        dto.setPhoneNumber(order.getPhoneNumber());
-        dto.setShippingAddress(order.getShippingAddress());
-        dto.setProvince(order.getProvince());
+
 
         return dto;
     }

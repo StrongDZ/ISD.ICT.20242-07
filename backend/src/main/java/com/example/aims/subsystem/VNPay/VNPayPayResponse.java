@@ -70,11 +70,11 @@ public class VNPayPayResponse {
         orderNew.setTotalAmount(order.getTotalAmount());
         orderNew.setDeliveryInfo(deliveryInfo);
         orderNew.setCustomer(customer);
-        orderNew.setShippingAddress(order.getShippingAddress());
-        orderNew.setCustomerName(order.getCustomerName());
-        orderNew.setPhoneNumber(order.getPhoneNumber());
+        // orderNew.setShippingAddress(order.getShippingAddress());
+        // orderNew.setCustomerName(order.getCustomerName());
+        // orderNew.setPhoneNumber(order.getPhoneNumber());
         orderNew.setStatus(order.getStatus());
-        orderNew.setProvince(order.getProvince());
+        // orderNew.setProvince(order.getProvince());
 
         transaction.setOrder(orderNew);
         return transaction;

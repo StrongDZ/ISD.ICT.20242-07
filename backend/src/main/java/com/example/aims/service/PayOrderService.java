@@ -154,7 +154,7 @@ public class PayOrderService {
         String transactionLink = "localhost:3001/payment-history?orderId=" +
                 orderID;
         String subject = "Payment Successful for Order ID: " + orderID;
-        String body = "Dear " + order.getCustomerName() + ",\n\n"
+        String body = "Dear " + order.getDeliveryInfo().getRecipientName() + ",\n\n"
                 + "Your payment for Order ID: " + orderID + " has been successfully processed.\n"
                 + "Transaction ID: " + transactionId + "\n"
                 + "You can view your transaction details at: " + transactionLink + "\n\n"

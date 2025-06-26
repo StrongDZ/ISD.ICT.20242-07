@@ -75,10 +75,6 @@ public class OrderMapperTest {
         order.setOrderID("ORD003");
         order.setTotalAmount(3000.0);
         order.setStatus(OrderStatus.PENDING);
-        order.setCustomerName("John Doe");
-        order.setPhoneNumber("0123456789");
-        order.setShippingAddress("Hanoi");
-        order.setProvince("HN");
 
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         Users customer = new Users();
@@ -108,10 +104,6 @@ public class OrderMapperTest {
         order.setOrderID("ORD004");
         order.setTotalAmount(4000.0);
         order.setStatus(OrderStatus.PENDING);
-        order.setCustomerName("Jane Doe");
-        order.setPhoneNumber("0987654321");
-        order.setShippingAddress("Saigon");
-        order.setProvince("SG");
 
         PaymentOrderRetrievalDTO dto = orderMapper.toPaymentOrderRetrievalDTO(order);
 

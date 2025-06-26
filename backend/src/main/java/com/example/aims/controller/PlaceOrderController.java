@@ -24,25 +24,9 @@ public class PlaceOrderController {
     }
 
     @PostMapping("/create-order")
-    public ResponseEntity<OrderDTO> createOrder(UserDetailsImpl userDetails, @RequestBody OrderRequestDTO request) {
-        Integer userId = (userDetails != null) ? userDetails.getId() : null;
-        OrderDTO order = (userId == null)
-                ? handleOrderNoAccount(request)
-                : handleOrderWithAccount(request, userId);
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderRequestDTO request) {
+        OrderDTO order = placeOrderService.createOrder(request);
         return ResponseEntity.ok(order);
-    }
-
-    private OrderDTO handleOrderNoAccount(OrderRequestDTO request) {
-        return placeOrderService.createOrderNoAccount(
-                request.getCartItems(),
-                request.getDeliveryInfo());
-    }
-
-    private OrderDTO handleOrderWithAccount(OrderRequestDTO request, Integer userId) {
-        return placeOrderService.createOrderWithAccount(
-                request.getCartItems(),
-                request.getDeliveryInfo(),
-                userId);
     }
 
 }

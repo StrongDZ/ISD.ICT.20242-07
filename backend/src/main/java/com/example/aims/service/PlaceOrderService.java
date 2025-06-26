@@ -83,11 +83,13 @@ public class PlaceOrderService {
     private final UsersRepository userRepository;
     private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
+    private final PlaceRushOrderService placeRushOrderService;
 
     public PlaceOrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             DeliveryInfoRepository deliveryInfoRepository, PaymentTransactionRepository paymentTransactionRepository,
             InvoiceRepository invoiceRepository, UsersRepository userRepository,
-            ProductRepository productRepository, CartItemRepository cartItemRepository) {
+            ProductRepository productRepository, CartItemRepository cartItemRepository,
+            PlaceRushOrderService placeRushOrderService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.deliveryInfoRepository = deliveryInfoRepository;
@@ -96,10 +98,7 @@ public class PlaceOrderService {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.cartItemRepository = cartItemRepository;
-    }
-
-    public boolean checkAddressForRushOrder(String address) {
-        return address.contains("Hà Nội");
+        this.placeRushOrderService = placeRushOrderService;
     }
 
     public boolean isRushOrderSupported(DeliveryInfoDTO deliveryInfo, List<Product> products) {

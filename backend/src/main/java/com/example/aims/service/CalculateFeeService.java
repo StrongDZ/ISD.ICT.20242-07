@@ -1,199 +1,200 @@
 package com.example.aims.service;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.example.aims.config.DeliveryFeeProperties;
 import com.example.aims.dto.CartItemDTO;
+import com.example.aims.dto.DeliveryFeeResponseDTO;
 import com.example.aims.dto.DeliveryInfoDTO;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service chuyên trách tính toán các loại phí trong hệ thống.
- * 
- * ✅ High Cohesion: Tập trung vào việc tính toán phí
- * ✅ Single Responsibility Principle: Chỉ tính toán phí, không xử lý logic khác
- * ✅ Open/Closed Principle: Có thể mở rộng thêm loại phí mới
+ * Chứa logic để tính phí vận chuyển cho cả đơn hàng thường và đơn hàng hỏa tốc.
  */
 @Service
 public class CalculateFeeService {
 
-    @Autowired
     private DeliveryFeeProperties deliveryFeeProperties;
 
-    /**
-     * Tính tổng giá trị đơn hàng bao gồm tất cả phí
-     * 
-     * @param cartItems danh sách sản phẩm trong giỏ hàng
-     * @param deliveryInfo thông tin giao hàng
-     * @return tổng giá trị đơn hàng
+    public CalculateFeeService(DeliveryFeeProperties deliveryFeeProperties) {
+        this.deliveryFeeProperties=deliveryFeeProperties;
+    }
+        /**
+     * Tính tổng giá trị cuối cùng của đơn hàng, bao gồm tiền hàng và tất cả các loại phí vận chuyển.
+     * Phương thức này được sử dụng khi đặt hàng (place order).
+     *
+     * @param cartItems    Danh sách sản phẩm trong giỏ hàng.
+     * @param deliveryInfo Thông tin giao hàng.
+     * @return Tổng số tiền khách hàng phải thanh toán.
      */
     public double calculateTotalPrice(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
-        // Tính tổng giá trị sản phẩm thường (không bao gồm rush order items)
-        double subtotal = calculateRegularSubtotal(cartItems);
-        // Tính tổng giá trị rush order items
-        double rushSubtotal = calculateRushSubtotal(cartItems);
-        // Tính phí giao hàng
-        double deliveryFee = calculateDeliveryFee(cartItems, subtotal, deliveryInfo);
-        // Tính phí rush order
-        double rushOrderFee = calculateRushOrderFee(cartItems);
-        // Tổng cộng
-        return subtotal + rushSubtotal + deliveryFee + rushOrderFee;
+        // 1. Tính tổng giá trị của tất cả sản phẩm trong giỏ hàng.
+        double totalSubtotal = calculateSubtotalForItems(cartItems);
+
+        // 2. Tính tất cả các loại phí vận chuyển (cả thường và hỏa tốc).
+        DeliveryFeeResponseDTO shippingFees = calculateAllShippingFees(cartItems, deliveryInfo);
+        double totalShippingFee = shippingFees.getRegularShippingFee() + shippingFees.getRushShippingFee();
+
+        // 3. Tổng cộng = tiền hàng + tổng phí vận chuyển.
+        return totalSubtotal + totalShippingFee;
     }
 
     /**
-     * Tính tổng giá trị sản phẩm thường (không rush eligible)
+     * Phương thức chính, điều phối việc tính toán phí vận chuyển.
+     * Tự động chọn logic phù hợp dựa trên lựa chọn của khách hàng.
+     *
+     * @param cartItems    Danh sách sản phẩm trong giỏ hàng.
+     * @param deliveryInfo Thông tin giao hàng (chứa cờ isRushOrder).
+     * @return một đối tượng DeliveryFeeResponseDTO chứa các loại phí đã tính.
      */
-    public double calculateRegularSubtotal(List<CartItemDTO> cartItems) {
-        return cartItems.stream()
-            .filter(item -> !Boolean.TRUE.equals(item.getProductDTO().getEligible()))
-            .mapToDouble(item -> item.getProductDTO().getPrice() * item.getQuantity())
-            .sum();
-    }
+    public DeliveryFeeResponseDTO calculateAllShippingFees(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
+        boolean isRushOrderRequested = deliveryInfo != null && Boolean.TRUE.equals(deliveryInfo.getIsRushOrder());
 
-    /**
-     * Tính tổng giá trị sản phẩm rush order
-     */
-    public double calculateRushSubtotal(List<CartItemDTO> cartItems) {
-        return cartItems.stream()
-            .filter(item -> Boolean.TRUE.equals(item.getProductDTO().getEligible()))
-            .mapToDouble(item -> item.getProductDTO().getPrice() * item.getQuantity())
-            .sum();
-    }
-
-    /**
-     * Tính phí giao hàng
-     */
-    public double calculateDeliveryFee(List<CartItemDTO> cartItems, double subtotal, DeliveryInfoDTO deliveryInfo) {
-        boolean isRushOrder = deliveryInfo != null && Boolean.TRUE.equals(deliveryInfo.getIsRushOrder());
-        // Nếu là rush order, không áp dụng miễn phí giao hàng
-        if (isRushOrder) {
-            return calculateBaseDeliveryFee(cartItems, deliveryInfo);
+        if (isRushOrderRequested) {
+            // Gọi hàm xử lý riêng cho đơn hàng hỏa tốc
+            return handleRushOrderCalculation(cartItems, deliveryInfo);
+        } else {
+            // Gọi hàm xử lý riêng cho đơn hàng thường
+            return handleRegularOrderCalculation(cartItems, deliveryInfo);
         }
-        // Kiểm tra điều kiện miễn phí giao hàng (đơn hàng trên 100,000 VND)
-        if (subtotal > deliveryFeeProperties.getFreeShipping().getThreshold()) {
-            double baseFee = calculateBaseDeliveryFee(cartItems, deliveryInfo);
-            // Miễn phí tối đa 25,000 VND
-            return Math.max(0, baseFee - deliveryFeeProperties.getFreeShipping().getMaxAmount());
-        }
-        return calculateBaseDeliveryFee(cartItems, deliveryInfo);
     }
 
     /**
-     * Tính phí giao hàng cơ bản dựa trên trọng lượng và địa chỉ
+     * Xử lý logic tính toán cho đơn hàng GIAO HÀNG THƯỜNG.
+     * Coi tất cả sản phẩm là một nhóm và áp dụng free ship nếu đủ điều kiện.
      */
-    public double calculateBaseDeliveryFee(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
-        // Tìm sản phẩm nặng nhất
-        double maxWeight = cartItems.stream()
-            .mapToDouble(item -> {
-                Double weight = item.getProductDTO().getWeight();
-                return weight != null ? weight : 0.0;
-            })
-            .max()
-            .orElse(0.0);
+    private DeliveryFeeResponseDTO handleRegularOrderCalculation(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
+        double totalSubtotal = calculateSubtotalForItems(cartItems);
+        double baseFee = calculateBaseDeliveryFeeForItems(cartItems, deliveryInfo);
+
+        double finalRegularFee = baseFee;
+        if (isEligibleForFreeShipping(totalSubtotal)) {
+            double freeShippingAmount = calculateFreeShippingAmount(baseFee);
+            finalRegularFee = Math.max(0, baseFee - freeShippingAmount);
+        }
         
+        return new DeliveryFeeResponseDTO(finalRegularFee, 0.0);
+    }
+
+    /**
+     * Xử lý logic tính toán cho đơn hàng GIAO HỎA TỐC.
+     * Tách 2 nhóm hàng, tính 2 loại phí riêng biệt.
+     */
+    private DeliveryFeeResponseDTO handleRushOrderCalculation(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
+        List<CartItemDTO> regularItems = cartItems.stream().filter(item -> !isRushItem(item)).collect(Collectors.toList());
+        List<CartItemDTO> rushItems = cartItems.stream().filter(this::isRushItem).collect(Collectors.toList());
+
+        // Tính phí cho nhóm hàng thường (có xét free ship)
+        double regularSubtotal = calculateSubtotalForItems(regularItems);
+        double regularFee = calculateRegularDeliveryFee(regularItems, regularSubtotal, deliveryInfo);
+
+        // Tính tổng chi phí cho nhóm hàng hỏa tốc (phí ship theo cân nặng + phụ phí dịch vụ)
+        double rushBaseShippingFee = calculateRushDeliveryFee(rushItems, deliveryInfo);
+        double rushServiceSurcharge = calculateRushServiceSurcharge(rushItems);
+        double totalRushFee = rushBaseShippingFee + rushServiceSurcharge;
+
+        return new DeliveryFeeResponseDTO(regularFee, totalRushFee);
+    }
+
+    // --- CÁC HÀM HELPER ---
+
+    private double calculateRegularDeliveryFee(List<CartItemDTO> regularItems, double regularSubtotal, DeliveryInfoDTO deliveryInfo) {
+        if (regularItems == null || regularItems.isEmpty()) {
+            return 0.0;
+        }
+        double baseFee = calculateBaseDeliveryFeeForItems(regularItems, deliveryInfo);
+        if (isEligibleForFreeShipping(regularSubtotal)) {
+            double freeShippingAmount = calculateFreeShippingAmount(baseFee);
+            return Math.max(0, baseFee - freeShippingAmount);
+        }
+        return baseFee;
+    }
+
+    private double calculateRushDeliveryFee(List<CartItemDTO> rushItems, DeliveryInfoDTO deliveryInfo) {
+         if (rushItems == null || rushItems.isEmpty()) {
+            return 0.0;
+        }
+        return calculateBaseDeliveryFeeForItems(rushItems, deliveryInfo);
+    }
+
+    private double calculateRushServiceSurcharge(List<CartItemDTO> rushItems) {
+        if (rushItems == null || rushItems.isEmpty()) {
+            return 0.0;
+        }
+        return rushItems.stream()
+                .mapToDouble(item -> deliveryFeeProperties.getRushOrder().getFeePerItem() * item.getQuantity())
+                .sum();
+    }
+
+    private double calculateBaseDeliveryFeeForItems(List<CartItemDTO> items, DeliveryInfoDTO deliveryInfo) {
+        double maxWeight = items.stream()
+                .mapToDouble(item -> item.getProductDTO().getWeight() != null ? item.getProductDTO().getWeight() : 0.0)
+                .max()
+                .orElse(0.0);
         return calculateDeliveryFeeByWeight(maxWeight, deliveryInfo);
     }
 
-    /**
-     * Tính phí giao hàng dựa trên trọng lượng và địa chỉ
-     */
-    public double calculateDeliveryFeeByWeight(double weightInKg, DeliveryInfoDTO deliveryInfo) {
-        if (weightInKg <= 0) {
-            return 0.0; // Không có trọng lượng
+    private double calculateSubtotalForItems(List<CartItemDTO> items) {
+        if (items == null) {
+            return 0.0;
         }
-        
-        // Kiểm tra xem có phải nội thành Hà Nội hoặc TP.HCM không
+        return items.stream()
+                .mapToDouble(item -> item.getProductDTO().getPrice() * item.getQuantity())
+                .sum();
+    }
+    
+    // (Các hàm helper tính phí theo cân nặng và khu vực giữ nguyên)
+
+    private boolean isRushItem(CartItemDTO item) {
+        return item != null && item.getProductDTO() != null && Boolean.TRUE.equals(item.getProductDTO().getEligible());
+    }
+
+    private boolean isEligibleForFreeShipping(double subtotal) {
+        return subtotal > deliveryFeeProperties.getFreeShipping().getThreshold();
+    }
+    
+    private double calculateFreeShippingAmount(double baseDeliveryFee) {
+        return Math.min(baseDeliveryFee, deliveryFeeProperties.getFreeShipping().getMaxAmount());
+    }
+
+    private double calculateDeliveryFeeByWeight(double weightInKg, DeliveryInfoDTO deliveryInfo) {
+        if (weightInKg <= 0) return 0.0;
         if (isInnerCity(deliveryInfo)) {
             return calculateInnerCityDeliveryFee(weightInKg);
         } else {
-            return calculateRegularDeliveryFee(weightInKg);
+            return calculateRegularZoneDeliveryFee(weightInKg);
         }
     }
 
-    /**
-     * Tính phí giao hàng cho nội thành Hà Nội và TP.HCM
-     */
-    private double calculateInnerCityDeliveryFee(double weightInKg) {
-        if (weightInKg <= deliveryFeeProperties.getInnerCity().getWeightUnit()) {
-            return deliveryFeeProperties.getInnerCity().getInitialFee();
-        } else {
-            // Tính thêm cho phần vượt quá 3kg
-            double extraWeight = weightInKg - deliveryFeeProperties.getInnerCity().getWeightUnit();
-            int extraUnits = (int) Math.ceil(extraWeight / deliveryFeeProperties.getRegular().getWeightUnit());
-            return deliveryFeeProperties.getInnerCity().getInitialFee() + (extraUnits * deliveryFeeProperties.getInnerCity().getExtraFeePerUnit());
-        }
-    }
-
-    /**
-     * Tính phí giao hàng cho khu vực thường
-     */
-    private double calculateRegularDeliveryFee(double weightInKg) {
-        if (weightInKg <= deliveryFeeProperties.getRegular().getWeightUnit()) {
-            return deliveryFeeProperties.getRegular().getInitialFee();
-        } else {
-            // Tính thêm cho phần vượt quá 0.5kg
-            double extraWeight = weightInKg - deliveryFeeProperties.getRegular().getWeightUnit();
-            int extraUnits = (int) Math.ceil(extraWeight / deliveryFeeProperties.getRegular().getWeightUnit());
-            return deliveryFeeProperties.getRegular().getInitialFee() + (extraUnits * deliveryFeeProperties.getRegular().getExtraFeePerUnit());
-        }
-    }
-
-    /**
-     * Kiểm tra xem địa chỉ có phải nội thành Hà Nội hoặc TP.HCM không
-     */
     private boolean isInnerCity(DeliveryInfoDTO deliveryInfo) {
-        if (deliveryInfo == null || deliveryInfo.getCity() == null) {
-            return false;
-        }
-        
-        String city = deliveryInfo.getCity().trim();
-        
-        // Kiểm tra Hà Nội
-        if (city.equalsIgnoreCase("Hà Nội") || city.equalsIgnoreCase("Hanoi")) {
-            return true;
-        }
-        
-        // Kiểm tra TP.HCM
-        if (city.equalsIgnoreCase("TP.HCM") || city.equalsIgnoreCase("Ho Chi Minh City") || 
-            city.equalsIgnoreCase("Thành phố Hồ Chí Minh")) {
-            return true;
-        }
-        
-        return false;
+        if (deliveryInfo == null || deliveryInfo.getCity() == null) return false;
+        String city = deliveryInfo.getCity().trim().toLowerCase();
+        return city.equals("hà nội") || city.equals("hanoi") || city.equals("tp.hcm") || city.equals("ho chi minh city") || city.equals("thành phố hồ chí minh");
     }
 
-    /**
-     * Tính phí rush order (10,000 VND cho mỗi rush order item)
-     */
-    public double calculateRushOrderFee(List<CartItemDTO> cartItems) {
-        return cartItems.stream()
-            .filter(item -> Boolean.TRUE.equals(item.getProductDTO().getEligible()))
-            .mapToDouble(item -> deliveryFeeProperties.getRushOrder().getFeePerItem() * item.getQuantity())
-            .sum();
+    private double calculateInnerCityDeliveryFee(double weightInKg) {
+        double baseWeight = deliveryFeeProperties.getInnerCity().getWeightUnit();
+        double initialFee = deliveryFeeProperties.getInnerCity().getInitialFee();
+        if (weightInKg <= baseWeight) return initialFee;
+        
+        double extraWeight = weightInKg - baseWeight;
+        double incrementUnit = deliveryFeeProperties.getRegular().getWeightUnit();
+        double extraFeePerUnit = deliveryFeeProperties.getRegular().getExtraFeePerUnit();
+        int extraUnits = (int) Math.ceil(extraWeight / incrementUnit);
+        return initialFee + (extraUnits * extraFeePerUnit);
     }
 
-    /**
-     * Tính tổng giá trị đơn hàng (chỉ sản phẩm, không bao gồm phí)
-     */
-    public double calculateSubtotal(List<CartItemDTO> cartItems) {
-        return cartItems.stream()
-            .mapToDouble(item -> item.getProductDTO().getPrice() * item.getQuantity())
-            .sum();
-    }
+    private double calculateRegularZoneDeliveryFee(double weightInKg) {
+        double baseWeight = deliveryFeeProperties.getRegular().getWeightUnit();
+        double initialFee = deliveryFeeProperties.getRegular().getInitialFee();
+        if (weightInKg <= baseWeight) return initialFee;
 
-    /**
-     * Kiểm tra xem đơn hàng có được miễn phí giao hàng không
-     */
-    public boolean isEligibleForFreeShipping(double subtotal) {
-        return subtotal > deliveryFeeProperties.getFreeShipping().getThreshold();
+        double extraWeight = weightInKg - baseWeight;
+        double incrementUnit = deliveryFeeProperties.getRegular().getWeightUnit();
+        double extraFeePerUnit = deliveryFeeProperties.getRegular().getExtraFeePerUnit();
+        int extraUnits = (int) Math.ceil(extraWeight / incrementUnit);
+        return initialFee + (extraUnits * extraFeePerUnit);
     }
-
-    /**
-     * Tính số tiền được miễn phí giao hàng
-     */
-    public double calculateFreeShippingAmount(double baseDeliveryFee) {
-        return Math.min(baseDeliveryFee, deliveryFeeProperties.getFreeShipping().getMaxAmount());
-    }
-} 
+}

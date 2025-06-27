@@ -64,28 +64,19 @@ import com.example.aims.repository.ProductRepository;
 @Service
 public class PlaceOrderService {
 
-    
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final ProductRepository productRepository;
-    private final DeliveryInfoMapper deliveryInfoMapper;
     private final OrderMapper orderMapper;
-    private final DeliveryInfoRepository deliveryInfoRepository;
     private final CalculateFeeService calculateFeeService;
+    private final InventoryService inventoryService;
+    private final OrderCreationService orderCreationService;
 
-    public PlaceOrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-            DeliveryInfoRepository deliveryInfoRepository ,
-            DeliveryInfoMapper deliveryInfoMapper,
-            ProductRepository productRepository,
-            OrderMapper orderMapper,
-            CalculateFeeService calculateFeeService) {
-        this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.productRepository = productRepository;
-        this.deliveryInfoMapper = deliveryInfoMapper;
+    public PlaceOrderService(OrderMapper orderMapper,
+            CalculateFeeService calculateFeeService,
+            InventoryService inventoryService,
+            OrderCreationService orderCreationService) {
         this.orderMapper = orderMapper;
-        this.deliveryInfoRepository = deliveryInfoRepository;
         this.calculateFeeService = calculateFeeService;
+        this.inventoryService = inventoryService;
+        this.orderCreationService = orderCreationService;
     }
 
 
@@ -93,16 +84,16 @@ public class PlaceOrderService {
     public OrderDTO placeOrder(OrderRequestDTO orderRequestDTO) {
 
         // 1. Tạo và lưu order entity trước để có orderID
-        Order order = createNewOrder();
+        Order order = orderCreationService.createNewOrder();
 
         // 2. Map và lưu delivery info, set orderID
-        DeliveryInfo deliveryInfo = createAndSaveDeliveryInfo(order, orderRequestDTO.getDeliveryInfo());
+        DeliveryInfo deliveryInfo = orderCreationService.createAndSaveDeliveryInfo(order, orderRequestDTO.getDeliveryInfo());
 
         // 3. Lưu order items
-        saveOrderItems(order, orderRequestDTO.getCartItems());
+        orderCreationService.saveOrderItems(order, orderRequestDTO.getCartItems());
 
-        // 4. Cập nhật tồn kho
-        updateProductStocks(orderRequestDTO.getCartItems());
+        // 4. Cập nhật tồn kho thông qua InventoryService
+        inventoryService.updateProductStocks(orderRequestDTO.getCartItems());
 
         // 5. Tính tổng tiền sử dụng CalculateFeeService
         double totalAmount = calculateFeeService.calculateTotalPrice(
@@ -111,54 +102,10 @@ public class PlaceOrderService {
         );
 
         // 6. Gán lại các thuộc tính vào order và lưu lại
-        updateOrderWithDeliveryAndTotal(order, deliveryInfo, totalAmount);
+        orderCreationService.updateOrderWithDeliveryAndTotal(order, deliveryInfo, totalAmount);
 
         // 7. Trả về DTO
         return orderMapper.toOrderDTO(order);
-    }
-
-    private Order createNewOrder() {
-        Order order = new Order();
-        order.setStatus(OrderStatus.PENDING);
-        return orderRepository.save(order);
-    }
-
-    private DeliveryInfo createAndSaveDeliveryInfo(Order order, DeliveryInfoDTO deliveryInfoDTO) {
-        DeliveryInfo deliveryInfo = deliveryInfoMapper.toEntity(deliveryInfoDTO);
-        deliveryInfo.setOrderID(order.getOrderID());
-        return deliveryInfoRepository.save(deliveryInfo);
-    }
-
-    private void updateOrderWithDeliveryAndTotal(Order order, DeliveryInfo deliveryInfo, double totalAmount) {
-        order.setDeliveryInfo(deliveryInfo);
-        order.setTotalAmount(totalAmount);
-        orderRepository.save(order);
-    }
-
-    private void saveOrderItems(Order order, List<CartItemDTO> cartItems) {
-        for (CartItemDTO cartItem : cartItems) {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setId(new OrderItem.OrderItemId(cartItem.getProductDTO().getProductID(), order.getOrderID()));
-            orderItem.setProduct(productRepository.findById(cartItem.getProductDTO().getProductID())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + cartItem.getProductDTO().getProductID())));
-            orderItem.setOrder(order);
-            orderItem.setQuantity(cartItem.getQuantity());
-            orderItemRepository.save(orderItem);
-        }
-    }
-
-    private void updateProductStocks(List<CartItemDTO> cartItems) {
-        for (CartItemDTO cartItem : cartItems) {
-            Product product = productRepository.findById(cartItem.getProductDTO().getProductID())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + cartItem.getProductDTO().getProductID()));
-            
-            // Cập nhật số lượng tồn kho
-            int newQuantity = product.getQuantity() - cartItem.getQuantity();
-            product.setQuantity(newQuantity);
-            
-            // Lưu lại vào database
-            productRepository.save(product);
-        }
     }
 
     /**
@@ -167,21 +114,7 @@ public class PlaceOrderService {
      * @return Danh sách các sản phẩm không đủ tồn kho (rỗng nếu đủ tồn kho)
      */
     public List<CartItemDTO> checkInventoryAvailability(List<CartItemDTO> cartItems) {
-        List<CartItemDTO> insufficientItems = new ArrayList<>();
-        
-        for (CartItemDTO cartItem : cartItems) {
-            Product product = productRepository.findById(cartItem.getProductDTO().getProductID())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + cartItem.getProductDTO().getProductID()));
-            
-            // Kiểm tra xem số lượng yêu cầu có vượt quá tồn kho không
-            if (cartItem.getQuantity() > product.getQuantity()) {
-                // Cập nhật thông tin tồn kho thực tế vào productDTO
-                cartItem.getProductDTO().setQuantity(product.getQuantity());
-                insufficientItems.add(cartItem);
-            }
-        }
-        
-        return insufficientItems;
+        return inventoryService.checkInventoryAvailability(cartItems);
     }
 
     /**
@@ -190,7 +123,7 @@ public class PlaceOrderService {
      * @return true nếu đủ tồn kho, false nếu không đủ
      */
     public boolean isInventorySufficient(List<CartItemDTO> cartItems) {
-        return checkInventoryAvailability(cartItems).isEmpty();
+        return inventoryService.isInventorySufficient(cartItems);
     }
 
 }

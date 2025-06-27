@@ -108,7 +108,7 @@ public class UserController {
 
     @Operation(summary = "Change User Password")
     @PatchMapping("/change_pwd")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public Map<String, Object> changePassword(@RequestBody UserPasswordRequest request) {
         userService.changePassword(request);
         log.info("Change password for user: {}", request);

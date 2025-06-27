@@ -17,6 +17,8 @@ public class UserResponse implements Serializable {
     private int id;
     private String userName;
     private String gmail;
+    private String userStatus;
+    private String userType;
 
     public void setID(int l) {
         this.id = l;

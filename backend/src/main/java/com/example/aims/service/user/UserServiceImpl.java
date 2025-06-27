@@ -136,6 +136,15 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(req.getPassword()));
             userRepository.save(user);
             log.info("Password updated for user: {}", user.getUsername());
+            // Gửi email thông báo đổi mật khẩu
+            try {
+                String subject = "Your account password has been changed";
+                String body = "Dear " + user.getUsername() + ",\n\nYour account password has been changed by the administrator.\n\nIf you did not request this change, please contact support.";
+                emailService.send(user.getGmail(), subject, body);
+                log.info("Sent password change notification email to {}", user.getGmail());
+            } catch (Exception e) {
+                log.error("Failed to send password change notification email: {}", e.getMessage());
+            }
         } else {
             log.info("Compare password failed");
             throw new RuntimeException("Password not match");
@@ -167,8 +176,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void delete(Integer id) {
         Users user = getUserEntityById(id);
+        String userEmail = user.getGmail();
+        String userName = user.getUsername();
         userRepository.delete(user);
         log.info("Hard deleted user id: {}", id);
+        // Gửi email thông báo xóa tài khoản
+        try {
+            String subject = "Your account has been deleted";
+            String body = "Dear " + userName + ",\n\nYour account has been deleted by the administrator.\n\nIf you have any questions, please contact support.";
+            emailService.send(userEmail, subject, body);
+            log.info("Sent account deletion notification email to {}", userEmail);
+        } catch (Exception e) {
+            log.error("Failed to send account deletion notification email: {}", e.getMessage());
+        }
     }
 
 }

@@ -5,10 +5,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.aims.dto.PayOrderResponseObjectDTO;
-import com.example.aims.model.DeliveryInfo;
 import com.example.aims.service.CancelOrderService;
 
 @RestController
@@ -19,8 +19,8 @@ public class CancelOrderController {
     private CancelOrderService cancelOrderService;
 
     @GetMapping("/")
-    public ResponseEntity<PayOrderResponseObjectDTO> cancelOrder(String orderId, String transactionId) {
-        String message = cancelOrderService.cancelOrder(orderId, transactionId);
+    public ResponseEntity<PayOrderResponseObjectDTO> cancelOrder(@RequestParam("orderId") String orderId, @RequestParam("transactionId") String transactionId, @RequestParam("paymentType") String paymentType) {
+        String message = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
         PayOrderResponseObjectDTO response = PayOrderResponseObjectDTO.builder()
                 .responseCode(200)
                 .message(null)

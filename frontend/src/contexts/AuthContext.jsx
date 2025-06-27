@@ -15,32 +15,14 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const initializeAuth = async () => {
-            try {
-                const token = localStorage.getItem("token");
-                if (token) {
-                    // Verify token and get user info
-                    const userInfo = await authService.verifyToken(token);
-                    setUser(userInfo);
-                }
-            } catch (error) {
-                console.error("Token verification error:", error);
-
-                const status = error?.response?.status;
-
-                // Chỉ xóa token nếu server báo token không hợp lệ
-                if (status === 401 || status === 403) {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("user");
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initializeAuth();
-    }, []);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    if (token && user) {
+      setUser(JSON.parse(user));
+    }
+    setLoading(false);
+  }, []);
 
     const login = async (credentials) => {
         try {

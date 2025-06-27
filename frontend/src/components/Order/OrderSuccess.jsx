@@ -13,7 +13,7 @@ import {
 } from "@mui/lab";
 
 // Thêm paymentUrl vào props nhận vào
-const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders }) => {
+const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders, onRequestPaymentUrl }) => {
     // ⚠️ Xóa dòng này: const [setPaymentUrl] = useState(null);
     // ⚠️ Xóa luôn khối useEffect để gọi API VNPay ở đây
 
@@ -122,26 +122,46 @@ const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders }) =
                 </CardContent>
             </Card>
 
-            {/* Hoàn tất thanh toán - Chỉ hiển thị khi paymentUrl có giá trị */}
+            {/* Hoàn tất thanh toán - Hiển thị hai nút chọn cổng */}
+            <Box textAlign="center" my={3}>
+                <Typography variant="h6" gutterBottom>
+                    Hoàn tất thanh toán
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Vui lòng chọn cổng thanh toán để hoàn tất đơn hàng
+                </Typography>
+                <Button
+                    variant="contained"
+                    color="success"
+                    size="large"
+                    sx={{ mr: 2 }}
+                    onClick={() => onRequestPaymentUrl("vnpay")}
+                >
+                    Thanh toán qua VNPay
+                </Button>
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    size="large"
+                    onClick={() => onRequestPaymentUrl("momo")}
+                >
+                    Thanh toán qua Momo
+                </Button>
+            </Box>
+
+            {/* Hiển thị nút chuyển sang cổng thanh toán khi đã có paymentUrl */}
             {paymentUrl && (
-                <Box textAlign="center" my={3}>
-                    <Typography variant="h6" gutterBottom>
-                        Hoàn tất thanh toán
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Vui lòng nhấn nút dưới đây để chuyển sang cổng thanh toán VNPay
-                    </Typography>
+                <Box textAlign="center" my={2}>
                     <Button
-                        variant="contained"
-                        color="success"
+                        variant="outlined"
+                        color="primary"
                         size="large"
                         onClick={() => window.open(paymentUrl, "_blank")}
                     >
-                        Thanh toán qua VNPay
+                        Tiếp tục thanh toán
                     </Button>
                 </Box>
             )}
-
 
             {/* Delivery Timeline */}
             <Card sx={{ mb: 4 }}>
@@ -175,7 +195,7 @@ const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders }) =
             {paymentUrl && ( // Chỉ hiển thị Alert khi có paymentUrl
                 <Alert severity="info" sx={{ mb: 4 }}>
                     <Typography variant="body2">
-                        <strong>Important:</strong> This is a VNPay order. Please complete the payment via VNPay by clicking the button below.
+                        <strong>Important:</strong> This is a VNPay/Momo order. Please complete the payment via VNPay/Momo by clicking the button below.
                     </Typography>
                 </Alert>
             )}

@@ -18,6 +18,7 @@ import com.example.aims.dto.admin.request.UserUpdateRequest;
 import com.example.aims.dto.admin.response.UserResponse;
 import com.example.aims.model.Users;
 import com.example.aims.repository.UsersRepository;
+import com.example.aims.service.EmailService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

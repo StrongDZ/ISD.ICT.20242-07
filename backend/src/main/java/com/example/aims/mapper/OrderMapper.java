@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.example.aims.dto.order.OrderDTO;
+import com.example.aims.dto.order.OrderInfoDTO;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.dto.order.PaymentOrderRequestDTO;
 import com.example.aims.model.Order;
@@ -78,4 +79,29 @@ public class OrderMapper {
         dto.setOrderId(order.getOrderID());
         return dto;
     }
+
+    public OrderInfoDTO toOrderInfoDTO(Order order) {
+        if (order == null)
+            return null;
+
+        OrderInfoDTO dto = new OrderInfoDTO();
+        dto.setOrderID(order.getOrderID());
+        dto.setStatus(order.getStatus());
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setDeliveryInfo(deliveryInfoMapper.toDto(order.getDeliveryInfo()));
+        return dto;
+    }
+
+    public Order toOrder(OrderInfoDTO dto) {
+        if (dto == null)
+            return null;
+
+        Order order = new Order();
+        order.setOrderID(dto.getOrderID());
+        order.setStatus(dto.getStatus());
+        order.setTotalAmount(dto.getTotalAmount());
+        order.setDeliveryInfo(deliveryInfoMapper.toEntity(dto.getDeliveryInfo()));
+        return order;
+    }
+
 }

@@ -2,8 +2,17 @@ package com.example.aims.controller;
 
 import com.example.aims.dto.PayOrderResponseObjectDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
+import com.example.aims.dto.order.PaymentOrderRequestDTO;
+import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
+import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.dto.order.OrderInfoDTO;
+import com.example.aims.dto.order.OrderItemDTO;
+import com.example.aims.model.Order;
+import com.example.aims.model.OrderItem;
+import com.example.aims.model.Product;
 import com.example.aims.service.*;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,18 +68,11 @@ public class PayOrderController {
      *         If the payment fails or is cancelled, it will update the order status
      *         to FAILED or CANCELLED and return an appropriate message.
      */
-    @GetMapping("/payment-return")
-    public RedirectView paymentReturn(@RequestParam Map<String, String> paymentResponse) {
-        // Sử dụng currentPaymentType đã lưu thay vì truyền parameter
-        String redirectUrl = payOrderService.processPayment(paymentResponse, currentPaymentType);
-        return new RedirectView(redirectUrl);
-    }
 
     // Giữ lại endpoint cũ cho backward compatibility
     @GetMapping("/vnpay-return")
     public RedirectView vnpayReturn(@RequestParam Map<String, String> vnpayResponse) {
         // Tự động set paymentType cho VNPay
-        this.currentPaymentType = "vnpay";
         String redirectUrl = payOrderService.processPayment(vnpayResponse, currentPaymentType);
         return new RedirectView(redirectUrl);
     }
@@ -93,31 +95,27 @@ public class PayOrderController {
                 .build());
     }
 
-    // @GetMapping("/order_info")
-    // public ResponseEntity<PayOrderResponseObjectDTO> getOrderInfo(@RequestParam
-    // String orderId) {
-    // TransactionRetrievalDTO transactionDto =
-    // payOrderService.getOrderInfo(orderId);
-    // return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
-    // .message("Get order info success")
-    // .responseCode(HttpStatus.OK.value())
-    // .data(transactionDto)
-    // .build());
-    // }
+    // Get order info
+    @GetMapping("order_info")
+    public ResponseEntity<PayOrderResponseObjectDTO> getOrderInfo(@RequestParam String id) {
+        OrderInfoDTO orderInfoDto = payOrderService.getOrderInfo(id);
+        return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
+                .message("Get order info success")
+                .responseCode(HttpStatus.OK.value())
+                .data(orderInfoDto)
+                .build());
+    }
 
-    // @GetMapping("/order_product")
-    // public ResponseEntity<PayOrderResponseObjectDTO>
-    // getOrderProduct(@RequestParam String orderId) {
-    // TransactionRetrievalDTO transactionDto =
-    // payOrderService.getOrderProduct(orderId);
-    // return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
-    // .message("Get order product success")
-    // .responseCode(HttpStatus.OK.value())
-    // .data(transactionDto)
-    // .build());
-    // }
-
-    // @GetMapping("/vnpay-refund")
+    // Get order product
+    @GetMapping("order_product")
+    public ResponseEntity<PayOrderResponseObjectDTO> getProductInfo(@RequestParam String id) {
+        List<OrderItemDTO> productDtos = payOrderService.getOrderProduct(id);
+        return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
+                .message("Get order product success")
+                .responseCode(HttpStatus.OK.value())
+                .data(productDtos)
+                .build());
+    }
 
     // Test send mail
     @GetMapping("/send_mail")

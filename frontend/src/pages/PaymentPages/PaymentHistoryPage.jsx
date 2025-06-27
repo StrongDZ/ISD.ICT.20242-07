@@ -20,7 +20,7 @@ const InfoRow = ({ label, value }) => (
 const PaymentHistory = () => {
     const location = useLocation();
     const [order, setOrder] = useState(null);
-    const [products, setProducts] = useState([]);
+    const [orderItems, setOrderItems] = useState([]);
     const [transaction, setTransaction] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -32,7 +32,7 @@ const PaymentHistory = () => {
     useEffect(() => {
         const fetchAll = async () => {
             try {
-                const [orderRes, productRes, transRes] = await Promise.all([
+                const [orderRes, orderItemsRes, transRes] = await Promise.all([
                     axios.get(`${API_BASE}/order_info?id=${orderId}`),
                     axios.get(`${API_BASE}/order_product?id=${orderId}`),
                     axios.get(`${API_BASE}/transaction_history?orderId=${orderId}`),
@@ -42,8 +42,8 @@ const PaymentHistory = () => {
                     setOrder(orderRes.data.data);
                 }
 
-                if (productRes.data.responseCode === 200) {
-                    setProducts(productRes.data.data);
+                if (orderItemsRes.data.responseCode === 200) {
+                    setOrderItems(orderItemsRes.data.data);
                 }
 
                 if (transRes.data.responseCode === 200) {
@@ -111,15 +111,22 @@ const PaymentHistory = () => {
                                 <Typography variant="h6">Order Info</Typography>
                             </Box>
                             <Divider sx={{ mb: 2 }} />
-                            <InfoRow label="Order ID" value={order.id} />
-                            <InfoRow label="Customer" value={order.customerName} />
-                            <InfoRow label="Phone" value={order.phoneNumber} />
-                            <InfoRow label="Status" value={order.status} />
-                            <InfoRow label="Address" value={order.shippingAddress} />
-                            <InfoRow label="Province" value={order.province} />
-                            <InfoRow label="Total" value={`${order.totalAmount?.toLocaleString()}₫`} />
+                            <InfoRow label="Order ID" value={order?.orderID} />
+                            <InfoRow label="Status" value={order?.status} />
+                            <InfoRow label="Total" value={`${order?.totalAmount?.toLocaleString()}₫`} />
 
-                            {order.status !== "APPROVED" && (
+                            {order?.deliveryInfo && (
+                                <>
+                                    <InfoRow label="Recipient" value={order.deliveryInfo.recipientName} />
+                                    <InfoRow label="Email" value={order.deliveryInfo.mail} />
+                                    <InfoRow label="Phone" value={order.deliveryInfo.phoneNumber} />
+                                    <InfoRow label="City" value={order.deliveryInfo.city} />
+                                    <InfoRow label="District" value={order.deliveryInfo.district} />
+                                    <InfoRow label="Address" value={order.deliveryInfo.addressDetail} />
+                                </>
+                            )}
+
+                            {order?.status !== "APPROVED" && (
                                 <Button
                                     variant="contained"
                                     color="error"
@@ -146,11 +153,11 @@ const PaymentHistory = () => {
                             </Box>
                             <Divider sx={{ mb: 2 }} />
                             <List dense>
-                                {products.map((p, idx) => (
+                                {orderItems.map((item, idx) => (
                                     <ListItem key={idx} disablePadding>
                                         <ListItemText
-                                            primary={`${p.name} x ${p.quantity}`}
-                                            secondary={`${p.price?.toLocaleString()}₫ each`}
+                                            primary={`${item.product.title} x ${item.quantity}`}
+                                            secondary={`${item.product.price?.toLocaleString()}₫ each`}
                                         />
                                     </ListItem>
                                 ))}
@@ -170,9 +177,10 @@ const PaymentHistory = () => {
                                 <Typography variant="h6">Transaction</Typography>
                             </Box>
                             <Divider sx={{ mb: 2 }} />
-                            <InfoRow label="Transaction ID" value={transaction.transactionNo} />
-                            <InfoRow label="Amount" value={`${transaction.amount?.toLocaleString()}₫`} />
-                            <InfoRow label="Paid At" value={transaction.datetime} />
+                            <InfoRow label="Transaction ID" value={transaction?.transactionId} />
+                            <InfoRow label="Transaction No" value={transaction?.transactionNo} />
+                            <InfoRow label="Amount" value={`${transaction?.amount?.toLocaleString()}₫`} />
+                            <InfoRow label="Paid At" value={transaction?.datetime} />
                             <InfoRow label="Status" value="Success" />
                         </CardContent>
                     </Card>

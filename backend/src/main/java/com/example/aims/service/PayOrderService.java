@@ -3,22 +3,29 @@ package com.example.aims.service;
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.dto.order.PaymentOrderRequestDTO;
+import com.example.aims.dto.order.OrderDTO;
+import com.example.aims.dto.order.OrderInfoDTO;
+import com.example.aims.dto.order.OrderItemDTO;
+import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.exception.PaymentException.PaymentException;
 import com.example.aims.mapper.OrderMapper;
 import com.example.aims.mapper.PaymentError.IPaymentErrorMapper;
 import com.example.aims.model.Order;
+import com.example.aims.model.OrderItem;
 import com.example.aims.model.PaymentTransaction;
+import com.example.aims.model.Product;
+import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.factory.PaymentErrorMapperFactory;
 import com.example.aims.factory.PaymentSystemFactory;
-import org.springframework.mail.SimpleMailMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.mail.javamail.JavaMailSender;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -56,17 +63,19 @@ public class PayOrderService {
     @Autowired
     private final PaymentTransactionRepository currentPaymentTransaction;
     @Autowired
+    private final OrderItemRepository orderItemRepository;
+    @Autowired
     private PaymentErrorMapperFactory errorMapperFactory;
     @Autowired
     private OrderMapper orderMapper;
     @Autowired
-    private final JavaMailSender javaMailSender;
+    private EmailService emailService;
 
     public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository,
-            JavaMailSender javaMailSender) {
+            OrderItemRepository orderItemRepository) {
         this.currentOrder = orderRepository;
         this.currentPaymentTransaction = paymentTransactionRepository;
-        this.javaMailSender = javaMailSender;
+        this.orderItemRepository = orderItemRepository;
     }
 
     /**
@@ -196,25 +205,16 @@ public class PayOrderService {
                         "Payment transaction not found for transaction Id: " + transactionId));
         Order order = paymentTransaction.getOrder();
         String orderID = order.getOrderID();
-        String recvMail = order.getDeliveryInfo().getMail();
-        String transactionLink = "localhost:3001/payment-history?orderId=" +
-                orderID;
-        String subject = "Payment Successful for Order ID: " + orderID;
-        String body = "Dear " + order.getDeliveryInfo().getRecipientName() + ",\n\n"
-                + "Your payment for Order ID: " + orderID + " has been successfully processed.\n"
-                + "Transaction ID: " + transactionId + "\n"
-                + "You can view your transaction details at: " + transactionLink + "\n\n"
-                + "Thank you for your purchase!\n\n"
-                + "Best regards,\nAIMS Team";
+        String recipientName = order.getDeliveryInfo().getRecipientName();
+        String recipientEmail = order.getDeliveryInfo().getMail();
+        String transactionLink = "localhost:3001/payment-history?orderId=" + orderID;
+
         try {
-            SimpleMailMessage mailMessage = new SimpleMailMessage();
-            mailMessage.setFrom("AIMS Support <itss.aims.07@gmail.com>");
-            mailMessage.setTo(recvMail);
-            mailMessage.setSubject(subject);
-            mailMessage.setText(body);
-            javaMailSender.send(mailMessage);
+            emailService.sendPaymentConfirmation(recipientName, recipientEmail, orderID, transactionId,
+                    transactionLink);
         } catch (Exception e) {
-            e.printStackTrace();
+            // Log error but don't throw to avoid breaking payment flow
+            System.err.println("Failed to send payment confirmation email: " + e.getMessage());
         }
     }
 
@@ -239,5 +239,43 @@ public class PayOrderService {
         transactionDto.setOrder(orderDto);
         return transactionDto;
     }
+
+    /**
+     * Gets detailed information about an order including delivery info and status.
+     * 
+     * @param orderId The ID of the order to retrieve information for.
+     * @return The Order object with all its details.
+     * @throws IllegalArgumentException if the order is not found.
+     */
+    public OrderInfoDTO getOrderInfo(String orderId) {
+        Order order = currentOrder.findByOrderID(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderId));
+        return orderMapper.toOrderInfoDTO(order);
+    }
+
+    /**
+     * Gets all products in a specific order with their quantities.
+     * 
+     * @param orderId The ID of the order to get products for.
+     * @return List of OrderItem objects containing product details and quantities.
+     * @throws IllegalArgumentException if the order is not found.
+     */
+    public List<OrderItemDTO> getOrderProduct(String orderId) {
+        OrderInfoDTO orderdto = getOrderInfo(orderId);
+        Order order = orderMapper.toOrder(orderdto);
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
+        List<OrderItemDTO> orderItemDtos = new ArrayList<>();
+        for (OrderItem orderItem : orderItems) {
+            OrderItemDTO orderItemDto = new OrderItemDTO();
+            orderItemDto.setProductID(orderItem.getProduct().getProductID());
+            orderItemDto.setProductPrice(orderItem.getProduct().getPrice());
+            orderItemDto.setProductTitle(orderItem.getProduct().getTitle());
+            orderItemDto.setQuantity(orderItem.getQuantity());
+            orderItemDtos.add(orderItemDto);
+        }
+        return orderItemDtos;
+    }
+
+
 
 }

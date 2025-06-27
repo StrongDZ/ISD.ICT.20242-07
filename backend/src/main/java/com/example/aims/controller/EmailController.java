@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.example.aims.service.user.EmailService;
+
 import com.example.aims.dto.EmailRequest;
+import com.example.aims.service.EmailService;
 
 @RestController
 @RequestMapping("/api/email")

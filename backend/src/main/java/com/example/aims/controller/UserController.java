@@ -27,8 +27,8 @@ import com.example.aims.dto.admin.request.UserCreationRequest;
 import com.example.aims.dto.admin.request.UserPasswordRequest;
 import com.example.aims.dto.admin.request.UserUpdateRequest;
 import com.example.aims.dto.admin.response.UserResponse;
+import com.example.aims.service.EmailService;
 import com.example.aims.service.user.UserService;
-import com.example.aims.service.user.EmailService;
 
 @RestController
 @RequestMapping("/api/user")

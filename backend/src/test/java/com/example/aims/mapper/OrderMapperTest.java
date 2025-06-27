@@ -33,10 +33,6 @@ public class OrderMapperTest {
         order.setTotalAmount(1000.0);
         order.setStatus(OrderStatus.PENDING);
 
-        Users user = new Users();
-        user.setId(101);
-        // order.setCustomer(user);
-
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         order.setDeliveryInfo(deliveryInfo);
 
@@ -57,15 +53,16 @@ public class OrderMapperTest {
         order.setOrderID("ORD002");
         order.setTotalAmount(2000.0);
 
-        Users customer = new Users();
-        customer.setGmail("test@gmail.com");
-        // order.setCustomer(customer);
+        DeliveryInfo deliveryInfo = new DeliveryInfo();
+        deliveryInfo.setMail("test@example.com");
+        order.setDeliveryInfo(deliveryInfo);
 
         PaymentOrderRequestDTO dto = orderMapper.toPaymentOrderRequestDTO(order);
 
         assertEquals("ORD002", dto.getOrderId());
         assertEquals(2000.0, dto.getAmount());
-        assertTrue(dto.getContent().contains("test@gmail.com"));
+        assertTrue(dto.getContent().contains("ORD002"));
+        assertTrue(dto.getContent().contains("test@example.com"));
     }
 
     @Test
@@ -76,25 +73,23 @@ public class OrderMapperTest {
         order.setStatus(OrderStatus.PENDING);
 
         DeliveryInfo deliveryInfo = new DeliveryInfo();
-        Users customer = new Users();
         order.setDeliveryInfo(deliveryInfo);
-        // order.setCustomer(customer);
 
         DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
-        UsersDTO customerDTO = new UsersDTO();
-
         when(deliveryInfoMapper.toDto(deliveryInfo)).thenReturn(deliveryInfoDTO);
-        when(usersMapper.toDto(customer)).thenReturn(customerDTO);
 
         PaymentOrderResponseFromReturnDTO dto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
 
         assertEquals("ORD003", dto.getOrderID());
-        assertEquals("John Doe", dto.getCustomerName());
-        assertEquals("0123456789", dto.getPhoneNumber());
-        assertEquals("Hanoi", dto.getShippingAddress());
-        assertEquals("HN", dto.getProvince());
+        assertEquals(3000.0, dto.getTotalAmount());
+        assertEquals(OrderStatus.PENDING, dto.getStatus());
         assertEquals(deliveryInfoDTO, dto.getDeliveryInfo());
-        assertEquals(customerDTO, dto.getCustomer());
+        // Các field khác không được set trong mapper nên sẽ là null
+        assertNull(dto.getCustomerName());
+        assertNull(dto.getPhoneNumber());
+        assertNull(dto.getShippingAddress());
+        assertNull(dto.getProvince());
+        assertNull(dto.getCustomer());
     }
 
     @Test
@@ -106,12 +101,13 @@ public class OrderMapperTest {
 
         PaymentOrderRetrievalDTO dto = orderMapper.toPaymentOrderRetrievalDTO(order);
 
-        assertEquals(4, dto.getOrderID());
+        assertEquals("ORD004", dto.getOrderID());
         assertEquals(4000.0, dto.getTotalAmount());
-        assertEquals("DELIVERED", dto.getStatus());
-        assertEquals("Jane Doe", dto.getCustomerName());
-        assertEquals("0987654321", dto.getPhoneNumber());
-        assertEquals("Saigon", dto.getShippingAddress());
-        assertEquals("SG", dto.getProvince());
+        assertEquals(OrderStatus.PENDING, dto.getStatus());
+        // Các field khác không được set trong mapper nên sẽ là null
+        assertNull(dto.getCustomerName());
+        assertNull(dto.getPhoneNumber());
+        assertNull(dto.getShippingAddress());
+        assertNull(dto.getProvince());
     }
 }

@@ -195,7 +195,7 @@ const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders, onR
             {paymentUrl && ( // Chỉ hiển thị Alert khi có paymentUrl
                 <Alert severity="info" sx={{ mb: 4 }}>
                     <Typography variant="body2">
-                        <strong>Important:</strong> This is a VNPay order. Please complete the payment via VNPay by clicking the button below.
+                        <strong>Important:</strong> This is a VNPay/Momo order. Please complete the payment via VNPay/Momo by clicking the button below.
                     </Typography>
                 </Alert>
             )}

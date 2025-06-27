@@ -67,7 +67,6 @@ public class MomoPayResponse {
         orderNew.setOrderID(order.getOrderID());
         orderNew.setTotalAmount(order.getTotalAmount());
         orderNew.setDeliveryInfo(deliveryInfo);
-        orderNew.setCustomer(customer);
         // orderNew.setShippingAddress(order.getShippingAddress());
         // orderNew.setCustomerName(order.getCustomerName());
         // orderNew.setPhoneNumber(order.getPhoneNumber());

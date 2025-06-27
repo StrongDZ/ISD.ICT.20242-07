@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.aims.common.OrderStatus;
+import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.DeliveryProductDTO;
 import com.example.aims.dto.InvoiceDTO;
 import com.example.aims.dto.order.OrderDTO;
 import com.example.aims.dto.order.OrderItemDTO;
 import com.example.aims.dto.order.OrderRequestDTO;
+import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.mapper.DeliveryInfoMapper;
 import com.example.aims.mapper.OrderMapper;
 import com.example.aims.model.CartItem;
@@ -25,6 +27,7 @@ import com.example.aims.model.OrderItem;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.model.Product;
 import com.example.aims.model.Users;
+import com.example.aims.model.Book;
 import com.example.aims.repository.CartItemRepository;
 import com.example.aims.repository.DeliveryInfoRepository;
 import com.example.aims.repository.InvoiceRepository;
@@ -81,15 +84,11 @@ public class PlaceOrderService {
     
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final DeliveryInfoRepository deliveryInfoRepository;
-    private final PaymentTransactionRepository paymentTransactionRepository;
-    private final InvoiceRepository invoiceRepository;
-    private final UsersRepository userRepository;
     private final ProductRepository productRepository;
-    private final CartItemRepository cartItemRepository;
     private final PlaceRushOrderService placeRushOrderService;
     private final DeliveryInfoMapper deliveryInfoMapper;
     private final OrderMapper orderMapper;
+    private final DeliveryInfoRepository deliveryInfoRepository;
 
     public PlaceOrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             DeliveryInfoRepository deliveryInfoRepository, PaymentTransactionRepository paymentTransactionRepository,
@@ -100,15 +99,11 @@ public class PlaceOrderService {
             OrderMapper orderMapper) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
-        this.deliveryInfoRepository = deliveryInfoRepository;
-        this.paymentTransactionRepository = paymentTransactionRepository;
-        this.invoiceRepository = invoiceRepository;
-        this.userRepository = userRepository;
         this.productRepository = productRepository;
-        this.cartItemRepository = cartItemRepository;
         this.placeRushOrderService = placeRushOrderService;
         this.deliveryInfoMapper = deliveryInfoMapper;
         this.orderMapper = orderMapper;
+        this.deliveryInfoRepository = deliveryInfoRepository;
     }
 
     public boolean isRushOrderSupported(DeliveryInfoDTO deliveryInfo, List<ProductDTO> products) {
@@ -117,57 +112,75 @@ public class PlaceOrderService {
 
     @Transactional
     public OrderDTO createOrder(OrderRequestDTO orderRequestDTO) {
-        // 1. Map delivery info
-        DeliveryInfo deliveryInfo = deliveryInfoMapper.toEntity(orderRequestDTO.getDeliveryInfo());
+        // 1. Tạo và lưu order entity trước để có orderID
+        Order order = createNewOrder();
 
-        // 2. Tạo order entity
-        Order order = new Order();
-        order.setDeliveryInfo(deliveryInfo);
-        order.setStatus(OrderStatus.PENDING);
-        // Nếu có customer, set customer ở đây (ví dụ: order.setCustomer(...))
+        // 2. Map và lưu delivery info, set orderID
+        DeliveryInfo deliveryInfo = createAndSaveDeliveryInfo(order, orderRequestDTO.getDeliveryInfo());
 
-        // 3. Lưu order trước để lấy orderID (nếu cần)
-        order = orderRepository.save(order);
+        // 3. Lưu order items
+        saveOrderItems(order, orderRequestDTO.getCartItems());
 
-        // 4. Xử lý order item và cập nhật tồn kho
-        saveOrderItem(order,orderRequestDTO.getCartItems());
-        updateProductStock(orderRequestDTO.getCartItems());
+        // 4. Cập nhật tồn kho
+        updateProductStocks(orderRequestDTO.getCartItems());
+
         // 5. Tính tổng tiền
         double totalAmount = calculateTotalPrice(orderRequestDTO.getCartItems());
-        order.setTotalAmount(totalAmount);
-        orderRepository.save(order);
 
-        // 6. Trả về DTO
+        // 6. Gán lại các thuộc tính vào order và lưu lại
+        updateOrderWithDeliveryAndTotal(order, deliveryInfo, totalAmount);
+
+        // 7. Trả về DTO
         return orderMapper.toOrderDTO(order);
     }
 
+    private Order createNewOrder() {
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        return orderRepository.save(order);
+    }
 
-    private void saveOrderItem(Order order, List<CartItem> cartItems) {
-        for (CartItem cartItem : cartItems) {
-        Product product = cartItem.getProduct();
-        OrderItem orderItem = new OrderItem();
-        orderItem.setId(new OrderItem.OrderItemId(product.getProductID(), order.getOrderID()));
-        orderItem.setProduct(product);
-        orderItem.setOrder(order);
-        orderItem.setQuantity(cartItem.getQuantity());
-        orderItemRepository.save(orderItem);
+    private DeliveryInfo createAndSaveDeliveryInfo(Order order, DeliveryInfoDTO deliveryInfoDTO) {
+        DeliveryInfo deliveryInfo = mapDeliveryInfo(deliveryInfoDTO);
+        deliveryInfo.setOrderID(order.getOrderID());
+        return deliveryInfoRepository.save(deliveryInfo);
+    }
+
+    private void updateOrderWithDeliveryAndTotal(Order order, DeliveryInfo deliveryInfo, double totalAmount) {
+        order.setDeliveryInfo(deliveryInfo);
+        order.setTotalAmount(totalAmount);
+        orderRepository.save(order);
+    }
+
+    private DeliveryInfo mapDeliveryInfo(DeliveryInfoDTO deliveryInfoDTO) {
+        return deliveryInfoMapper.toEntity(deliveryInfoDTO);
+    }
+
+    private void saveOrderItems(Order order, List<CartItemDTO> cartItems) {
+        for (CartItemDTO cartItem : cartItems) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setId(new OrderItem.OrderItemId(cartItem.getProductDTO().getProductID(), order.getOrderID()));
+            orderItem.setProduct(productRepository.findById(cartItem.getProductDTO().getProductID())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + cartItem.getProductDTO().getProductID())));
+            orderItem.setOrder(order);
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItemRepository.save(orderItem);
         }
     }
 
-    private void updateProductStock(List<CartItem> cartItems) {
-        for(CartItem cartItem : cartItems) {
-            Product product = cartItem.getProduct();
-            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
-            productRepository.save(product);
+    private void updateProductStocks(List<CartItemDTO> cartItems) {
+        for (CartItemDTO cartItem : cartItems) {
+            ProductDTO productDTO = cartItem.getProductDTO();
+            productDTO.setQuantity(productDTO.getQuantity() - cartItem.getQuantity());
+            productRepository.save(productRepository.findById(cartItem.getProductDTO().getProductID())
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + cartItem.getProductDTO().getProductID())));
         }
-
     }
 
-    private double calculateTotalPrice(List<CartItem> cartItems) {
+    private double calculateTotalPrice(List<CartItemDTO> cartItems) {
         return cartItems.stream()
-            .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+            .mapToDouble(item -> item.getProductDTO().getPrice() * item.getQuantity())
             .sum();
     }
-
 
 }

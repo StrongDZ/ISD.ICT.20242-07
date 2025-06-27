@@ -1,5 +1,6 @@
 package com.example.aims.dto;
 
+
 import com.example.aims.dto.products.ProductDTO;
 
 import lombok.AllArgsConstructor;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartItemDTO {
-    private ProductDTO product;
+    private ProductDTO productDTO;
     private Integer quantity;
     private Integer customerId;
 }

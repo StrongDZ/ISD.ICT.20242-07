@@ -4,8 +4,10 @@ import com.example.aims.dto.DeliveryProductDTO;
 import com.example.aims.dto.InvoiceDTO;
 import com.example.aims.model.*;
 import com.example.aims.repository.*;
+import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.order.OrderRequestDTO;
+import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.dto.order.OrderDTO;
 import com.example.aims.mapper.DeliveryInfoMapper;
 import com.example.aims.mapper.OrderMapper;
@@ -77,13 +79,15 @@ public class PlaceOrderServiceTest {
     void testCreateOrder_Success() {
         // Mock input
         DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
-        CartItem cartItem = new CartItem();
-        Product product = new Product() {
+        CartItemDTO cartItemDTO = new CartItemDTO();
+        ProductDTO productDTO = new ProductDTO() {
             { setProductID("p1"); setPrice(19.99); setQuantity(10); }
         };
-        cartItem.setProduct(product);
-        cartItem.setQuantity(2);
-        OrderRequestDTO request = new OrderRequestDTO(List.of(cartItem), deliveryInfoDTO);
+        cartItemDTO.setProductDTO(productDTO);
+        cartItemDTO.setQuantity(2);
+        OrderRequestDTO request = new OrderRequestDTO();
+        request.setCartItems(List.of(cartItemDTO));
+        request.setDeliveryInfo(deliveryInfoDTO);
 
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         Order order = new Order();
@@ -103,6 +107,10 @@ public class PlaceOrderServiceTest {
             o.setOrderID("order1");
             return o;
         });
+        Book product = new Book();
+        product.setProductID("p1");
+        product.setPrice(19.99);
+        product.setQuantity(10);
         when(productRepository.save(any(Product.class))).thenReturn(product);
         when(orderMapper.toOrderDTO(any(Order.class))).thenReturn(orderDTO);
 
@@ -119,11 +127,13 @@ public class PlaceOrderServiceTest {
     @Test
     void testCreateOrder_ProductNotFound_ThrowsException() {
         DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
-        CartItem cartItem = new CartItem();
-        Product product = new Product() {{ setProductID("invalid-id"); setPrice(10.0); setQuantity(5); }};
-        cartItem.setProduct(product);
-        cartItem.setQuantity(1);
-        OrderRequestDTO request = new OrderRequestDTO(List.of(cartItem), deliveryInfoDTO);
+        CartItemDTO cartItemDTO = new CartItemDTO();
+        ProductDTO productDTO = new ProductDTO() {{ setProductID("invalid-id"); setPrice(10.0); setQuantity(5); }};
+        cartItemDTO.setProductDTO(productDTO);
+        cartItemDTO.setQuantity(1);
+        OrderRequestDTO request = new OrderRequestDTO();
+        request.setCartItems(List.of(cartItemDTO));
+        request.setDeliveryInfo(deliveryInfoDTO);
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         when(deliveryInfoMapper.toEntity(deliveryInfoDTO)).thenReturn(deliveryInfo);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
@@ -131,7 +141,11 @@ public class PlaceOrderServiceTest {
             o.setOrderID("order1");
             return o;
         });
-        when(productRepository.save(any(Product.class))).thenReturn(product);
+        Book product2 = new Book();
+        product2.setProductID("invalid-id");
+        product2.setPrice(10.0);
+        product2.setQuantity(5);
+        when(productRepository.save(any(Product.class))).thenReturn(product2);
         // Giả lập productRepository.findById trả về Optional.empty() nếu cần
         // (ở đây không gọi findById, chỉ save, nên không cần mock thêm)
         // Call method & assert
@@ -144,11 +158,13 @@ public class PlaceOrderServiceTest {
     @Test
     void testCreateOrder_OrderRepoThrowsException() {
         DeliveryInfoDTO deliveryInfoDTO = new DeliveryInfoDTO();
-        CartItem cartItem = new CartItem();
-        Product product = new Product() {{ setProductID("p1"); setPrice(10.0); setQuantity(5); }};
-        cartItem.setProduct(product);
-        cartItem.setQuantity(1);
-        OrderRequestDTO request = new OrderRequestDTO(List.of(cartItem), deliveryInfoDTO);
+        CartItemDTO cartItemDTO = new CartItemDTO();
+        ProductDTO productDTO = new ProductDTO() {{ setProductID("p1"); setPrice(10.0); setQuantity(5); }};
+        cartItemDTO.setProductDTO(productDTO);
+        cartItemDTO.setQuantity(1);
+        OrderRequestDTO request = new OrderRequestDTO();
+        request.setCartItems(List.of(cartItemDTO));
+        request.setDeliveryInfo(deliveryInfoDTO);
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         when(deliveryInfoMapper.toEntity(deliveryInfoDTO)).thenReturn(deliveryInfo);
         when(orderRepository.save(any(Order.class))).thenThrow(new RuntimeException("Simulated DB failure"));

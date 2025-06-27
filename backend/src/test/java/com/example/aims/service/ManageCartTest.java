@@ -14,10 +14,12 @@ import static org.mockito.Mockito.*;
 import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.products.BookDTO;
 import com.example.aims.mapper.CartItemMapper;
+import com.example.aims.mapper.ProductMapper;
 import com.example.aims.model.Book;
 import com.example.aims.model.CartItem;
 import com.example.aims.model.Product;
 import com.example.aims.model.Users;
+import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.repository.CartItemRepository;
 import com.example.aims.repository.ProductRepository;
 import com.example.aims.repository.UsersRepository;
@@ -41,6 +43,9 @@ public class ManageCartTest {
 
     @Mock
     private CartItemMapper cartItemMapper;
+
+    @Mock
+    private ProductMapper productMapper;
 
     @InjectMocks
     private CartService cartService;
@@ -67,9 +72,9 @@ public class ManageCartTest {
         // Assert
         verify(cartItemRepository).save(any(CartItem.class));
         verify(cartItemMapper).toDTO(any(CartItem.class));
-        assertEquals(productId, result.getProduct().getProductID());
-        assertEquals("Test Product", result.getProduct().getTitle());
-        assertEquals(19.99, result.getProduct().getPrice());
+        assertEquals(productId, result.getProductDTO().getProductID());
+        assertEquals("Test Product", result.getProductDTO().getTitle());
+        assertEquals(19.99, result.getProductDTO().getPrice());
         assertEquals(2, result.getQuantity());
     }
 
@@ -130,11 +135,11 @@ public class ManageCartTest {
         // Assert
         verify(cartItemRepository).save(cartItem);
         verify(cartItemMapper).toDTO(any(CartItem.class));
-        assertEquals(productId, result.getProduct().getProductID());
+        assertEquals(productId, result.getProductDTO().getProductID());
         assertEquals(newQuantity, result.getQuantity());
-        assertEquals("Test Product", result.getProduct().getTitle());
-        assertEquals(19.99, result.getProduct().getPrice());
-        assertEquals("http://example.com/image.jpg", result.getProduct().getImageURL());
+        assertEquals("Test Product", result.getProductDTO().getTitle());
+        assertEquals(19.99, result.getProductDTO().getPrice());
+        assertEquals("http://example.com/image.jpg", result.getProductDTO().getImageURL());
     }
 
     @Test
@@ -228,8 +233,9 @@ public class ManageCartTest {
         bookDTO.setCategory(product.getCategory());
 
         CartItemDTO dto = new CartItemDTO();
-        dto.setProduct(bookDTO);
+        dto.setProductDTO(productMapper.toDTO(product));
         dto.setQuantity(quantity);
         return dto;
     }
+    
 }

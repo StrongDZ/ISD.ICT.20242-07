@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { productService } from "../../services/productService";
 import ProductCard from "../../components/Product/ProductCard";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";
+import { categories } from "../../data/category_data";
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -22,14 +23,9 @@ const HomePage = () => {
 
             // Try to get paginated response first, fallback to non-paginated
             let products = [];
-            try {
-                const response = await productService.getAllProducts(0, 8); // Get first 8 products
-                products = response.content || response;
-            } catch (apiError) {
-                // Fallback to non-paginated API
-                const response = await productService.getAllProductsNoPagination();
-                products = Array.isArray(response) ? response.slice(0, 8) : [];
-            }
+
+            const response = await productService.getAllProducts(0, 8);
+            products = response.content || response;
 
             setFeaturedProducts(products);
         } catch (err) {
@@ -50,30 +46,6 @@ const HomePage = () => {
     const handleViewAllProducts = () => {
         navigate("/products");
     };
-
-    const categories = [
-        {
-            name: "Books",
-            value: "book",
-            description: "Discover amazing books across all genres",
-            color: "primary",
-            image: "https://via.placeholder.com/300x200/0066cc/ffffff?text=Books",
-        },
-        {
-            name: "CDs",
-            value: "cd",
-            description: "Listen to your favorite music albums",
-            color: "warning",
-            image: "https://via.placeholder.com/300x200/ff9800/ffffff?text=CDs",
-        },
-        {
-            name: "DVDs",
-            value: "dvd",
-            description: "Watch movies and TV shows",
-            color: "secondary",
-            image: "https://via.placeholder.com/300x200/9c27b0/ffffff?text=DVDs",
-        },
-    ];
 
     if (loading) {
         return <LoadingSpinner message="Loading homepage..." />;
@@ -117,7 +89,7 @@ const HomePage = () => {
                         <Grid item xs={12} md={6}>
                             <Box
                                 component="img"
-                                src="https://via.placeholder.com/500x300/667eea/ffffff?text=AIMS+Store"
+                                src="https://th.bing.com/th/id/R.fb49fef87b980529c2711eb419f4b870?rik=PkmW5IbPOnbyLw&pid=ImgRaw&r=0"
                                 alt="AIMS Store"
                                 sx={{
                                     width: "100%",

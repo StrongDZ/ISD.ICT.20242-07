@@ -16,7 +16,7 @@ public abstract class CartItemMapper {
     @Autowired
     protected ProductMapperFactory mapperFactory;
 
-    @Mapping(source = "customer.id", target = "customerId")
+    @Mapping(source = "product", target = "productDTO", qualifiedByName = "mapProductToDTO")
     public abstract CartItemDTO toDTO(CartItem cartItem);
 
     @Mapping(target = "id", ignore = true)

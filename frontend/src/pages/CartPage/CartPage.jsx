@@ -43,7 +43,6 @@ const CartPage = () => {
   };
 
   const handleQuantityChange = (productID, newQuantity) => {
-    if (newQuantity < 1) return;
     updateCartItem(productID, newQuantity);
   };
 

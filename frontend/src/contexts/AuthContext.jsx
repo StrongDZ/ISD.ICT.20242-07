@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const hasRole = (role) => {
-    return user?.role === role;
+    return user?.role === "ROLE_" + role;
   };
 
   const isAdmin = () => {

@@ -44,7 +44,7 @@ const LoginPage = () => {
 
       // Redirect based on user role
       const userRole = response.roles[0]; // API trả về mảng roles
-
+      console.log("Thong tin user: ", response);
       if (userRole === "ROLE_ADMIN") {
         navigate("/admin", { replace: true });
       } else if (userRole === "ROLE_PRODUCTMANAGER") {

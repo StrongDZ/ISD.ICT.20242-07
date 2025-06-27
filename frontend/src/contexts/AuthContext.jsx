@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
             const userData = {
                 id: response.id,
                 username: response.username,
-                email: response.gmail,
+                email: response.email,
                 role: response.roles[0],
             };
             setUser(userData);
@@ -62,7 +62,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     const isManager = () => {
-        return hasRole("PRODUCT_MANAGER");
+        console.log("Checking isManager - user:", user);
+        console.log("User role:", user?.role);
+        console.log("hasRole result:", hasRole("PRODUCTMANAGER"));
+        return hasRole("PRODUCTMANAGER");
     };
 
     const isCustomer = () => {

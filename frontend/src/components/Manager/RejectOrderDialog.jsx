@@ -1,145 +1,123 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
     Button,
+    TextField,
     FormControl,
     InputLabel,
     Select,
     MenuItem,
-    TextField,
-    Box,
     Typography,
-    Alert,
-} from "@mui/material";
-import { ThumbDown, Cancel } from "@mui/icons-material";
+    Box
+} from '@mui/material';
 
-const RejectOrderDialog = ({ open, onClose, order, onConfirm }) => {
-    const [formData, setFormData] = useState({
-        reason: "",
-        customReason: "",
-    });
+const RejectOrderDialog = ({ open, onClose, onReject, orderId }) => {
+    const [reason, setReason] = useState('');
+    const [customReason, setCustomReason] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    // Predefined rejection reasons
-    const rejectionReasons = [
-        { value: "insufficient_stock", label: "Insufficient Stock" },
-        { value: "product_discontinued", label: "Product Discontinued" },
-        { value: "payment_failed", label: "Payment Verification Failed" },
-        { value: "invalid_address", label: "Invalid Delivery Address" },
-        { value: "customer_request", label: "Customer Cancellation Request" },
-        { value: "duplicate_order", label: "Duplicate Order" },
-        { value: "system_error", label: "System Error" },
-        { value: "quality_issue", label: "Product Quality Issue" },
-        { value: "other", label: "Other (Please specify)" },
+    const predefinedReasons = [
+        'Insufficient stock in warehouse',
+        'Invalid delivery address information',
+        'Product technical defect',
+        'Customer cancellation request',
+        'Exceeds order limit',
+        'Invalid payment information',
+        'Product discontinued',
+        'Delivery address outside service area',
+        'Incomplete customer information',
+        'Product does not match description',
+        'Other'
     ];
 
-    // Reset form when dialog opens/closes
-    useEffect(() => {
-        if (open) {
-            setFormData({ reason: "", customReason: "" });
-        }
-    }, [open]);
-
-    const handleReasonChange = (value) => {
-        setFormData({
-            reason: value,
-            customReason: value !== "other" ? "" : formData.customReason,
-        });
-    };
-
-    const handleCustomReasonChange = (value) => {
-        setFormData({
-            ...formData,
-            customReason: value,
-        });
-    };
-
-    const handleConfirm = () => {
-        // Validation
-        if (!formData.reason) {
-            return; // Button should be disabled, but extra safety
+    const handleReject = async () => {
+        if (!reason && !customReason.trim()) {
+            alert('Please select or enter a rejection reason');
+            return;
         }
 
-        if (formData.reason === "other" && !formData.customReason.trim()) {
-            return; // Button should be disabled, but extra safety
+        setLoading(true);
+        try {
+            const finalReason = reason === 'Other' ? customReason : reason;
+            await onReject(orderId, finalReason);
+            handleClose();
+        } catch (error) {
+            console.error('Error rejecting order:', error);
+            alert('An error occurred while rejecting the order');
+        } finally {
+            setLoading(false);
         }
-
-        // Get final reason text
-        const finalReason =
-            formData.reason === "other" ? formData.customReason.trim() : rejectionReasons.find((r) => r.value === formData.reason)?.label;
-
-        // Call parent callback with order and reason
-        onConfirm(order, finalReason);
     };
 
-    const handleCancel = () => {
-        setFormData({ reason: "", customReason: "" });
+    const handleClose = () => {
+        setReason('');
+        setCustomReason('');
+        setLoading(false);
         onClose();
     };
 
-    const isValid = () => {
-        if (!formData.reason) return false;
-        if (formData.reason === "other" && !formData.customReason.trim()) return false;
-        return true;
-    };
-
     return (
-        <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
             <DialogTitle>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <ThumbDown color="error" />
-                    <Typography variant="h6">Reject Order</Typography>
-                </Box>
+                Reject Order #{orderId}
             </DialogTitle>
-
             <DialogContent>
-                <Box sx={{ mt: 2 }}>
-                    <Alert severity="warning" sx={{ mb: 3 }}>
-                        You are about to reject order <strong>{order?.orderID}</strong>. Please select a reason that will be communicated to the
-                        customer.
-                    </Alert>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Please select or enter a reason for rejecting this order.
+                </Typography>
 
-                    <FormControl fullWidth sx={{ mb: 3 }}>
-                        <InputLabel>Reason for Rejection *</InputLabel>
-                        <Select value={formData.reason} onChange={(e) => handleReasonChange(e.target.value)} label="Reason for Rejection *" required>
-                            {rejectionReasons.map((reason) => (
-                                <MenuItem key={reason.value} value={reason.value}>
-                                    {reason.label}
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Rejection Reason</InputLabel>
+                    <Select
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        label="Rejection Reason"
+                    >
+                        <MenuItem value="">
+                            <em>Select rejection reason</em>
+                        </MenuItem>
+                        {predefinedReasons.map((predefinedReason) => (
+                            <MenuItem key={predefinedReason} value={predefinedReason}>
+                                {predefinedReason}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
 
-                    {/* Custom reason field - only show when "Other" is selected */}
-                    {formData.reason === "other" && (
+                {reason === 'Other' && (
                         <TextField
                             fullWidth
-                            label="Custom Reason *"
+                        label="Enter rejection reason"
+                        value={customReason}
+                        onChange={(e) => setCustomReason(e.target.value)}
                             multiline
                             rows={3}
-                            value={formData.customReason}
-                            onChange={(e) => handleCustomReasonChange(e.target.value)}
-                            placeholder="Please specify the reason for rejection..."
-                            required
-                            error={formData.reason === "other" && !formData.customReason.trim()}
-                            helperText={
-                                formData.reason === "other" && !formData.customReason.trim()
-                                    ? "Custom reason is required when 'Other' is selected"
-                                    : "This reason will be sent to the customer"
-                            }
-                        />
-                    )}
+                        placeholder="Enter detailed rejection reason..."
+                        sx={{ mb: 2 }}
+                    />
+                )}
+
+                <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        <strong>Note:</strong> Rejecting this order will update the order status to "Cancelled" 
+                        and save the rejection reason in the system for tracking purposes.
+                    </Typography>
                 </Box>
             </DialogContent>
-
             <DialogActions>
-                <Button onClick={handleCancel} startIcon={<Cancel />}>
+                <Button onClick={handleClose} disabled={loading}>
                     Cancel
                 </Button>
-                <Button onClick={handleConfirm} variant="contained" color="error" startIcon={<ThumbDown />} disabled={!isValid()}>
-                    Reject Order
+                <Button 
+                    onClick={handleReject} 
+                    variant="contained" 
+                    color="error"
+                    disabled={loading || (!reason && !customReason.trim())}
+                >
+                    {loading ? 'Processing...' : 'Reject Order'}
                 </Button>
             </DialogActions>
         </Dialog>

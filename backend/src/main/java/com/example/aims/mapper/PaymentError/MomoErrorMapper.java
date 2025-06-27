@@ -1,4 +1,4 @@
-package com.example.aims.mapper;
+package com.example.aims.mapper.PaymentError;
 
 import org.springframework.stereotype.Component;
 
@@ -19,14 +19,21 @@ import com.example.aims.exception.PaymentException.WrongPasswordException;
 import jakarta.validation.constraints.NotNull;
 
 @Component
-public class VNPayErrorMapper {
+public class MomoErrorMapper implements IPaymentErrorMapper {
+
+    @Override
+    public String getPaymentType() {
+        return "momo";
+    }
+
     /**
-     * Handles different response codes from the payment gateway and throws
+     * Handles different response codes from Momo payment gateway and throws
      * appropriate exceptions.
      * 
-     * @param responseCode The response code from the payment gateway.
+     * @param responseCode The response code from Momo payment gateway.
      * @throws PaymentException if the response code indicates an error.
      */
+    @Override
     public void responseCodeError(@NotNull String responseCode) {
         switch (responseCode) {
             case "07":

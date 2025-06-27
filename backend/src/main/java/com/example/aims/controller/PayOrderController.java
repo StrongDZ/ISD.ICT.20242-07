@@ -1,7 +1,7 @@
 package com.example.aims.controller;
 
 import com.example.aims.dto.PayOrderResponseObjectDTO;
-import com.example.aims.dto.transaction.TransactionRetrievalDTO;
+import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.service.*;
 
 import java.util.Map;
@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-
 @RestController
 @RequestMapping("/api/payments")
 @CrossOrigin(origins = "*")
@@ -20,6 +19,9 @@ import org.springframework.web.servlet.view.RedirectView;
 public class PayOrderController {
     @Autowired
     private PayOrderService payOrderService;
+
+    // Lưu paymentType hiện tại
+    private String currentPaymentType;
 
     // Test payment request
     // private final IPaymentSystem vnpay = new VNPaySubsystem();
@@ -30,32 +32,46 @@ public class PayOrderController {
      * It will create a payment order and return the payment URL for the user to
      * complete the payment.
      * 
-     * @param orderId The ID of the order to be paid
+     * @param orderId     The ID of the order to be paid
+     * @param paymentType Loại cổng thanh toán (vnpay, momo, ...)
      * @return String indicating the payment URL
      */
     @GetMapping("/url")
-    public String getPaymentURL(@RequestParam("orderId") String orderId, @RequestParam("paymentType") String paymentType) {
-        // Call the VNPay subsystem to get the payment URL
+    public String getPaymentURL(@RequestParam("orderId") String orderId,
+            @RequestParam("paymentType") String paymentType) {
+        // Lưu paymentType để sử dụng sau này
+        this.currentPaymentType = paymentType;
+        // Call the payment subsystem to get the payment URL
         return payOrderService.getPaymentURL(orderId, paymentType);
     }
 
     /**
-     * Process the payment return from VNPay
-     * This method is called when the user returns from the VNPay payment page.
+     * Process the payment return from payment gateway
+     * This method is called when the user returns from the payment page.
      * 
-     * @param vnpayResponse
+     * @param paymentResponse Response từ cổng thanh toán
      * @return String indicating the result of the payment processing
-     *         * This method will handle the response from VNPay, validate it, and
+     *         * This method will handle the response from payment gateway, validate
+     *         it, and
      *         update the order status accordingly.
      *         If the payment is successful, it will update the order status to PAID
      *         and return a success message.
      *         If the payment fails or is cancelled, it will update the order status
      *         to FAILED or CANCELLED and return an appropriate message.
      */
+    @GetMapping("/payment-return")
+    public RedirectView paymentReturn(@RequestParam Map<String, String> paymentResponse) {
+        // Sử dụng currentPaymentType đã lưu thay vì truyền parameter
+        String redirectUrl = payOrderService.processPayment(paymentResponse, currentPaymentType);
+        return new RedirectView(redirectUrl);
+    }
+
+    // Giữ lại endpoint cũ cho backward compatibility
     @GetMapping("/vnpay-return")
-    public RedirectView vnpayReturn(@RequestParam Map<String, String> vnpayResponse, @RequestParam("paymentType") String paymentType) {
-        String redirectUrl = payOrderService.processPayment(vnpayResponse, paymentType); // URL dạng
-                                                                            // "http://localhost:3000/payment-success"
+    public RedirectView vnpayReturn(@RequestParam Map<String, String> vnpayResponse) {
+        // Tự động set paymentType cho VNPay
+        this.currentPaymentType = "vnpay";
+        String redirectUrl = payOrderService.processPayment(vnpayResponse, currentPaymentType);
         return new RedirectView(redirectUrl);
     }
 
@@ -69,7 +85,7 @@ public class PayOrderController {
      */
     @GetMapping("/transaction_history")
     public ResponseEntity<PayOrderResponseObjectDTO> getTransactionHistory(@RequestParam String orderId) {
-        TransactionRetrievalDTO transactionDto = payOrderService.getPaymentHistory(orderId);
+        TransactionResponseDTO transactionDto = payOrderService.getPaymentHistory(orderId);
         return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
                 .message("Get transaction history success")
                 .responseCode(HttpStatus.OK.value())

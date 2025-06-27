@@ -17,4 +17,5 @@ public class OrderDTO {
     // private List<OrderItemDTO> items;
     private DeliveryInfoDTO deliveryInfo;
     private Double totalPrice;
+    private String paymentType; // Loại cổng thanh toán (vnpay, momo, ...)
 }

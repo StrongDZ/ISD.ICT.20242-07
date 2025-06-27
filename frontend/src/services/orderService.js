@@ -50,43 +50,43 @@ export const orderService = {
     return response.data;
   },
 
-    // Approve order
-    async approveOrder(orderId, approvedBy = "system") {
-        try {
-            const response = await api.post(`/orders/${orderId}/approve`, {
-                approvedBy: approvedBy,
-                notes: "Order approved by manager"
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || "Cannot approve order");
-        }
-    },
+  // Approve order
+  async approveOrder(orderId, approvedBy = "system") {
+    try {
+      const response = await api.post(`/orders/${orderId}/approve`, {
+        approvedBy: approvedBy,
+        notes: "Order approved by manager",
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Cannot approve order");
+    }
+  },
 
-    // Reject order
-    async rejectOrder(orderId, reason, rejectedBy = "system") {
-        try {
-            const response = await api.post(`/orders/${orderId}/reject`, {
-                reason: reason,
-                rejectedBy: rejectedBy,
-                notes: "Order rejected by manager"
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || "Cannot reject order");
-        }
-    },
+  // Reject order
+  async rejectOrder(orderId, reason, rejectedBy = "system") {
+    try {
+      const response = await api.post(`/orders/${orderId}/reject`, {
+        reason: reason,
+        rejectedBy: rejectedBy,
+        notes: "Order rejected by manager",
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Cannot reject order");
+    }
+  },
 
-    // Check if order is eligible for management
-    async isOrderEligible(orderId) {
-        try {
-            const response = await api.get(`/orders/${orderId}/eligible`);
-            return response.data;
-        } catch (error) {
-            console.error("Error checking order eligibility:", error);
-            return false;
-        }
-    },
+  // Check if order is eligible for management
+  async isOrderEligible(orderId) {
+    try {
+      const response = await api.get(`/orders/${orderId}/eligible`);
+      return response.data;
+    } catch (error) {
+      console.error("Error checking order eligibility:", error);
+      return false;
+    }
+  },
 
   // Mock orders for development/testing
   getMockOrders: () => {
@@ -172,5 +172,17 @@ export const orderService = {
         ],
       },
     ];
+  },
+
+  // Tính phí giao hàng
+  calculateDeliveryFee: async (orderData) => {
+    try {
+      const response = await api.post("/calculate-delivery-fee", orderData);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Không thể tính phí giao hàng"
+      );
+    }
   },
 };

@@ -59,6 +59,7 @@ const CheckoutPage = () => {
     open: false,
     insufficientItems: [],
   });
+  const [deliveryFee, setDeliveryFee] = useState(0);
 
   const steps = ["Delivery Information", "Payment Method", "Confirmation"];
 
@@ -94,7 +95,29 @@ const CheckoutPage = () => {
     // };
 
     // validateStockOnLoad();
-  }, [cartItems, selectedItems, navigate]);
+
+    // Cập nhật phí giao hàng khi deliveryInfo hoặc selectedItems thay đổi
+    const fetchDeliveryFee = async () => {
+      if (selectedItems.length === 0) {
+        setDeliveryFee(0);
+        return;
+      }
+      try {
+        const orderData = {
+          cartItems: selectedItems.map((item) => ({
+            productDTO: item.productDTO,
+            quantity: item.quantity,
+          })),
+          deliveryInfo: deliveryInfo,
+        };
+        const fee = await orderService.calculateDeliveryFee(orderData);
+        setDeliveryFee(typeof fee === "number" ? fee : Number(fee));
+      } catch (error) {
+        setDeliveryFee(0); // fallback fee
+      }
+    };
+    fetchDeliveryFee();
+  }, [deliveryInfo, selectedItems]);
 
   const validateDeliveryInfo = () => {
     const newErrors = {};
@@ -365,7 +388,7 @@ const CheckoutPage = () => {
           <OrderSummary
             items={selectedItems}
             order={{
-              deliveryFee: 50000, // Fixed delivery fee, no rush fee
+              deliveryFee: deliveryFee,
             }}
             deliveryInfo={deliveryInfo}
           />

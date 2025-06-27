@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.products.ProductDTO;
 
 /**
  * Service chuyên trách tính toán các loại phí trong hệ thống.
@@ -37,23 +36,18 @@ public class CalculateFeeService {
      * Tính tổng giá trị đơn hàng bao gồm tất cả phí
      * 
      * @param cartItems danh sách sản phẩm trong giỏ hàng
-     * @param isRushOrder có phải đơn hàng rush không
      * @param deliveryInfo thông tin giao hàng
      * @return tổng giá trị đơn hàng
      */
-    public double calculateTotalPrice(List<CartItemDTO> cartItems, boolean isRushOrder, DeliveryInfoDTO deliveryInfo) {
+    public double calculateTotalPrice(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
         // Tính tổng giá trị sản phẩm thường (không bao gồm rush order items)
         double subtotal = calculateRegularSubtotal(cartItems);
-        
         // Tính tổng giá trị rush order items
         double rushSubtotal = calculateRushSubtotal(cartItems);
-        
         // Tính phí giao hàng
-        double deliveryFee = calculateDeliveryFee(cartItems, isRushOrder, subtotal, deliveryInfo);
-        
+        double deliveryFee = calculateDeliveryFee(cartItems, subtotal, deliveryInfo);
         // Tính phí rush order
         double rushOrderFee = calculateRushOrderFee(cartItems);
-        
         // Tổng cộng
         return subtotal + rushSubtotal + deliveryFee + rushOrderFee;
     }
@@ -81,19 +75,18 @@ public class CalculateFeeService {
     /**
      * Tính phí giao hàng
      */
-    public double calculateDeliveryFee(List<CartItemDTO> cartItems, boolean isRushOrder, double subtotal, DeliveryInfoDTO deliveryInfo) {
+    public double calculateDeliveryFee(List<CartItemDTO> cartItems, double subtotal, DeliveryInfoDTO deliveryInfo) {
+        boolean isRushOrder = deliveryInfo != null && Boolean.TRUE.equals(deliveryInfo.getIsRushOrder());
         // Nếu là rush order, không áp dụng miễn phí giao hàng
         if (isRushOrder) {
             return calculateBaseDeliveryFee(cartItems, deliveryInfo);
         }
-        
         // Kiểm tra điều kiện miễn phí giao hàng (đơn hàng trên 100,000 VND)
         if (subtotal > FREE_SHIPPING_THRESHOLD) {
             double baseFee = calculateBaseDeliveryFee(cartItems, deliveryInfo);
             // Miễn phí tối đa 25,000 VND
             return Math.max(0, baseFee - MAX_FREE_SHIPPING_AMOUNT);
         }
-        
         return calculateBaseDeliveryFee(cartItems, deliveryInfo);
     }
 

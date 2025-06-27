@@ -14,15 +14,18 @@ import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.order.OrderDTO;
 import com.example.aims.dto.order.OrderRequestDTO;
 import com.example.aims.service.PlaceOrderService;
+import com.example.aims.service.CalculateFeeService;
 
 @RestController
 @RequestMapping("/api")
 public class PlaceOrderController {
 
     private PlaceOrderService placeOrderService;
+    private CalculateFeeService calculateFeeService;
 
-    public PlaceOrderController(PlaceOrderService placeOrderService) {
+    public PlaceOrderController(PlaceOrderService placeOrderService, CalculateFeeService calculateFeeService) {
         this.placeOrderService = placeOrderService;
+        this.calculateFeeService = calculateFeeService;
     }
 
     @PostMapping("/check-inventory")
@@ -48,6 +51,16 @@ public class PlaceOrderController {
     public ResponseEntity<OrderDTO> placeOrder(@RequestBody OrderRequestDTO request) {
         OrderDTO order = placeOrderService.placeOrder(request);
         return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/calculate-delivery-fee")
+    public double calculateDeliveryFee(@RequestBody OrderRequestDTO request) {
+        
+        return calculateFeeService.calculateDeliveryFee(
+            request.getCartItems(),
+            calculateFeeService.calculateSubtotal(request.getCartItems()),
+            request.getDeliveryInfo()
+        );
     }
 
 }

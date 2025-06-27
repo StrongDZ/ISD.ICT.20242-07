@@ -35,9 +35,6 @@ public class OrderMapper {
             dto.setDeliveryInfo(deliveryInfoMapper.toDto(order.getDeliveryInfo()));
         }
 
-        if (order.getCustomer() != null) {
-            dto.setCustomer(customerMapper.toDto(order.getCustomer()));
-        }
         return dto;
     }
 
@@ -74,7 +71,7 @@ public class OrderMapper {
         dto.setId(order.getOrderID());
         dto.setTotalPrice(order.getTotalAmount());
         dto.setStatus(order.getStatus());
-        dto.setCustomerID(order.getCustomer().getId());
+        // dto.setCustomerID(order.getCustomer().getId());
         dto.setDeliveryInfo(deliveryInfoMapper.toDto(order.getDeliveryInfo()));
         // dto.setItems(order.get);
 
@@ -97,7 +94,7 @@ public class OrderMapper {
         PaymentOrderRequestDTO dto = new PaymentOrderRequestDTO();
         dto.setAmount(order.getTotalAmount());
         dto.setContent(
-                "Payment for order: " + order.getOrderID() + "Order created by: " + order.getCustomer().getGmail());
+                "Payment for order: " + order.getOrderID() + "Order created by: " + order.getDeliveryInfo().getMail());
         dto.setOrderId(order.getOrderID());
         return dto;
     }

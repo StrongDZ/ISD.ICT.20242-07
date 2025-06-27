@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "DeliveryInfo")
-public class DeliveryInfo {
-    
+public class DeliveryInfo {  
     @Id
     private String orderID;
     

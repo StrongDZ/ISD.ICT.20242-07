@@ -54,9 +54,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String orderID;
 
-    @ManyToOne
-    @JoinColumn(name = "customerID")
-    private Users customer;
+    // @ManyToOne
+    // @JoinColumn(name = "customerID")
+    // private Users customer;
 
     @Enumerated(EnumType.STRING) // Lưu trữ giá trị enum dưới dạng chuỗi trong cơ sở dữ liệu
     @Column(name = "status")

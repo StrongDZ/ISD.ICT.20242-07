@@ -150,7 +150,7 @@ public class PayOrderService {
                         "Payment transaction not found for transaction Id: " + transactionId));
         Order order = paymentTransaction.getOrder();
         String orderID = order.getOrderID();
-        String recvMail = order.getCustomer().getGmail();
+        String recvMail = order.getDeliveryInfo().getMail();
         String transactionLink = "localhost:3001/payment-history?orderId=" +
                 orderID;
         String subject = "Payment Successful for Order ID: " + orderID;

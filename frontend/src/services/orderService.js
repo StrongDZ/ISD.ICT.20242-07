@@ -4,7 +4,7 @@ export const orderService = {
   // Tạo đơn hàng không cần đăng nhập
   createOrder: async (orderData) => {
     try {
-      const response = await api.post("/create-order", orderData);
+      const response = await api.post("/place-order/create-order", orderData);
       return response.data;
     } catch (error) {
       throw new Error(
@@ -16,7 +16,10 @@ export const orderService = {
   // Kiểm tra tồn kho trước khi đặt hàng
   checkInventory: async (cartItems) => {
     try {
-      const response = await api.post("/check-inventory", cartItems);
+      const response = await api.post(
+        "/place-order/check-inventory",
+        cartItems
+      );
       return response.data;
     } catch (error) {
       // Nếu có response data từ server (trường hợp tồn kho không đủ)
@@ -175,9 +178,14 @@ export const orderService = {
   },
 
   // Tính phí giao hàng
-  calculateDeliveryFee: async (orderData) => {
+  calculateShippingFees: async (orderData) => {
     try {
-      const response = await api.post("/calculate-delivery-fee", orderData);
+      // Endpoint này khớp với API đã thiết kế ở backend
+      const response = await api.post(
+        "/place-order/calculate-shipping-fees",
+        orderData
+      );
+      // API sẽ trả về đối tượng { regularShippingFee, rushShippingFee }
       return response.data;
     } catch (error) {
       throw new Error(

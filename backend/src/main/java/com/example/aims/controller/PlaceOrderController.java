@@ -11,13 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.example.aims.dto.CartItemDTO;
+import com.example.aims.dto.DeliveryFeeResponseDTO;
 import com.example.aims.dto.order.OrderDTO;
 import com.example.aims.dto.order.OrderRequestDTO;
 import com.example.aims.service.PlaceOrderService;
 import com.example.aims.service.CalculateFeeService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/place-order")
 public class PlaceOrderController {
 
     private PlaceOrderService placeOrderService;
@@ -52,15 +53,16 @@ public class PlaceOrderController {
         OrderDTO order = placeOrderService.placeOrder(request);
         return ResponseEntity.ok(order);
     }
-
-    @PostMapping("/calculate-delivery-fee")
-    public double calculateDeliveryFee(@RequestBody OrderRequestDTO request) {
+    
+    @PostMapping("/calculate-shipping-fees")
+    public ResponseEntity<DeliveryFeeResponseDTO> calculateShippingFees(@RequestBody OrderRequestDTO request) {
         
-        return calculateFeeService.calculateDeliveryFee(
+        DeliveryFeeResponseDTO fees = calculateFeeService.calculateAllShippingFees(
             request.getCartItems(),
-            calculateFeeService.calculateSubtotal(request.getCartItems()),
             request.getDeliveryInfo()
         );
+        
+        return ResponseEntity.ok(fees);
     }
 
 }

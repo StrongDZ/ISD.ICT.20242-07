@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Container,
   Typography,
@@ -47,6 +47,10 @@ const CheckoutPage = () => {
     deliveryTime: "",
     specialInstructions: "",
   });
+  const [shippingFees, setShippingFees] = useState({
+    regularShippingFee: 0,
+    rushShippingFee: 0,
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -59,49 +63,20 @@ const CheckoutPage = () => {
     open: false,
     insufficientItems: [],
   });
-  const [deliveryFee, setDeliveryFee] = useState(0);
 
-  const steps = ["Delivery Information", "Payment Method", "Confirmation"];
+  const steps = ["Delivery Information", "Payment", "Confirmation"];
 
-  // Get selected items for checkout
-  const selectedItems = getSelectedItems();
+  // Memoize selectedItems to avoid unnecessary recalculations
+  const selectedItems = useMemo(() => getSelectedItems(), [cartItems]);
 
+  // Fetch shipping fees whenever delivery info or products change
   useEffect(() => {
-    if (cartItems.length === 0) {
-      navigate("/cart");
-      return;
-    }
-
     if (selectedItems.length === 0) {
       navigate("/cart");
       return;
     }
 
-    // // Validate stock for selected items when entering checkout
-    // const validateStockOnLoad = async () => {
-    //     try {
-    //         const validation = await validatetock(selectedItems);
-    //         if (!validation.isValid) {
-    //             setSnackbar({
-    //                 open: true,
-    //                 message: "Một số sản phẩm đã hết hàng. Vui lòng quay lại giỏ hàng để kiểm tra.",
-    //                 severity: "error",
-    //             });
-    //             setTimeout(() => navigate("/cart"), 2000);
-    //         }
-    //     } catch (error) {
-    //         console.error("Stock validation failed:", error);
-    //     }
-    // };
-
-    // validateStockOnLoad();
-
-    // Cập nhật phí giao hàng khi deliveryInfo hoặc selectedItems thay đổi
-    const fetchDeliveryFee = async () => {
-      if (selectedItems.length === 0) {
-        setDeliveryFee(0);
-        return;
-      }
+    const fetchShippingFees = async () => {
       try {
         const orderData = {
           cartItems: selectedItems.map((item) => ({
@@ -110,47 +85,50 @@ const CheckoutPage = () => {
           })),
           deliveryInfo: deliveryInfo,
         };
-        const fee = await orderService.calculateDeliveryFee(orderData);
-        setDeliveryFee(typeof fee === "number" ? fee : Number(fee));
+        // Assume orderService.calculateShippingFees calls API and returns { regularShippingFee, rushShippingFee }
+        const fees = await orderService.calculateShippingFees(orderData);
+        setShippingFees(fees);
       } catch (error) {
-        setDeliveryFee(0); // fallback fee
+        console.error("Failed to fetch shipping fees:", error);
+        setShippingFees({ regularShippingFee: 0, rushShippingFee: 0 }); // Fallback
       }
     };
-    fetchDeliveryFee();
-  }, [deliveryInfo, selectedItems]);
+
+    fetchShippingFees();
+  }, [deliveryInfo, selectedItems, navigate]);
 
   const validateDeliveryInfo = () => {
     const newErrors = {};
 
     if (!deliveryInfo.recipientName?.trim()) {
-      newErrors.recipientName = "Recipient name is required";
+      newErrors.recipientName = "Please enter recipient name";
     }
 
     if (!deliveryInfo.phoneNumber?.trim()) {
-      newErrors.phoneNumber = "Phone number is required";
+      newErrors.phoneNumber = "Please enter phone number";
     } else if (
       !/^\d{10,11}$/.test(deliveryInfo.phoneNumber.replace(/\s/g, ""))
     ) {
-      newErrors.phoneNumber = "Please enter a valid phone number";
+      newErrors.phoneNumber = "Invalid phone number";
     }
 
     if (
       deliveryInfo.mail &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(deliveryInfo.mail)
     ) {
-      newErrors.mail = "Please enter a valid email address";
+      newErrors.mail = "Invalid email address";
     }
 
     if (!deliveryInfo.city) {
-      newErrors.city = "City/Province is required";
+      newErrors.city = "Please select Province/City";
     }
 
     if (!deliveryInfo.district) {
-      newErrors.district = "District is required";
+      newErrors.district = "Please select District";
     }
 
     if (!deliveryInfo.addressDetail?.trim()) {
-      newErrors.addressDetail = "Detailed address is required";
+      newErrors.addressDetail = "Please enter detailed address";
     }
 
     setErrors(newErrors);
@@ -158,17 +136,14 @@ const CheckoutPage = () => {
   };
 
   const handleNext = () => {
-    if (activeStep === 0) {
-      if (!validateDeliveryInfo()) {
-        setSnackbar({
-          open: true,
-          message: "Please fill in all required fields correctly",
-          severity: "error",
-        });
-        return;
-      }
+    if (activeStep === 0 && !validateDeliveryInfo()) {
+      setSnackbar({
+        open: true,
+        message: "Please fill in all required information",
+        severity: "error",
+      });
+      return;
     }
-
     if (activeStep === steps.length - 1) {
       setConfirmDialog(true);
     } else {
@@ -187,40 +162,39 @@ const CheckoutPage = () => {
   const handlePlaceOrder = async () => {
     setLoading(true);
     try {
-      // Gọi API tạo đơn hàng
+      console.log("Starting API call to create order...");
       const orderData = {
         cartItems: selectedItems.map((item) => ({
-          productDTO: item.productDTO, // Use productDTO instead of product
+          productDTO: item.productDTO,
           quantity: item.quantity,
         })),
-        deliveryInfo: {
-          city: deliveryInfo.city,
-          district: deliveryInfo.district,
-          addressDetail: deliveryInfo.addressDetail,
-          recipientName: deliveryInfo.recipientName,
-          mail: deliveryInfo.mail,
-          phoneNumber: deliveryInfo.phoneNumber,
-          isRushOrder: deliveryInfo.isRushOrder,
-          deliveryTime: deliveryInfo.deliveryTime,
-          specialInstructions: deliveryInfo.specialInstructions,
-        },
+        deliveryInfo: deliveryInfo,
       };
+
       const createdOrder = await orderService.createOrder(orderData);
+      // Check if the returned data is valid
+      console.log("API returned successfully:", createdOrder);
 
-      // Clear cart
+      if (!createdOrder || !createdOrder.id) {
+        // Throw an error if the returned data is invalid
+        throw new Error("Invalid order data returned.");
+      }
+
+      console.log("Preparing to clear cart...");
       clearCart();
+      console.log("Cart cleared. Preparing to redirect...");
 
-      // Navigate to success page
       navigate("/order-success", {
-        state: {
-          orderId: createdOrder.id,
-          orderData: createdOrder,
-        },
+        state: { orderId: createdOrder.id, orderData: createdOrder },
       });
+      console.log("Redirect command called.");
     } catch (error) {
+      // Log the entire error to see details
+      console.error("Error when placing order:", error);
+
       setSnackbar({
         open: true,
-        message: error.message || "Failed to place order. Please try again.",
+        message: error.message || "Order placement failed. Please try again.",
         severity: "error",
       });
     } finally {
@@ -228,13 +202,12 @@ const CheckoutPage = () => {
       setConfirmDialog(false);
     }
   };
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
+  // Calculate final total for confirmation dialog
+  const subtotal = getSelectedCartTotal();
+  const totalDeliveryFee =
+    shippingFees.regularShippingFee + shippingFees.rushShippingFee;
+  const vat = subtotal * 0.1;
+  const finalTotal = subtotal + totalDeliveryFee + vat;
 
   const renderStepContent = (step) => {
     switch (step) {
@@ -242,9 +215,7 @@ const CheckoutPage = () => {
         return (
           <DeliveryForm
             deliveryInfo={deliveryInfo}
-            onDeliveryInfoChange={(newDeliveryInfo) => {
-              setDeliveryInfo(newDeliveryInfo);
-            }}
+            onDeliveryInfoChange={setDeliveryInfo}
             errors={errors}
           />
         );
@@ -257,9 +228,9 @@ const CheckoutPage = () => {
               </Typography>
               <Alert severity="info" sx={{ mt: 2 }}>
                 <Typography variant="body2">
-                  Payment via VNPay/Momo are currently the only available
-                  payment method. You will pay securely through VNPay/Momo at
-                  the time of placing your order.
+                  Payment via VNPay/Momo is the only available method. You will
+                  pay securely through the payment gateway when placing your
+                  order.
                 </Typography>
               </Alert>
               <Box
@@ -276,8 +247,8 @@ const CheckoutPage = () => {
                   <Typography variant="h6">Payment via VNPay/Momo</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  Pay in advance via VNPay/Momo. You will be redirected to the
-                  VNPay/Momo payment gateway to complete the transaction.
+                  Pre-payment via VNPay/Momo. You will be redirected to the
+                  payment gateway to complete the transaction.
                 </Typography>
               </Box>
             </CardContent>
@@ -291,10 +262,8 @@ const CheckoutPage = () => {
                 Order Confirmation
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Please review your order details before placing the order.
+                Please review the information before completing your order.
               </Typography>
-
-              {/* Delivery Summary */}
               <Box sx={{ mb: 3, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
                 <Typography
                   variant="subtitle1"
@@ -315,21 +284,19 @@ const CheckoutPage = () => {
                   </Typography>
                 )}
                 <Typography variant="body2">
-                  <strong>Address:</strong> {deliveryInfo.addressDetail},{" "}
-                  {deliveryInfo.district}, {deliveryInfo.city}
+                  <strong>Address:</strong>{" "}
+                  {`${deliveryInfo.addressDetail}, ${deliveryInfo.district}, ${deliveryInfo.city}`}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Delivery:</strong>{" "}
                   {deliveryInfo.isRushOrder
-                    ? "Rush Delivery (Same day)"
-                    : "Standard Delivery (3-5 days)"}
+                    ? "Express delivery"
+                    : "Standard delivery"}
                 </Typography>
               </Box>
-
               <Alert severity="success" sx={{ mt: 2 }}>
                 <Typography variant="body2">
                   Your order will be processed immediately after confirmation.
-                  You will receive a confirmation message shortly.
                 </Typography>
               </Alert>
             </CardContent>
@@ -340,13 +307,8 @@ const CheckoutPage = () => {
     }
   };
 
-  if (cartItems.length === 0) {
-    return null; // Will redirect in useEffect
-  }
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Button
           startIcon={<ArrowBack />}
@@ -358,12 +320,8 @@ const CheckoutPage = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           Checkout
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Complete your order in a few simple steps.
-        </Typography>
       </Box>
 
-      {/* Stepper */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
           <Stepper activeStep={activeStep} alternativeLabel>
@@ -376,28 +334,21 @@ const CheckoutPage = () => {
         </CardContent>
       </Card>
 
-      {/* Main Content */}
       <Grid container spacing={4}>
-        {/* Left Column - Forms */}
         <Grid item xs={12} md={8}>
           {renderStepContent(activeStep)}
         </Grid>
-
-        {/* Right Column - Order Summary */}
         <Grid item xs={12} md={4}>
           <OrderSummary
             items={selectedItems}
-            order={{
-              deliveryFee: deliveryFee,
-            }}
+            shippingFees={shippingFees}
             deliveryInfo={deliveryInfo}
           />
         </Grid>
       </Grid>
 
-      {/* Navigation Buttons */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
-        <Button onClick={handleBack} sx={{ mr: 1 }}>
+        <Button onClick={handleBack}>
           {activeStep === 0 ? "Back to Cart" : "Back"}
         </Button>
         <Button
@@ -411,32 +362,29 @@ const CheckoutPage = () => {
         </Button>
       </Box>
 
-      {/* Confirmation Dialog */}
       <Dialog
         open={confirmDialog}
         onClose={() => setConfirmDialog(false)}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Confirm Your Order</DialogTitle>
+        <DialogTitle>Order Confirmation</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
             Are you sure you want to place this order?
           </Typography>
           <Box sx={{ mt: 2, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
             <Typography variant="body2">
-              <strong>Total Amount:</strong>{" "}
-              {formatPrice(getSelectedCartTotal())}
+              <strong>Subtotal:</strong> {subtotal} VND
             </Typography>
             <Typography variant="body2">
-              <strong>Items:</strong> {selectedItems.length} product
-              {selectedItems.length !== 1 ? "s" : ""}
+              <strong>Shipping Fee:</strong> {totalDeliveryFee} VND
             </Typography>
             <Typography variant="body2">
-              <strong>Delivery:</strong>{" "}
-              {deliveryInfo.isRushOrder
-                ? "Rush Delivery (Same day)"
-                : "Standard Delivery (3-5 days)"}
+              <strong>VAT:</strong> {vat} VND
+            </Typography>
+            <Typography variant="h6" sx={{ mt: 1 }}>
+              <strong>Total:</strong> {finalTotal} VND
             </Typography>
           </Box>
         </DialogContent>
@@ -450,12 +398,11 @@ const CheckoutPage = () => {
               loading ? <CircularProgress size={20} /> : <CheckCircle />
             }
           >
-            {loading ? "Processing..." : "Confirm Order"}
+            {loading ? "Processing..." : "Confirm"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -470,7 +417,6 @@ const CheckoutPage = () => {
         </Alert>
       </Snackbar>
 
-      {/* Inventory Error Dialog */}
       <Dialog
         open={inventoryErrorDialog.open}
         onClose={() =>
@@ -482,8 +428,8 @@ const CheckoutPage = () => {
         <DialogTitle>Inventory Error</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            Một số sản phẩm trong giỏ hàng không đủ tồn kho. Vui lòng cập nhật
-            số lượng hoặc xóa sản phẩm:
+            Some products in your cart have insufficient inventory. Please
+            update quantities or remove products:
           </Typography>
           <Box sx={{ mt: 2 }}>
             {inventoryErrorDialog.insufficientItems.map((item, index) => (
@@ -503,14 +449,14 @@ const CheckoutPage = () => {
                 </Typography>
                 <Box sx={{ mt: 1 }}>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Số lượng yêu cầu:</strong> {item.quantity}
+                    <strong>Requested quantity:</strong> {item.quantity}
                   </Typography>
                   <Typography variant="body2" color="error.main">
-                    <strong>Tồn kho hiện tại:</strong>{" "}
+                    <strong>Current inventory:</strong>{" "}
                     {item.productDTO.quantity}
                   </Typography>
                   <Typography variant="body2" color="error.main">
-                    <strong>Số lượng thiếu:</strong>{" "}
+                    <strong>Shortage:</strong>{" "}
                     {item.quantity - item.productDTO.quantity}
                   </Typography>
                 </Box>
@@ -519,8 +465,7 @@ const CheckoutPage = () => {
           </Box>
           <Alert severity="warning" sx={{ mt: 2 }}>
             <Typography variant="body2">
-              Vui lòng quay lại giỏ hàng để cập nhật số lượng sản phẩm hoặc xóa
-              các sản phẩm không đủ tồn kho.
+              Please return to cart to update product quantities.
             </Typography>
           </Alert>
         </DialogContent>
@@ -531,7 +476,7 @@ const CheckoutPage = () => {
             }
             variant="contained"
           >
-            Đóng
+            Close
           </Button>
           <Button
             onClick={() => {
@@ -541,7 +486,7 @@ const CheckoutPage = () => {
             variant="outlined"
             color="primary"
           >
-            Quay lại giỏ hàng
+            Back to Cart
           </Button>
         </DialogActions>
       </Dialog>

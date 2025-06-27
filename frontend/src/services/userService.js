@@ -4,7 +4,7 @@ export const userService = {
     // Get all users with pagination and search
     getAllUsers: async (keyword = "", page = 0, size = 20) => {
         try {
-            const response = await api.get(`/api/user/list?keyword=${keyword}&page=${page}&size=${size}`);
+            const response = await api.get(`/user/list?keyword=${keyword}&page=${page}&size=${size}`);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to fetch users");
@@ -14,7 +14,7 @@ export const userService = {
     // Get user by ID
     getUserById: async (userId) => {
         try {
-            const response = await api.get(`/api/user/${userId}`);
+            const response = await api.get(`/user/${userId}`);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to fetch user");
@@ -24,7 +24,7 @@ export const userService = {
     // Create new user
     createUser: async (userData) => {
         try {
-            const response = await api.post("/api/user/add", userData);
+            const response = await api.post("/user/add", userData);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to create user");
@@ -34,27 +34,27 @@ export const userService = {
     // Update user
     updateUser: async (userData) => {
         try {
-            const response = await api.put("/api/user/upd", userData);
+            const response = await api.put("/user/upd", userData);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to update user");
         }
     },
 
-    // Delete user
-    deleteUser: async (userId) => {
+    // Block user (soft delete)
+    blockUser: async (userId) => {
         try {
-            const response = await api.delete(`/api/user/del/${userId}`);
+            const response = await api.delete(`/user/block/${userId}`);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to delete user");
+            throw new Error(error.response?.data?.message || "Failed to block user");
         }
     },
 
     // Change user password
     changePassword: async (passwordData) => {
         try {
-            const response = await api.patch("/api/user/change_pwd", passwordData);
+            const response = await api.patch("/user/change_pwd", passwordData);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to change password");
@@ -64,7 +64,7 @@ export const userService = {
     // Hard delete user
     deleteUserHard: async (userId) => {
         try {
-            const response = await api.delete(`/api/user/delete/${userId}`);
+            const response = await api.delete(`/user/delete/${userId}`);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to hard delete user");

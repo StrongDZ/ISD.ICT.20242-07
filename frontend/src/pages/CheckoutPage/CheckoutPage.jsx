@@ -181,7 +181,8 @@ const CheckoutPage = () => {
                             </Typography>
                             <Alert severity="info" sx={{ mt: 2 }}>
                                 <Typography variant="body2">
-                                    Payment via VNPay is currently the only available payment method. You will pay securely through VNPay at the time of placing your order.
+                                    Payment via VNPay is currently the only available payment method. You will pay securely through VNPay at the time
+                                    of placing your order.
                                 </Typography>
                             </Alert>
                             <Box sx={{ mt: 3, p: 2, border: 1, borderColor: "primary.main", borderRadius: 1 }}>

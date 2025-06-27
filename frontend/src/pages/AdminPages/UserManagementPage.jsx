@@ -156,24 +156,23 @@ const UserManagementPage = () => {
         }
     };
 
-    const handleToggleBlock = async (user) => {
-        try {
-            await userService.updateUser({
-                ...user,
-                isActive: !user.isActive
-            });
-            setSnackbar({
-                open: true,
-                message: `User ${user.isActive ? 'blocked' : 'unblocked'} successfully`,
-                severity: "success",
-            });
-            loadUsers();
-        } catch (error) {
-            setSnackbar({
-                open: true,
-                message: error.message || "Failed to update user status",
-                severity: "error",
-            });
+    const handleBlock = async (user) => {
+        if (window.confirm(`Are you sure you want to block user "${user.userName}"?`)) {
+            try {
+                await userService.blockUser(user.id);
+                setSnackbar({
+                    open: true,
+                    message: "User blocked successfully",
+                    severity: "success",
+                });
+                loadUsers();
+            } catch (error) {
+                setSnackbar({
+                    open: true,
+                    message: error.message || "Failed to block user",
+                    severity: "error",
+                });
+            }
         }
     };
 
@@ -377,7 +376,7 @@ const UserManagementPage = () => {
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Block User">
-                                            <IconButton size="small" color="warning" onClick={() => handleDelete(user)}>
+                                            <IconButton size="small" color="warning" onClick={() => handleBlock(user)}>
                                                 <Lock />
                                             </IconButton>
                                         </Tooltip>

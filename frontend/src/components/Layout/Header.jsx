@@ -61,29 +61,29 @@ const Header = () => {
                 <Box sx={{ display: "flex", gap: 2, mr: "auto" }}>
                     {/* Basic navigation for all users */}
                     {(isCustomer() || !isAuthenticated()) && (
-                            <>
-                                <Button
-                                    color="inherit"
-                                    onClick={() => navigate("/")}
-                                    sx={{
-                                        fontWeight: isActive("/") ? "bold" : "normal",
-                                        textDecoration: isActive("/") ? "underline" : "none",
-                                    }}
-                                >
-                                    Home
-                                </Button>
-                                <Button
-                                    color="inherit"
-                                    onClick={() => navigate("/products")}
-                                    sx={{
-                                        fontWeight: isActive("/products") ? "bold" : "normal",
-                                        textDecoration: isActive("/products") ? "underline" : "none",
-                                    }}
-                                >
-                                    Products
-                                </Button>
-                            </>
-                        )}
+                        <>
+                            <Button
+                                color="inherit"
+                                onClick={() => navigate("/")}
+                                sx={{
+                                    fontWeight: isActive("/") ? "bold" : "normal",
+                                    textDecoration: isActive("/") ? "underline" : "none",
+                                }}
+                            >
+                                Home
+                            </Button>
+                            <Button
+                                color="inherit"
+                                onClick={() => navigate("/products")}
+                                sx={{
+                                    fontWeight: isActive("/products") ? "bold" : "normal",
+                                    textDecoration: isActive("/products") ? "underline" : "none",
+                                }}
+                            >
+                                Products
+                            </Button>
+                        </>
+                    )}
 
                     {/* Admin Links - Only for Admin */}
                     {isAdmin() && (

@@ -1,137 +1,135 @@
-// package com.example.aims.service.rush;
+package com.example.aims.service.rush;
 
-// import com.example.aims.dto.DeliveryInfoDTO;
-// import com.example.aims.dto.PlaceRushOrderResponse;
-// import com.example.aims.model.Product;
-// import com.example.aims.service.rush.eligibility.AddressRushEligibility;
-// import com.example.aims.service.rush.eligibility.ProductRushEligibility;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
+import com.example.aims.dto.DeliveryInfoDTO;
+import com.example.aims.dto.PlaceRushOrderResponse;
+import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.service.rush.eligibility.RushEligibility;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-// import java.util.Arrays;
-// import java.util.Collections;
-// import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-// import static org.junit.jupiter.api.Assertions.*;
-// import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-// class PlaceRushOrderServiceTest {
+class PlaceRushOrderServiceTest {
 
-//     private AddressRushEligibility addressEligibility;
-//     private ProductRushEligibility productEligibility;
-//     private PlaceRushOrderService service;
+    private RushEligibility<DeliveryInfoDTO> addressEligibility;
+    private RushEligibility<ProductDTO> productEligibility;
+    private PlaceRushOrderService service;
 
-//     @BeforeEach
-//     void setUp() {
-//         addressEligibility = mock(AddressRushEligibility.class);
-//         productEligibility = mock(ProductRushEligibility.class);
-//         service = new PlaceRushOrderService(addressEligibility, productEligibility);
-//     }
+    @BeforeEach
+    void setUp() {
+        addressEligibility = mock(RushEligibility.class);
+        productEligibility = mock(RushEligibility.class);
+        service = new PlaceRushOrderService(addressEligibility, productEligibility);
+    }
 
-//     @Test
-// void testAddressNotEligible_ShouldReturnNotSupported() {
-//     // Given
-//     DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO("HCM", "Quan 1", "123 Le Loi", "0123456789");
-//     List<Product> products = Arrays.asList(
-//         new Product("P1", "Sản phẩm A", true),
-//         new Product("P2", "Sản phẩm B", false)
-//     );
+    @Test
+    void testRushOrder_Supported_AllEligible() {
+        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
+        ProductDTO product1 = mock(ProductDTO.class);
+        ProductDTO product2 = mock(ProductDTO.class);
+        List<ProductDTO> products = Arrays.asList(product1, product2);
 
-//     when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(false);
+        when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
+        when(productEligibility.isRushAllowed(product1)).thenReturn(true);
+        when(productEligibility.isRushAllowed(product2)).thenReturn(true);
 
-//     // When
-//     PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
+        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
 
-//     // Then
-//     assertFalse(response.isSupported());
-//     assertEquals(0, response.getRushProducts().size());
-//     assertEquals(2, response.getRegularProducts().size());
-//     assertNotNull(response.getPromptMessage());
-// }
+        assertTrue(response.isSupported());
+        assertEquals(2, response.getRushProducts().size());
+        assertEquals(0, response.getRegularProducts().size());
+        assertNull(response.getPromptMessage());
+    }
 
-// @Test
-// void testAddressEligibleButNoRushProduct_ShouldReturnNotSupported() {
-//     // Given
-//     DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO("Ha Noi", "Ba Dinh", "12 Kim Ma", "0909090909");
-//     List<Product> products = Arrays.asList(
-//         new Product("P3", "Sản phẩm C", false),
-//         new Product("P4", "Sản phẩm D", false)
-//     );
+    @Test
+    void testRushOrder_Supported_SomeEligible() {
+        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
+        ProductDTO product1 = mock(ProductDTO.class);
+        ProductDTO product2 = mock(ProductDTO.class);
+        List<ProductDTO> products = Arrays.asList(product1, product2);
 
-//     when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
-//     when(productEligibility.isRushAllowed(any())).thenReturn(false);
+        when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
+        when(productEligibility.isRushAllowed(product1)).thenReturn(true);
+        when(productEligibility.isRushAllowed(product2)).thenReturn(false);
 
-//     // When
-//     PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
+        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
 
-//     // Then
-//     assertFalse(response.isSupported());
-//     assertEquals(0, response.getRushProducts().size());
-//     assertEquals(2, response.getRegularProducts().size());
-//     assertNotNull(response.getPromptMessage());
-// }
+        assertTrue(response.isSupported());
+        assertEquals(1, response.getRushProducts().size());
+        assertEquals(1, response.getRegularProducts().size());
+        assertNull(response.getPromptMessage());
+    }
 
-// @Test
-// void testSomeProductsEligible_ShouldReturnSupportedWithSplit() {
-//     // Given
-//     DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO("Ha Noi", "Dong Da", "123 Ton Duc Thang", "0988888888");
-//     Product rushProduct = new Product("P5", "Sản phẩm E", true);
-//     Product regularProduct = new Product("P6", "Sản phẩm F", false);
+    @Test
+    void testRushOrder_NotSupported_AddressNotEligible() {
+        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
+        ProductDTO product1 = mock(ProductDTO.class);
+        List<ProductDTO> products = Collections.singletonList(product1);
 
-//     List<Product> products = Arrays.asList(rushProduct, regularProduct);
+        when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(false);
+        when(productEligibility.isRushAllowed(product1)).thenReturn(true);
 
-//     when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
-//     when(productEligibility.isRushAllowed(rushProduct)).thenReturn(true);
-//     when(productEligibility.isRushAllowed(regularProduct)).thenReturn(false);
+        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
 
-//     // When
-//     PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
+        assertFalse(response.isSupported());
+        assertEquals(1, response.getRushProducts().size());
+        assertEquals(0, response.getRegularProducts().size());
+        assertNotNull(response.getPromptMessage());
+    }
 
-//     // Then
-//     assertTrue(response.isSupported());
-//     assertEquals(1, response.getRushProducts().size());
-//     assertEquals(1, response.getRegularProducts().size());
-//     assertNull(response.getPromptMessage());
-// }
+    @Test
+    void testRushOrder_NotSupported_NoRushableProduct() {
+        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
+        ProductDTO product1 = mock(ProductDTO.class);
+        ProductDTO product2 = mock(ProductDTO.class);
+        List<ProductDTO> products = Arrays.asList(product1, product2);
 
-// @Test
-// void testAllProductsEligible_ShouldReturnSupportedOnlyRush() {
-//     // Given
-//     DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO("Ha Noi", "Hoan Kiem", "45 Hang Dao", "0912121212");
-//     Product product1 = new Product("P7", "Sản phẩm G", true);
-//     Product product2 = new Product("P8", "Sản phẩm H", true);
+        when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
+        when(productEligibility.isRushAllowed(product1)).thenReturn(false);
+        when(productEligibility.isRushAllowed(product2)).thenReturn(false);
 
-//     List<Product> products = Arrays.asList(product1, product2);
+        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
 
-//     when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
-//     when(productEligibility.isRushAllowed(product1)).thenReturn(true);
-//     when(productEligibility.isRushAllowed(product2)).thenReturn(true);
+        assertFalse(response.isSupported());
+        assertEquals(0, response.getRushProducts().size());
+        assertEquals(2, response.getRegularProducts().size());
+        assertNotNull(response.getPromptMessage());
+    }
 
-//     // When
-//     PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
+    @Test
+    void testRushOrder_NotSupported_AddressAndNoRushableProduct() {
+        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
+        ProductDTO product1 = mock(ProductDTO.class);
+        List<ProductDTO> products = Collections.singletonList(product1);
 
-//     // Then
-//     assertTrue(response.isSupported());
-//     assertEquals(2, response.getRushProducts().size());
-//     assertEquals(0, response.getRegularProducts().size());
-//     assertNull(response.getPromptMessage());
-// }
+        when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(false);
+        when(productEligibility.isRushAllowed(product1)).thenReturn(false);
 
-// @Test
-// void testEmptyProductList_ShouldReturnNotSupported() {
-//     // Given
-//     DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO("Ha Noi", "Hoan Kiem", "45 Hang Dao", "0912121212");
-//     List<Product> products = Collections.emptyList();
+        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
 
-//     when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
+        assertFalse(response.isSupported());
+        assertEquals(0, response.getRushProducts().size());
+        assertEquals(1, response.getRegularProducts().size());
+        assertNotNull(response.getPromptMessage());
+    }
 
-//     // When
-//     PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
+    @Test
+    void testRushOrder_EmptyProductList() {
+        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
+        List<ProductDTO> products = Collections.emptyList();
 
-//     // Then
-//     assertFalse(response.isSupported());
-//     assertEquals(0, response.getRushProducts().size());
-//     assertEquals(0, response.getRegularProducts().size());
-//     assertNotNull(response.getPromptMessage());
-// }
-// }
+        when(addressEligibility.isRushAllowed(deliveryInfo)).thenReturn(true);
+
+        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
+
+        assertFalse(response.isSupported());
+        assertEquals(0, response.getRushProducts().size());
+        assertEquals(0, response.getRegularProducts().size());
+        assertNotNull(response.getPromptMessage());
+    }
+}

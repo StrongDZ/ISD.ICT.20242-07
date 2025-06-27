@@ -4,16 +4,16 @@ import { authService } from "../services/authService";
 const AuthContext = createContext();
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,61 +24,62 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (credentials) => {
-    try {
-      const response = await authService.login(credentials);
-      const userData = {
-        id: response.id,
-        username: response.username,
-        email: response.gmail,
-        role: response.roles[0],
-      };
-      setUser(userData);
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("user", JSON.stringify(userData));
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  };
+    const login = async (credentials) => {
+        try {
+            const response = await authService.login(credentials);
+            const userData = {
+                id: response.id,
+                username: response.username,
+                email: response.gmail,
+                role: response.roles[0],
+            };
+            setUser(userData);
+            localStorage.setItem("token", response.token);
+            localStorage.setItem("user", JSON.stringify(userData));
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-  };
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    };
 
-  const isAuthenticated = () => {
-    return !!user;
-  };
+    const logout = async () => {
+        setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+    };
 
-  const hasRole = (role) => {
-    return user?.role === "ROLE_" + role;
-  };
+    const isAuthenticated = () => {
+        return !!user;
+    };
 
-  const isAdmin = () => {
-    return hasRole("ADMINISTRATOR");
-  };
+    const hasRole = (role) => {
+        return user?.role === "ROLE_" + role;
+    };
 
-  const isManager = () => {
-    return hasRole("PRODUCT_MANAGER");
-  };
+    const isAdmin = () => {
+        return hasRole("ADMINISTRATOR");
+    };
 
-  const isCustomer = () => {
-    return hasRole("CUSTOMER");
-  };
+    const isManager = () => {
+        return hasRole("PRODUCT_MANAGER");
+    };
 
-  const value = {
-    user,
-    login,
-    logout,
-    isAuthenticated,
-    hasRole,
-    isAdmin,
-    isManager,
-    isCustomer,
-    loading,
-  };
+    const isCustomer = () => {
+        return hasRole("CUSTOMER");
+    };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    const value = {
+        user,
+        login,
+        logout,
+        isAuthenticated,
+        hasRole,
+        isAdmin,
+        isManager,
+        isCustomer,
+        loading,
+    };
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

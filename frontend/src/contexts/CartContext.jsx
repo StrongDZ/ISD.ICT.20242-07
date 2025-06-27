@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { cartService } from "../services/cartService";
-import { productService } from "../services/productService";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
 
@@ -14,119 +14,117 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [deliveryInfo, setDeliveryInfo] = useState({
-        address: "",
+        recipientName: "",
+        phoneNumber: "",
+        mail: "",
         city: "",
         district: "",
-        ward: "",
-        phone: "",
-        customerName: "",
+        addressDetail: "",
         isRushOrder: false,
     });
+    const [loading, setLoading] = useState(false);
+    const { isAuthenticated } = useAuth();
 
-    // Load cart from localStorage on component mount
+    // Load cart items on component mount
     useEffect(() => {
-        const savedCart = localStorage.getItem("cart");
-        const savedDeliveryInfo = localStorage.getItem("deliveryInfo");
-
-        if (savedCart) {
-            try {
-                setCartItems(JSON.parse(savedCart));
-            } catch (error) {
-                console.error("Error parsing cart from localStorage:", error);
-                localStorage.removeItem("cart");
-            }
-        }
-
-        if (savedDeliveryInfo) {
-            try {
-                setDeliveryInfo(JSON.parse(savedDeliveryInfo));
-            } catch (error) {
-                console.error("Error parsing delivery info from localStorage:", error);
-                localStorage.removeItem("deliveryInfo");
-            }
-        }
+        loadCartItems();
     }, []);
 
-    // Save cart to localStorage whenever cartItems changes
+    // Handle auth state changes - just reload cart without merging
     useEffect(() => {
-        localStorage.setItem("cart", JSON.stringify(cartItems));
-    }, [cartItems]);
+        const handleAuthChange = async () => {
+            // Service sẽ tự động switch giữa localStorage và API
+            await loadCartItems();
+        };
 
-    // Save delivery info to localStorage
-    useEffect(() => {
-        localStorage.setItem("deliveryInfo", JSON.stringify(deliveryInfo));
-    }, [deliveryInfo]);
+        handleAuthChange();
+    }, [isAuthenticated()]);
+
+    const loadCartItems = async () => {
+        try {
+            setLoading(true);
+            const items = await cartService.getCartItems();
+            setCartItems(items || []);
+        } catch (error) {
+            console.error("Error loading cart items:", error);
+            setCartItems([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const addToCart = async (product, quantity = 1) => {
         try {
             setLoading(true);
-            setError(null);
-
-            const existingItemIndex = cartItems.findIndex((item) => item.productID === product.productID);
-
-            if (existingItemIndex >= 0) {
-                // Update existing item
-                const updatedItems = [...cartItems];
-                updatedItems[existingItemIndex].quantity += quantity;
-                setCartItems(updatedItems);
-            } else {
-                // Add new item with product details
-                const newItem = {
-                    productID: product.productID,
-                    productTitle: product.title,
-                    productPrice: product.price,
-                    productValue: product.value,
-                    quantity: quantity,
-                    imageURL: product.imageURL,
-                    category: product.category,
-                    weight: product.weight || 0.5, // Default weight if not specified
-                    rushEligible: product.rushEligible || false,
-                    availableQuantity: product.quantity,
-                };
-                setCartItems([...cartItems, newItem]);
-            }
+            await cartService.addToCart(product, quantity);
+            await loadCartItems(); // Reload cart to get updated state
         } catch (error) {
-            setError("Failed to add item to cart");
+            console.error("Error adding to cart:", error);
             throw error;
         } finally {
             setLoading(false);
         }
     };
 
-    const updateCartItem = (productID, quantity) => {
-        if (quantity <= 0) {
-            removeFromCart(productID);
-            return;
+    const updateCartItem = async (productID, quantity) => {
+        try {
+            if (quantity <= 0) {
+                await removeFromCart(productID);
+                return;
+            }
+
+            // Optimistic update - consistent format {product, quantity}
+            setCartItems((prevItems) =>
+                prevItems.map((item) => {
+                    if (item.product.productID === productID) {
+                        return { ...item, quantity };
+                    }
+                    return item;
+                })
+            );
+
+            // Update in backend/localStorage
+            await cartService.updateCartItem(productID, quantity);
+        } catch (error) {
+            console.error("Error updating cart item:", error);
+            // Reload cart on error to ensure consistency
+            await loadCartItems();
         }
-
-        setCartItems((prevItems) => prevItems.map((item) => (item.productID === productID ? { ...item, quantity } : item)));
     };
 
-    const removeFromCart = (productID) => {
-        setCartItems((prevItems) => prevItems.filter((item) => item.productID !== productID));
+    const removeFromCart = async (productID) => {
+        try {
+            // Optimistic update - consistent format
+            setCartItems((prevItems) =>
+                prevItems.filter((item) => {
+                    return item.product.productID !== productID;
+                })
+            );
+
+            // Remove from backend/localStorage
+            await cartService.removeFromCart(productID);
+        } catch (error) {
+            console.error("Error removing from cart:", error);
+            // Reload cart on error to ensure consistency
+            await loadCartItems();
+        }
     };
 
-    const clearCart = () => {
-        setCartItems([]);
-        setDeliveryInfo({
-            address: "",
-            city: "",
-            district: "",
-            ward: "",
-            phone: "",
-            customerName: "",
-            isRushOrder: false,
-        });
-        localStorage.removeItem("cart");
-        localStorage.removeItem("deliveryInfo");
+    const clearCart = async () => {
+        try {
+            setCartItems([]);
+            await cartService.clearCart();
+        } catch (error) {
+            console.error("Error clearing cart:", error);
+            // Reload cart on error to ensure consistency
+            await loadCartItems();
+        }
     };
 
     const getCartTotal = () => {
         return cartItems.reduce((total, item) => {
-            return total + item.productPrice * item.quantity;
+            return total + item.product.price * item.quantity;
         }, 0);
     };
 
@@ -140,174 +138,152 @@ export const CartProvider = ({ children }) => {
     };
 
     const getVATAmount = () => {
-        const totalExcludingVAT = getTotalExcludingVAT();
-        return totalExcludingVAT * 0.1; // 10% VAT
+        return getCartTotal() - getTotalExcludingVAT();
     };
 
     const isInCart = (productID) => {
-        return cartItems.some((item) => item.productID === productID);
+        return cartItems.some((item) => {
+            return item.product.productID === productID;
+        });
     };
 
     const getItemQuantity = (productID) => {
-        const item = cartItems.find((item) => item.productID === productID);
+        const item = cartItems.find((item) => {
+            return item.product.productID === productID;
+        });
         return item ? item.quantity : 0;
     };
 
-    // Check if rush order is eligible based on location and products
     const isRushOrderEligible = () => {
-        const hanoiInnerCityDistricts = [
-            "ba đình",
-            "hoàn kiếm",
-            "tây hồ",
-            "long biên",
-            "cầu giấy",
-            "đống đa",
-            "hai bà trưng",
-            "hoàng mai",
-            "thanh xuân",
-            "nam từ liêm",
-        ];
+        // Check if delivery address supports rush order
+        const isEligibleAddress =
+            deliveryInfo.city === "Hà Nội" &&
+            [
+                "Ba Đình",
+                "Hoàn Kiếm",
+                "Tây Hồ",
+                "Long Biên",
+                "Cầu Giấy",
+                "Đống Đa",
+                "Hai Bà Trưng",
+                "Hoàng Mai",
+                "Thanh Xuân",
+                "Nam Từ Liêm",
+                "Bắc Từ Liêm",
+            ].includes(deliveryInfo.district);
 
-        const isValidLocation =
-            deliveryInfo.city?.toLowerCase() === "hà nội" && hanoiInnerCityDistricts.includes(deliveryInfo.district?.toLowerCase());
+        // Check if all products support rush order
+        const allProductsEligible = cartItems.every((item) => {
+            const product = item.product;
 
-        const allItemsEligible = cartItems.every((item) => item.rushEligible);
+            // For localStorage items, we might not have rushEligible info
+            // so we assume books, CDs, and some DVDs are eligible
+            if (product.rushEligible !== undefined) {
+                return product.rushEligible;
+            }
+            // Fallback logic for localStorage items
+            return product.category === "book" || product.category === "cd" || (product.category === "dvd" && product.price < 1000000);
+        });
 
-        return isValidLocation && allItemsEligible && cartItems.length > 0;
+        return isEligibleAddress && allProductsEligible && cartItems.length > 0;
     };
 
-    // Get detailed delivery information
     const getDeliveryDetails = () => {
-        const totalWeight = getTotalWeight();
-        const subtotal = getCartTotal();
-        const isRush = deliveryInfo.isRushOrder;
-        const rushEligible = isRushOrderEligible();
-
-        let deliveryFee = calculateDeliveryFee();
-        let deliveryTime = "3-5 working days";
-
-        if (isRush && rushEligible) {
-            deliveryTime = "Within 2 hours";
-        } else if (isRush && !rushEligible) {
-            // If rush is requested but not eligible, fall back to standard
-            deliveryFee = calculateDeliveryFee(false); // Recalculate without rush
-            deliveryTime = "3-5 working days (Rush not available for this order)";
-        }
+        const subtotal = getTotalExcludingVAT();
+        const isRushEligible = isRushOrderEligible();
+        const rushFee = deliveryInfo.isRushOrder && isRushEligible ? 50000 : 0;
 
         return {
-            totalWeight: totalWeight,
-            deliveryFee: deliveryFee,
-            deliveryTime: deliveryTime,
-            isRushOrder: isRush && rushEligible,
-            rushEligible: rushEligible,
-            freeShippingApplied: !isRush && subtotal > 100000 && deliveryFee < calculateDeliveryFeeWithoutDiscount(),
+            isEligible: isRushEligible,
+            fee: rushFee,
+            estimatedTime: deliveryInfo.isRushOrder && isRushEligible ? "2-4 hours" : "3-5 days",
+            restrictions: !isRushEligible ? "Rush delivery only available in Hanoi inner districts" : null,
         };
     };
 
-    // Calculate total weight of cart items
     const getTotalWeight = () => {
         return cartItems.reduce((weight, item) => {
-            return weight + (item.weight || 0.5) * item.quantity;
+            const product = item.product;
+            const itemWeight = product.weight || 0.5; // Default weight if not specified
+            return weight + itemWeight * item.quantity;
         }, 0);
     };
 
-    // Calculate delivery fee based on weight, location, and rush order
     const calculateDeliveryFee = (useRushOrder = deliveryInfo.isRushOrder) => {
-        if (cartItems.length === 0) return 0;
+        const subtotal = getTotalExcludingVAT();
+        const weight = getTotalWeight();
 
-        const totalWeight = getTotalWeight();
-        const city = deliveryInfo.city?.toLowerCase();
-        const district = deliveryInfo.district?.toLowerCase();
-        let baseFee = 0;
+        let baseFee = 25000; // Base delivery fee
 
-        // Base fee calculation based on location
-        if (city === "hà nội" || city === "hồ chí minh") {
-            baseFee = 22000; // First 3kg
-            if (totalWeight > 3) {
-                const extraWeight = Math.ceil((totalWeight - 3) / 0.5);
-                baseFee += extraWeight * 2500;
-            }
-        } else {
-            baseFee = 30000; // First 0.5kg for other provinces
-            if (totalWeight > 0.5) {
-                const extraWeight = Math.ceil((totalWeight - 0.5) / 0.5);
-                baseFee += extraWeight * 2500;
-            }
+        // Weight-based calculation
+        if (weight > 2) {
+            baseFee += Math.ceil((weight - 2) / 0.5) * 5000;
         }
 
-        // Rush order additional fee (only if eligible)
+        // Distance-based calculation (simplified)
+        if (deliveryInfo.city !== "Hà Nội") {
+            baseFee += 15000; // Inter-city fee
+        }
+
+        // Rush order fee
         if (useRushOrder && isRushOrderEligible()) {
-            baseFee += cartItems.length * 10000; // 10,000 VND per item
+            baseFee += 50000;
         }
 
-        // Free shipping for orders over 100,000 VND (excluding rush orders)
-        if (!useRushOrder && getCartTotal() > 100000) {
-            const discount = Math.min(baseFee, 25000); // Max 25,000 VND discount
-            baseFee = Math.max(0, baseFee - discount);
+        // Free shipping threshold
+        if (subtotal >= 500000 && !useRushOrder) {
+            baseFee = Math.max(0, baseFee - 25000); // Free standard shipping
         }
 
-        return baseFee;
+        return Math.min(baseFee, 100000); // Cap at 100,000 VND
     };
 
-    // Calculate delivery fee without free shipping discount for comparison
     const calculateDeliveryFeeWithoutDiscount = () => {
-        if (cartItems.length === 0) return 0;
+        const weight = getTotalWeight();
+        let baseFee = 25000;
 
-        const totalWeight = getTotalWeight();
-        const city = deliveryInfo.city?.toLowerCase();
-        let baseFee = 0;
-
-        if (city === "hà nội" || city === "hồ chí minh") {
-            baseFee = 22000;
-            if (totalWeight > 3) {
-                const extraWeight = Math.ceil((totalWeight - 3) / 0.5);
-                baseFee += extraWeight * 2500;
-            }
-        } else {
-            baseFee = 30000;
-            if (totalWeight > 0.5) {
-                const extraWeight = Math.ceil((totalWeight - 0.5) / 0.5);
-                baseFee += extraWeight * 2500;
-            }
+        if (weight > 2) {
+            baseFee += Math.ceil((weight - 2) / 0.5) * 5000;
         }
 
-        return baseFee;
+        if (deliveryInfo.city !== "Hà Nội") {
+            baseFee += 15000;
+        }
+
+        if (deliveryInfo.isRushOrder && isRushOrderEligible()) {
+            baseFee += 50000;
+        }
+
+        return Math.min(baseFee, 100000);
     };
 
-    // Update delivery information
     const updateDeliveryInfo = (newDeliveryInfo) => {
-        setDeliveryInfo((prevInfo) => ({
-            ...prevInfo,
+        setDeliveryInfo((prev) => ({
+            ...prev,
             ...newDeliveryInfo,
         }));
     };
 
-    // Get order summary with all calculations
     const getOrderSummary = () => {
-        const subtotal = getCartTotal();
-        const subtotalExcludingVAT = getTotalExcludingVAT();
-        const vatAmount = getVATAmount();
-        const deliveryDetails = getDeliveryDetails();
-        const total = subtotal + deliveryDetails.deliveryFee;
+        const subtotal = getTotalExcludingVAT();
+        const vat = getVATAmount();
+        const deliveryFee = calculateDeliveryFee();
+        const total = subtotal + vat + deliveryFee;
+        const savings = calculateDeliveryFeeWithoutDiscount() - deliveryFee;
 
         return {
             items: cartItems,
             itemCount: getCartCount(),
-            subtotal: subtotal,
-            subtotalExcludingVAT: subtotalExcludingVAT,
-            vatAmount: vatAmount,
-            deliveryFee: deliveryDetails.deliveryFee,
-            total: total,
-            totalWeight: deliveryDetails.totalWeight,
-            deliveryTime: deliveryDetails.deliveryTime,
-            isRushOrder: deliveryDetails.isRushOrder,
-            rushEligible: deliveryDetails.rushEligible,
-            freeShippingApplied: deliveryDetails.freeShippingApplied,
-            deliveryInfo: deliveryInfo,
+            subtotal,
+            vat,
+            deliveryFee,
+            savings,
+            total,
+            deliveryInfo,
+            weight: getTotalWeight(),
         };
     };
 
-    // Validate cart for checkout
     const validateCart = () => {
         const errors = [];
 
@@ -315,58 +291,43 @@ export const CartProvider = ({ children }) => {
             errors.push("Cart is empty");
         }
 
-        // Check stock availability
+        // Check stock availability (for API items)
         cartItems.forEach((item) => {
-            if (item.quantity > item.availableQuantity) {
-                errors.push(`${item.productTitle}: Only ${item.availableQuantity} items available`);
+            const product = item.product;
+            const productTitle = product.title;
+            const stockQuantity = product.quantity;
+
+            if (item.quantity && stockQuantity && item.quantity > stockQuantity) {
+                errors.push(`${productTitle}: Requested quantity (${item.quantity}) exceeds available stock (${stockQuantity})`);
             }
         });
 
-        // Validate delivery info
-        if (!deliveryInfo.customerName) errors.push("Customer name is required");
-        if (!deliveryInfo.phone) errors.push("Phone number is required");
-        if (!deliveryInfo.address) errors.push("Address is required");
-        if (!deliveryInfo.city) errors.push("City is required");
-        if (!deliveryInfo.district) errors.push("District is required");
-
-        // Rush order validation
-        if (deliveryInfo.isRushOrder && !isRushOrderEligible()) {
-            if (deliveryInfo.city?.toLowerCase() !== "hà nội") {
-                errors.push("Rush delivery is only available in Hanoi");
-            } else {
-                const nonEligibleItems = cartItems.filter((item) => !item.rushEligible);
-                if (nonEligibleItems.length > 0) {
-                    errors.push(`Rush delivery not available for: ${nonEligibleItems.map((item) => item.productTitle).join(", ")}`);
-                }
-            }
-        }
-
         return {
             isValid: errors.length === 0,
-            errors: errors,
+            errors,
         };
     };
 
     const value = {
         cartItems,
-        loading,
-        error,
         deliveryInfo,
+        loading,
         addToCart,
         updateCartItem,
         removeFromCart,
         clearCart,
+        loadCartItems,
         getCartTotal,
         getCartCount,
         getTotalExcludingVAT,
         getVATAmount,
         isInCart,
         getItemQuantity,
-        calculateDeliveryFee,
-        updateDeliveryInfo,
         isRushOrderEligible,
         getDeliveryDetails,
         getTotalWeight,
+        calculateDeliveryFee,
+        updateDeliveryInfo,
         getOrderSummary,
         validateCart,
     };

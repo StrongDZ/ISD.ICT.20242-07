@@ -60,10 +60,11 @@ public class UserServiceImpl implements UserService {
 
         List<UserResponse> userList = userEntities.stream().map(
             (Users entity) -> UserResponse.builder()
-               
                 .id(entity.getId())
                 .userName(entity.getUsername())
                 .gmail(entity.getGmail())
+                .userStatus(entity.getUserStatus() != null ? entity.getUserStatus().name() : null)
+                .userType(entity.getType() != null ? entity.getType().name() : null)
                 .build()
         ).toList();
 
@@ -76,6 +77,8 @@ public class UserServiceImpl implements UserService {
                 .id(userEntity.getId())
                 .userName(userEntity.getUsername())
                 .gmail(userEntity.getGmail())
+                .userStatus(userEntity.getUserStatus() != null ? userEntity.getUserStatus().name() : null)
+                .userType(userEntity.getType() != null ? userEntity.getType().name() : null)
                 .build();
     }
     public UserResponse findByUsername(String userName){

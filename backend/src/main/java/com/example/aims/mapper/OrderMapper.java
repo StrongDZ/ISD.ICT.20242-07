@@ -104,4 +104,14 @@ public class OrderMapper {
         return order;
     }
 
+    /**
+     * Converts an Order entity to an OrderDTO.
+     * This is an alias for toOrderDTO method for consistency.
+     *
+     * @param order the Order entity to convert
+     * @return the converted OrderDTO
+     */
+    public OrderDTO toDTO(Order order) {
+        return toOrderDTO(order);
+    }
 }

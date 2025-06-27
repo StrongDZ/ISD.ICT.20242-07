@@ -23,36 +23,33 @@ import { Save, Cancel, Person, Email, Phone, LocationOn } from "@mui/icons-mater
 
 const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
     const [formData, setFormData] = useState({
+        id: null,
         username: "",
         email: "",
         password: "",
         role: "CUSTOMER",
-        isActive: true,
-        department: "",
-        employeeId: "",
+        isActive: true
     });
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
         if (user) {
             setFormData({
-                username: user.username || "",
-                email: user.email || "",
+                id: user.id || null,
+                username: user.username || user.userName || "",
+                email: user.email || user.gmail || "",
                 password: "",
-                role: user.role || "CUSTOMER",
-                isActive: user.isActive !== undefined ? user.isActive : true,
-                department: user.department || "",
-                employeeId: user.employeeId || "",
+                role: user.role || user.type || "CUSTOMER",
+                isActive: user.userStatus ? user.userStatus !== "BLOCKED" : true
             });
         } else if (mode === "add") {
             setFormData({
+                id: null,
                 username: "",
                 email: "",
                 password: "",
                 role: "CUSTOMER",
-                isActive: true,
-                department: "",
-                employeeId: "",
+                isActive: true
             });
         }
         setErrors({});
@@ -105,7 +102,15 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
 
     const handleSave = () => {
         if (validateForm()) {
-            onSave(formData, mode);
+            const submitData = {
+                id: formData.id,
+                username: formData.username,
+                password: formData.password,
+                gmail: formData.email,
+                type: formData.role,
+                userStatus: formData.isActive ? "NONE" : "BLOCKED"
+            };
+            onSave(submitData, mode);
         }
     };
 
@@ -195,7 +200,7 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                             onChange={(e) => handleFieldChange("username", e.target.value)}
                             error={!!errors.username}
                             helperText={errors.username}
-                            disabled={mode === "view" || (mode === "edit" && user)}
+                            disabled={mode === "view"}
                             required
                         />
                     </Grid>
@@ -271,39 +276,6 @@ const UserDialog = ({ open, onClose, user, mode = "view", onSave }) => {
                             label="Active User"
                         />
                     </Grid>
-
-                    {/* Staff Information (for non-customers) */}
-                    {formData.role !== "CUSTOMER" && (
-                        <>
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                                    Staff Information
-                                </Typography>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Department"
-                                    name="department"
-                                    value={formData.department}
-                                    onChange={(e) => handleFieldChange("department", e.target.value)}
-                                    disabled={mode === "view"}
-                                />
-                            </Grid>
-
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Employee ID"
-                                    name="employeeId"
-                                    value={formData.employeeId}
-                                    onChange={(e) => handleFieldChange("employeeId", e.target.value)}
-                                    disabled={mode === "view"}
-                                />
-                            </Grid>
-                        </>
-                    )}
 
                     {/* User Statistics (for view mode) */}
                     {mode === "view" && user && (

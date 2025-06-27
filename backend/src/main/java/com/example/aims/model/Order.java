@@ -1,14 +1,6 @@
 package com.example.aims.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.Objects;
-
 import com.example.aims.common.OrderStatus;
 
 // Functional Cohesion – All methods and fields are related to the single
@@ -41,11 +33,7 @@ import com.example.aims.common.OrderStatus;
 // decision-making logic instead of embedding it here.
 // ➤ Slight DIP violation risk if logic grows. Keep data and logic
 // responsibilities separate.
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
+
 @Entity
 @Table(name = "Orders")
 public class Order {
@@ -58,7 +46,7 @@ public class Order {
     // @JoinColumn(name = "customerID")
     // private Users customer;
 
-    @Enumerated(EnumType.STRING) // Lưu trữ giá trị enum dưới dạng chuỗi trong cơ sở dữ liệu
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private OrderStatus status;
 
@@ -72,33 +60,86 @@ public class Order {
     @Column(name = "payment_type")
     private String paymentType;
 
+    @Column(name = "rejected_reason")
+    private String rejectedReason;
+
+    // Constructors
+    public Order() {
+    }
+
+    public Order(String orderID, OrderStatus status, Double totalAmount, 
+                DeliveryInfo deliveryInfo, String paymentType, String rejectedReason) {
+        this.orderID = orderID;
+        this.status = status;
+        this.totalAmount = totalAmount;
+        this.deliveryInfo = deliveryInfo;
+        this.paymentType = paymentType;
+        this.rejectedReason = rejectedReason;
+    }
+
+    // Getters and Setters
+    public String getOrderID() {
+        return orderID;
+    }
+
+    public void setOrderID(String orderID) {
+        this.orderID = orderID;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public DeliveryInfo getDeliveryInfo() {
+        return deliveryInfo;
+    }
+
+    public void setDeliveryInfo(DeliveryInfo deliveryInfo) {
+        this.deliveryInfo = deliveryInfo;
+    }
+
+    public String getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
+
+    public String getRejectedReason() {
+        return rejectedReason;
+    }
+
+    public void setRejectedReason(String rejectedReason) {
+        this.rejectedReason = rejectedReason;
+    }
+
+    // Business methods
     public OrderStatus checkOrderStatus() {
-        try {
-            return this.status;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Wrong input of Status: " + this.status);
-        }
+        return this.status;
     }
 
     public void changeRejectOrder() {
         this.status = OrderStatus.REJECTED;
     }
 
-    // public Order(String id, Users customer, String customerName, String
-    // phoneNumber, OrderStatus status,
-    // String shippingAddress, String province, Double totalAmount) {
-    // this.orderID = id;
-    // this.customer = customer;
-    // this.customerName = customerName;
-    // this.phoneNumber = phoneNumber;
-    // this.status = status;
-    // this.shippingAddress = shippingAddress;
-    // this.province = province;
-    // this.totalAmount = totalAmount;
-    // }
-
     public void changeApproveOrder() {
         this.status = OrderStatus.APPROVED;
     }
 
+    public void updateRejectedReason(String reason) {
+        this.rejectedReason = reason;
+    }
 }

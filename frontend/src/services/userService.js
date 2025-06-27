@@ -54,7 +54,11 @@ export const userService = {
     // Change user password
     changePassword: async (passwordData) => {
         try {
-            const response = await api.patch("/user/change_pwd", passwordData);
+            const response = await api.patch("/user/change_pwd", {
+                id: passwordData.id,
+                password: passwordData.password,
+                confirmPassword: passwordData.confirmPassword
+            });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to change password");

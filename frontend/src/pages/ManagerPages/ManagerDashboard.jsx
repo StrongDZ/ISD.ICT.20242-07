@@ -22,7 +22,7 @@ import {
 import { Inventory, ShoppingCart, TrendingUp, Add, Edit, Visibility, Assignment } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { productService } from "../../services/productService";
-import { cartService } from "../../services/cartService";
+import { orderService } from "../../services/orderService";
 import ProductDetailDialog from "../../components/Product/ProductDetailDialog";
 import ProductEditDialog from "../../components/Product/ProductEditDialog";
 
@@ -52,7 +52,7 @@ const ManagerDashboard = () => {
         setProducts(mockProducts.slice(0, 10)); // Show recent 10 products
 
         // Load orders
-        const mockOrders = cartService.getMockOrders();
+        const mockOrders = orderService.getMockOrders();
         setOrders(mockOrders.slice(0, 5)); // Show recent 5 orders
 
         // Calculate stats

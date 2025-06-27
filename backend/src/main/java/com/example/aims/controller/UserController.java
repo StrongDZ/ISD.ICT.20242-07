@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,6 +32,7 @@ import com.example.aims.service.EmailService;
 import com.example.aims.service.user.UserService;
 
 @RestController
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/user")
 @Tag(name = "User Controller")
 @Slf4j(topic = "USER-CONTROLLER")
@@ -108,7 +110,7 @@ public class UserController {
 
     @Operation(summary = "Change User Password")
     @PatchMapping("/change_pwd")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public Map<String, Object> changePassword(@RequestBody UserPasswordRequest request) {
         userService.changePassword(request);
         log.info("Change password for user: {}", request);

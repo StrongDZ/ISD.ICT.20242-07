@@ -29,6 +29,10 @@ import {
     Tabs,
     Tab,
     Badge,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from "@mui/material";
 import {
     Visibility,
@@ -46,11 +50,13 @@ import {
     Pending,
     Block,
     HourglassEmpty,
+    Refresh,
 } from "@mui/icons-material";
 import { cartService } from "../../services/cartService";
 import OrderDialog from "../../components/Manager/OrderDialog";
 import RejectOrderDialog from "../../components/Manager/RejectOrderDialog";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";
+import { orderService } from '../../services/orderService';
 
 const OrderManagementPage = () => {
     const [orders, setOrders] = useState([]);
@@ -63,7 +69,7 @@ const OrderManagementPage = () => {
 
     // Dialog states
     const [orderDialog, setOrderDialog] = useState({ open: false, order: null, mode: "view" });
-    const [rejectDialog, setRejectDialog] = useState({ open: false, order: null });
+    const [rejectDialog, setRejectDialog] = useState({ open: false, orderId: null });
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
     useEffect(() => {
@@ -73,13 +79,15 @@ const OrderManagementPage = () => {
     const loadOrders = async () => {
         try {
             setLoading(true);
-            const mockOrders = cartService.getMockOrders();
-            setOrders(mockOrders);
+            const data = await orderService.getAllOrders();
+            console.log("data", data);
+            setOrders(data);
         } catch (error) {
+            console.error('Error loading orders:', error);
             setSnackbar({
                 open: true,
-                message: "Failed to load orders",
-                severity: "error",
+                message: 'Error loading orders',
+                severity: 'error'
             });
         } finally {
             setLoading(false);
@@ -87,14 +95,14 @@ const OrderManagementPage = () => {
     };
 
     const formatPrice = (price) => {
-        return new Intl.NumberFormat("vi-VN", {
+        return new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "VND",
+            currency: "USD",
         }).format(price);
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString("vi-VN");
+        return new Date(dateString).toLocaleDateString("en-US");
     };
 
     const getStatusColor = (status) => {
@@ -190,50 +198,50 @@ const OrderManagementPage = () => {
         setOrderDialog({ open: true, order, mode: "view" });
     };
 
-    const handleApprove = async (order) => {
+    const handleApprove = async (orderId) => {
         try {
-            console.log("Approving order:", order.orderID);
+            await orderService.approveOrder(orderId);
             setSnackbar({
                 open: true,
-                message: `Order ${order.orderID} approved successfully`,
-                severity: "success",
+                message: 'Order approved successfully',
+                severity: 'success'
             });
-            // In real app, this would call API to update order status to PROCESSING
+            loadOrders(); // Reload orders
         } catch (error) {
+            console.error('Error approving order:', error);
             setSnackbar({
                 open: true,
-                message: "Failed to approve order",
-                severity: "error",
+                message: 'Error approving order',
+                severity: 'error'
             });
         }
     };
 
-    const handleReject = (order) => {
-        setRejectDialog({ open: true, order });
-    };
-
-    const handleRejectConfirm = async (order, reason) => {
+    const handleReject = async (orderId, reason) => {
         try {
-            console.log("Rejecting order:", order.orderID, "Reason:", reason);
+            await orderService.rejectOrder(orderId, reason);
             setSnackbar({
                 open: true,
-                message: `Order ${order.orderID} rejected successfully`,
-                severity: "success",
+                message: 'Order rejected successfully',
+                severity: 'success'
             });
-
-            setRejectDialog({ open: false, order: null });
-            // In real app, this would call API to update order status to CANCELLED with reason
+            loadOrders(); // Reload orders
         } catch (error) {
+            console.error('Error rejecting order:', error);
             setSnackbar({
                 open: true,
-                message: "Failed to reject order",
-                severity: "error",
+                message: 'Error rejecting order',
+                severity: 'error'
             });
         }
     };
 
-    const handleRejectCancel = () => {
-        setRejectDialog({ open: false, order: null });
+    const openRejectDialog = (orderId) => {
+        setRejectDialog({ open: true, orderId });
+    };
+
+    const closeRejectDialog = () => {
+        setRejectDialog({ open: false, orderId: null });
     };
 
     const handleSave = async (updatedOrder) => {
@@ -360,12 +368,12 @@ const OrderManagementPage = () => {
                                         {currentTab === 0 && ( // Pending Orders
                                             <>
                                                 <Tooltip title="Approve Order">
-                                                    <IconButton size="small" color="success" onClick={() => handleApprove(order)}>
+                                                    <IconButton size="small" color="success" onClick={() => handleApprove(order.orderID)}>
                                                         <ThumbUp />
                                                     </IconButton>
                                                 </Tooltip>
                                                 <Tooltip title="Reject Order">
-                                                    <IconButton size="small" color="error" onClick={() => handleReject(order)}>
+                                                    <IconButton size="small" color="error" onClick={() => openRejectDialog(order.orderID)}>
                                                         <ThumbDown />
                                                     </IconButton>
                                                 </Tooltip>
@@ -393,7 +401,7 @@ const OrderManagementPage = () => {
                     Order Management
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                    Track and manage customer orders across different stages.
+                    Manage and approve customer orders
                 </Typography>
             </Box>
 
@@ -560,7 +568,12 @@ const OrderManagementPage = () => {
             />
 
             {/* Reject Order Dialog */}
-            <RejectOrderDialog open={rejectDialog.open} onClose={handleRejectCancel} order={rejectDialog.order} onConfirm={handleRejectConfirm} />
+            <RejectOrderDialog
+                open={rejectDialog.open}
+                onClose={closeRejectDialog}
+                onReject={handleReject}
+                orderId={rejectDialog.orderId}
+            />
 
             {/* Snackbar */}
             <Snackbar

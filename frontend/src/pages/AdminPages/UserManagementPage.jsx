@@ -51,6 +51,8 @@ const UserManagementPage = () => {
     const [userDialog, setUserDialog] = useState({ open: false, user: null, mode: "view" });
     const [passwordDialog, setPasswordDialog] = useState({ open: false, userId: null });
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    const [passwordForm, setPasswordForm] = useState({ password: '', confirmPassword: '' });
+    const [passwordError, setPasswordError] = useState('');
 
     useEffect(() => {
         loadUsers();
@@ -87,18 +89,15 @@ const UserManagementPage = () => {
 
     const handleSave = async (userData, mode) => {
         try {
-            // Map email to gmail for backend compatibility
-            const submitData = { ...userData, gmail: userData.email };
-            delete submitData.email;
             if (mode === "add") {
-                await userService.createUser(submitData);
+                await userService.createUser(userData);
                 setSnackbar({
                     open: true,
                     message: "User added successfully",
                     severity: "success",
                 });
             } else {
-                await userService.updateUser(submitData);
+                await userService.updateUser(userData);
                 setSnackbar({
                     open: true,
                     message: "User updated successfully",
@@ -176,24 +175,34 @@ const UserManagementPage = () => {
         }
     };
 
-    const handleResetPassword = async (userId) => {
+    const handleResetPassword = async () => {
+        if (!passwordForm.password || !passwordForm.confirmPassword) {
+            setPasswordError('Please enter both password fields.');
+            return;
+        }
+        if (passwordForm.password !== passwordForm.confirmPassword) {
+            setPasswordError('Passwords do not match.');
+            return;
+        }
         try {
             await userService.changePassword({
-                userId,
-                newPassword: "defaultPassword123", // You might want to generate this or let admin set it
-                isReset: true
+                id: passwordDialog.userId,
+                password: passwordForm.password,
+                confirmPassword: passwordForm.confirmPassword
             });
             setSnackbar({
                 open: true,
-                message: "Password reset successfully",
-                severity: "success",
+                message: 'Password changed successfully',
+                severity: 'success',
             });
             setPasswordDialog({ open: false, userId: null });
+            setPasswordForm({ password: '', confirmPassword: '' });
+            setPasswordError('');
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: error.message || "Failed to reset password",
-                severity: "error",
+                message: error.message || 'Failed to change password',
+                severity: 'error',
             });
         }
     };
@@ -329,7 +338,7 @@ const UserManagementPage = () => {
                             <TableRow key={user.id} hover>
                                 <TableCell>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                        <Avatar sx={{ bgcolor: getRoleColor(user.role) + ".main" }}>{user.userName?.charAt(0).toUpperCase()}</Avatar>
+                                        <Avatar sx={{ bgcolor: getRoleColor(user.userType) + ".main" }}>{user.userName?.charAt(0).toUpperCase()}</Avatar>
                                         <Box>
                                             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
                                                 {user.userName}
@@ -342,9 +351,9 @@ const UserManagementPage = () => {
                                 </TableCell>
                                 <TableCell>
                                     <Chip
-                                        icon={getRoleIcon(user.role)}
-                                        label={getRoleDisplayName(user.role)}
-                                        color={getRoleColor(user.role)}
+                                        icon={getRoleIcon(user.userType)}
+                                        label={getRoleDisplayName(user.userType)}
+                                        color={getRoleColor(user.userType)}
                                         size="small"
                                     />
                                 </TableCell>
@@ -352,21 +361,13 @@ const UserManagementPage = () => {
                                     <Typography variant="body2">{user.gmail}</Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Chip label={user.user_status === 'ACTIVE' ? "Active" : "Blocked"} color={user.user_status === 'ACTIVE' ? "success" : "error"} size="small" />
+                                    <Chip label={user.userStatus === 'BLOCKED' ? "Blocked" : "None"} color={user.userStatus === 'BLOCKED' ? "error" : "default"} size="small" />
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2">{user.createdAt ? formatDate(user.createdAt) : ""}</Typography>
                                 </TableCell>
                                 <TableCell>
                                     <Box sx={{ display: "flex", gap: 1 }}>
-                                        <Tooltip title="View Details">
-                                            <IconButton size="small" onClick={async () => {
-                                                const detail = await userService.getUserById(user.id);
-                                                setUserDialog({ open: true, user: detail.data, mode: "view" });
-                                            }}>
-                                                <Visibility />
-                                            </IconButton>
-                                        </Tooltip>
                                         <Tooltip title="Edit User">
                                             <IconButton size="small" onClick={async () => {
                                                 const detail = await userService.getUserById(user.id);
@@ -415,18 +416,30 @@ const UserManagementPage = () => {
             />
 
             {/* Password Reset Dialog */}
-            <Dialog open={passwordDialog.open} onClose={() => setPasswordDialog({ open: false, userId: null })}>
-                <DialogTitle>Reset User Password</DialogTitle>
+            <Dialog open={passwordDialog.open} onClose={() => { setPasswordDialog({ open: false, userId: null }); setPasswordForm({ password: '', confirmPassword: '' }); setPasswordError(''); }}>
+                <DialogTitle>Change User Password</DialogTitle>
                 <DialogContent>
-                    <Typography>
-                        Are you sure you want to reset this user's password? A new password will be generated and sent to the user's email.
-                    </Typography>
+                    <TextField
+                        label="New Password"
+                        type="password"
+                        fullWidth
+                        margin="normal"
+                        value={passwordForm.password}
+                        onChange={e => setPasswordForm(f => ({ ...f, password: e.target.value }))}
+                    />
+                    <TextField
+                        label="Confirm Password"
+                        type="password"
+                        fullWidth
+                        margin="normal"
+                        value={passwordForm.confirmPassword}
+                        onChange={e => setPasswordForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                    />
+                    {passwordError && <Alert severity="error">{passwordError}</Alert>}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setPasswordDialog({ open: false, userId: null })}>Cancel</Button>
-                    <Button onClick={() => handleResetPassword(passwordDialog.userId)} color="primary" variant="contained">
-                        Reset Password
-                    </Button>
+                    <Button onClick={() => { setPasswordDialog({ open: false, userId: null }); setPasswordForm({ password: '', confirmPassword: '' }); setPasswordError(''); }}>Cancel</Button>
+                    <Button onClick={handleResetPassword} color="primary" variant="contained">Change Password</Button>
                 </DialogActions>
             </Dialog>
 

@@ -89,23 +89,15 @@ const UserManagementPage = () => {
 
     const handleSave = async (userData, mode) => {
         try {
-            const submitData = {
-                id: userData.id,
-                username: userData.username,
-                password: userData.password,
-                gmail: userData.email,
-                type: userData.role,
-                userStatus: userData.isActive ? "NONE" : "BLOCKED"
-            };
             if (mode === "add") {
-                await userService.createUser(submitData);
+                await userService.createUser(userData);
                 setSnackbar({
                     open: true,
                     message: "User added successfully",
                     severity: "success",
                 });
             } else {
-                await userService.updateUser(submitData);
+                await userService.updateUser(userData);
                 setSnackbar({
                     open: true,
                     message: "User updated successfully",

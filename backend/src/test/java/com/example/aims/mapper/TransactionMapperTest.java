@@ -3,7 +3,6 @@ package com.example.aims.mapper;
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
-import com.example.aims.dto.transaction.TransactionRetrievalDTO;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,50 +62,9 @@ public class TransactionMapperTest {
     }
 
     @Test
-    void testToTransactionRetrievalDTO() {
-        // Arrange
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setTransactionId("TXN002");
-        transaction.setTransactionNo("987654321");
-        transaction.setAmount(2000.0);
-        transaction.setDatetime(new Date());
-
-        Order order = new Order();
-        order.setOrderID("ORD002");
-        order.setStatus(OrderStatus.PENDING);
-        order.setTotalAmount(2000.0);
-        transaction.setOrder(order);
-
-        PaymentOrderResponseFromReturnDTO orderDTO = new PaymentOrderResponseFromReturnDTO();
-        when(orderMapper.toPaymentOrderResponseFromReturnDTO(order)).thenReturn(orderDTO);
-
-        // Act
-        TransactionRetrievalDTO result = transactionMapper.toTransactionRetrievalDTO(transaction);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("TXN002", result.getTransactionId());
-        assertEquals("987654321", result.getTransactionNo());
-        assertEquals(2000.0, result.getAmount());
-        assertEquals(transaction.getDatetime(), result.getDatetime());
-        assertEquals(orderDTO, result.getOrder());
-
-        verify(orderMapper).toPaymentOrderResponseFromReturnDTO(order);
-    }
-
-    @Test
     void testToTransactionResponseDTO_WithNullTransaction() {
         // Act
         TransactionResponseDTO result = transactionMapper.toTransactionResponseDTO(null);
-
-        // Assert
-        assertNull(result);
-    }
-
-    @Test
-    void testToTransactionRetrievalDTO_WithNullTransaction() {
-        // Act
-        TransactionRetrievalDTO result = transactionMapper.toTransactionRetrievalDTO(null);
 
         // Assert
         assertNull(result);
@@ -132,32 +90,6 @@ public class TransactionMapperTest {
         assertEquals("TXN003", result.getTransactionId());
         assertEquals("111222333", result.getTransactionNo());
         assertEquals(1500.0, result.getAmount());
-        assertEquals(transaction.getDatetime(), result.getDatetime());
-        assertNull(result.getOrder());
-
-        verify(orderMapper).toPaymentOrderResponseFromReturnDTO(null);
-    }
-
-    @Test
-    void testToTransactionRetrievalDTO_WithNullOrder() {
-        // Arrange
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setTransactionId("TXN004");
-        transaction.setTransactionNo("444555666");
-        transaction.setAmount(2500.0);
-        transaction.setDatetime(new Date());
-        transaction.setOrder(null);
-
-        when(orderMapper.toPaymentOrderResponseFromReturnDTO(null)).thenReturn(null);
-
-        // Act
-        TransactionRetrievalDTO result = transactionMapper.toTransactionRetrievalDTO(transaction);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("TXN004", result.getTransactionId());
-        assertEquals("444555666", result.getTransactionNo());
-        assertEquals(2500.0, result.getAmount());
         assertEquals(transaction.getDatetime(), result.getDatetime());
         assertNull(result.getOrder());
 

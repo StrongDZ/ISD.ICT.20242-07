@@ -64,12 +64,12 @@ const CheckoutPage = () => {
     insufficientItems: [],
   });
 
-  const steps = ["Thông tin giao hàng", "Thanh toán", "Xác nhận"];
+  const steps = ["Delivery Information", "Payment", "Confirmation"];
 
-  // Memoize selectedItems để tránh tính toán lại không cần thiết
+  // Memoize selectedItems to avoid unnecessary recalculations
   const selectedItems = useMemo(() => getSelectedItems(), [cartItems]);
 
-  // Fetch phí vận chuyển mỗi khi thông tin giao hàng hoặc sản phẩm thay đổi
+  // Fetch shipping fees whenever delivery info or products change
   useEffect(() => {
     if (selectedItems.length === 0) {
       navigate("/cart");
@@ -85,7 +85,7 @@ const CheckoutPage = () => {
           })),
           deliveryInfo: deliveryInfo,
         };
-        // Giả định orderService.calculateShippingFees gọi API và trả về { regularShippingFee, rushShippingFee }
+        // Assume orderService.calculateShippingFees calls API and returns { regularShippingFee, rushShippingFee }
         const fees = await orderService.calculateShippingFees(orderData);
         setShippingFees(fees);
       } catch (error) {
@@ -101,34 +101,34 @@ const CheckoutPage = () => {
     const newErrors = {};
 
     if (!deliveryInfo.recipientName?.trim()) {
-      newErrors.recipientName = "Vui lòng nhập tên người nhận";
+      newErrors.recipientName = "Please enter recipient name";
     }
 
     if (!deliveryInfo.phoneNumber?.trim()) {
-      newErrors.phoneNumber = "Vui lòng nhập số điện thoại";
+      newErrors.phoneNumber = "Please enter phone number";
     } else if (
       !/^\d{10,11}$/.test(deliveryInfo.phoneNumber.replace(/\s/g, ""))
     ) {
-      newErrors.phoneNumber = "Số điện thoại không hợp lệ";
+      newErrors.phoneNumber = "Invalid phone number";
     }
 
     if (
       deliveryInfo.mail &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(deliveryInfo.mail)
     ) {
-      newErrors.mail = "Địa chỉ email không hợp lệ";
+      newErrors.mail = "Invalid email address";
     }
 
     if (!deliveryInfo.city) {
-      newErrors.city = "Vui lòng chọn Tỉnh/Thành phố";
+      newErrors.city = "Please select Province/City";
     }
 
     if (!deliveryInfo.district) {
-      newErrors.district = "Vui lòng chọn Quận/Huyện";
+      newErrors.district = "Please select District";
     }
 
     if (!deliveryInfo.addressDetail?.trim()) {
-      newErrors.addressDetail = "Vui lòng nhập địa chỉ chi tiết";
+      newErrors.addressDetail = "Please enter detailed address";
     }
 
     setErrors(newErrors);
@@ -139,7 +139,7 @@ const CheckoutPage = () => {
     if (activeStep === 0 && !validateDeliveryInfo()) {
       setSnackbar({
         open: true,
-        message: "Vui lòng điền đầy đủ các thông tin bắt buộc",
+        message: "Please fill in all required information",
         severity: "error",
       });
       return;
@@ -162,7 +162,7 @@ const CheckoutPage = () => {
   const handlePlaceOrder = async () => {
     setLoading(true);
     try {
-      console.log("Bắt đầu gọi API tạo đơn hàng...");
+      console.log("Starting API call to create order...");
       const orderData = {
         cartItems: selectedItems.map((item) => ({
           productDTO: item.productDTO,
@@ -172,29 +172,29 @@ const CheckoutPage = () => {
       };
 
       const createdOrder = await orderService.createOrder(orderData);
-      // Kiểm tra xem dữ liệu trả về có hợp lệ không
-      console.log("API trả về thành công:", createdOrder);
+      // Check if the returned data is valid
+      console.log("API returned successfully:", createdOrder);
 
       if (!createdOrder || !createdOrder.id) {
-        // Ném ra một lỗi nếu dữ liệu không hợp lệ
-        throw new Error("Dữ liệu đơn hàng trả về không hợp lệ.");
+        // Throw an error if the returned data is invalid
+        throw new Error("Invalid order data returned.");
       }
 
-      console.log("Chuẩn bị xóa giỏ hàng...");
+      console.log("Preparing to clear cart...");
       clearCart();
-      console.log("Đã xóa giỏ hàng. Chuẩn bị chuyển hướng...");
+      console.log("Cart cleared. Preparing to redirect...");
 
       navigate("/order-success", {
         state: { orderId: createdOrder.id, orderData: createdOrder },
       });
-      console.log("Lệnh chuyển hướng đã được gọi.");
+      console.log("Redirect command called.");
     } catch (error) {
-      // Log toàn bộ lỗi ra để xem chi tiết
-      console.error("Lỗi khi đặt hàng:", error);
+      // Log the entire error to see details
+      console.error("Error when placing order:", error);
 
       setSnackbar({
         open: true,
-        message: error.message || "Đặt hàng thất bại. Vui lòng thử lại.",
+        message: error.message || "Order placement failed. Please try again.",
         severity: "error",
       });
     } finally {
@@ -202,7 +202,7 @@ const CheckoutPage = () => {
       setConfirmDialog(false);
     }
   };
-  // Tính toán tổng tiền cuối cùng cho dialog xác nhận
+  // Calculate final total for confirmation dialog
   const subtotal = getSelectedCartTotal();
   const totalDeliveryFee =
     shippingFees.regularShippingFee + shippingFees.rushShippingFee;
@@ -224,12 +224,13 @@ const CheckoutPage = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Phương thức thanh toán
+                Payment Method
               </Typography>
               <Alert severity="info" sx={{ mt: 2 }}>
                 <Typography variant="body2">
-                  Thanh toán qua VNPay/Momo là phương thức duy nhất hiện có. Bạn
-                  sẽ thanh toán an toàn qua cổng thanh toán khi đặt hàng.
+                  Payment via VNPay/Momo is the only available method. You will
+                  pay securely through the payment gateway when placing your
+                  order.
                 </Typography>
               </Alert>
               <Box
@@ -243,13 +244,11 @@ const CheckoutPage = () => {
               >
                 <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                   <CreditCard color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="h6">
-                    Thanh toán qua VNPay/Momo
-                  </Typography>
+                  <Typography variant="h6">Payment via VNPay/Momo</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  Thanh toán trước qua VNPay/Momo. Bạn sẽ được chuyển hướng đến
-                  cổng thanh toán để hoàn tất giao dịch.
+                  Pre-payment via VNPay/Momo. You will be redirected to the
+                  payment gateway to complete the transaction.
                 </Typography>
               </Box>
             </CardContent>
@@ -260,10 +259,10 @@ const CheckoutPage = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Xác nhận đơn hàng
+                Order Confirmation
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Vui lòng kiểm tra lại thông tin trước khi hoàn tất đặt hàng.
+                Please review the information before completing your order.
               </Typography>
               <Box sx={{ mb: 3, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
                 <Typography
@@ -271,13 +270,13 @@ const CheckoutPage = () => {
                   gutterBottom
                   sx={{ fontWeight: "medium" }}
                 >
-                  Thông tin giao hàng
+                  Delivery Information
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Người nhận:</strong> {deliveryInfo.recipientName}
+                  <strong>Recipient:</strong> {deliveryInfo.recipientName}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Điện thoại:</strong> {deliveryInfo.phoneNumber}
+                  <strong>Phone:</strong> {deliveryInfo.phoneNumber}
                 </Typography>
                 {deliveryInfo.mail && (
                   <Typography variant="body2">
@@ -285,19 +284,19 @@ const CheckoutPage = () => {
                   </Typography>
                 )}
                 <Typography variant="body2">
-                  <strong>Địa chỉ:</strong>{" "}
+                  <strong>Address:</strong>{" "}
                   {`${deliveryInfo.addressDetail}, ${deliveryInfo.district}, ${deliveryInfo.city}`}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Giao hàng:</strong>{" "}
+                  <strong>Delivery:</strong>{" "}
                   {deliveryInfo.isRushOrder
-                    ? "Giao hàng hỏa tốc"
-                    : "Giao hàng tiêu chuẩn"}
+                    ? "Express delivery"
+                    : "Standard delivery"}
                 </Typography>
               </Box>
               <Alert severity="success" sx={{ mt: 2 }}>
                 <Typography variant="body2">
-                  Đơn hàng của bạn sẽ được xử lý ngay sau khi xác nhận.
+                  Your order will be processed immediately after confirmation.
                 </Typography>
               </Alert>
             </CardContent>
@@ -316,10 +315,10 @@ const CheckoutPage = () => {
           onClick={() => navigate("/cart")}
           sx={{ mb: 2 }}
         >
-          Quay lại giỏ hàng
+          Back to Cart
         </Button>
         <Typography variant="h4" component="h1" gutterBottom>
-          Thanh Toán
+          Checkout
         </Typography>
       </Box>
 
@@ -350,7 +349,7 @@ const CheckoutPage = () => {
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
         <Button onClick={handleBack}>
-          {activeStep === 0 ? "Quay lại giỏ hàng" : "Quay lại"}
+          {activeStep === 0 ? "Back to Cart" : "Back"}
         </Button>
         <Button
           variant="contained"
@@ -359,7 +358,7 @@ const CheckoutPage = () => {
             activeStep === steps.length - 1 ? <CheckCircle /> : <ShoppingCart />
           }
         >
-          {activeStep === steps.length - 1 ? "Đặt Hàng" : "Tiếp Tục"}
+          {activeStep === steps.length - 1 ? "Place Order" : "Continue"}
         </Button>
       </Box>
 
@@ -369,28 +368,28 @@ const CheckoutPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Xác nhận đơn hàng</DialogTitle>
+        <DialogTitle>Order Confirmation</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            Bạn có chắc chắn muốn đặt đơn hàng này?
+            Are you sure you want to place this order?
           </Typography>
           <Box sx={{ mt: 2, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
             <Typography variant="body2">
-              <strong>Tổng tiền hàng:</strong> {subtotal} VND
+              <strong>Subtotal:</strong> {subtotal} VND
             </Typography>
             <Typography variant="body2">
-              <strong>Phí vận chuyển:</strong> {totalDeliveryFee} VND
+              <strong>Shipping Fee:</strong> {totalDeliveryFee} VND
             </Typography>
             <Typography variant="body2">
               <strong>VAT:</strong> {vat} VND
             </Typography>
             <Typography variant="h6" sx={{ mt: 1 }}>
-              <strong>Thanh toán:</strong> {finalTotal} VND
+              <strong>Total:</strong> {finalTotal} VND
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDialog(false)}>Hủy</Button>
+          <Button onClick={() => setConfirmDialog(false)}>Cancel</Button>
           <Button
             onClick={handlePlaceOrder}
             variant="contained"
@@ -399,7 +398,7 @@ const CheckoutPage = () => {
               loading ? <CircularProgress size={20} /> : <CheckCircle />
             }
           >
-            {loading ? "Đang xử lý..." : "Xác nhận"}
+            {loading ? "Processing..." : "Confirm"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -426,11 +425,11 @@ const CheckoutPage = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Lỗi Tồn Kho</DialogTitle>
+        <DialogTitle>Inventory Error</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            Một số sản phẩm trong giỏ hàng không đủ tồn kho. Vui lòng cập nhật
-            số lượng hoặc xóa sản phẩm:
+            Some products in your cart have insufficient inventory. Please
+            update quantities or remove products:
           </Typography>
           <Box sx={{ mt: 2 }}>
             {inventoryErrorDialog.insufficientItems.map((item, index) => (
@@ -450,14 +449,14 @@ const CheckoutPage = () => {
                 </Typography>
                 <Box sx={{ mt: 1 }}>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Số lượng yêu cầu:</strong> {item.quantity}
+                    <strong>Requested quantity:</strong> {item.quantity}
                   </Typography>
                   <Typography variant="body2" color="error.main">
-                    <strong>Tồn kho hiện tại:</strong>{" "}
+                    <strong>Current inventory:</strong>{" "}
                     {item.productDTO.quantity}
                   </Typography>
                   <Typography variant="body2" color="error.main">
-                    <strong>Số lượng thiếu:</strong>{" "}
+                    <strong>Shortage:</strong>{" "}
                     {item.quantity - item.productDTO.quantity}
                   </Typography>
                 </Box>
@@ -466,7 +465,7 @@ const CheckoutPage = () => {
           </Box>
           <Alert severity="warning" sx={{ mt: 2 }}>
             <Typography variant="body2">
-              Vui lòng quay lại giỏ hàng để cập nhật số lượng sản phẩm.
+              Please return to cart to update product quantities.
             </Typography>
           </Alert>
         </DialogContent>
@@ -477,7 +476,7 @@ const CheckoutPage = () => {
             }
             variant="contained"
           >
-            Đóng
+            Close
           </Button>
           <Button
             onClick={() => {
@@ -487,7 +486,7 @@ const CheckoutPage = () => {
             variant="outlined"
             color="primary"
           >
-            Quay lại giỏ hàng
+            Back to Cart
           </Button>
         </DialogActions>
       </Dialog>

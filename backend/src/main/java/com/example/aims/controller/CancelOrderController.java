@@ -18,8 +18,9 @@ public class CancelOrderController {
     @Autowired
     private CancelOrderService cancelOrderService;
 
-    @GetMapping("/")
-    public ResponseEntity<PayOrderResponseObjectDTO> cancelOrder(@RequestParam("orderId") String orderId, @RequestParam("transactionId") String transactionId, @RequestParam("paymentType") String paymentType) {
+    @GetMapping("")
+    public ResponseEntity<PayOrderResponseObjectDTO> cancelOrder(@RequestParam("orderId") String orderId,
+            @RequestParam("transactionId") String transactionId, @RequestParam("paymentType") String paymentType) {
         String message = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
         PayOrderResponseObjectDTO response = PayOrderResponseObjectDTO.builder()
                 .responseCode(200)

@@ -18,4 +18,5 @@ public class TransactionResponseDTO {
     private Double amount;
     private Date datetime;
     private PaymentOrderResponseFromReturnDTO order;
+    private String paymentType;
 }

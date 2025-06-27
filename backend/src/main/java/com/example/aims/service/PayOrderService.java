@@ -207,7 +207,9 @@ public class PayOrderService {
         String orderID = order.getOrderID();
         String recipientName = order.getDeliveryInfo().getRecipientName();
         String recipientEmail = order.getDeliveryInfo().getMail();
-        String transactionLink = "localhost:3001/payment-history?orderId=" + orderID;
+        String transactionLink = "localhost:3001/payment-history?orderId=" + orderID +
+                "&transactionId=" + transactionId +
+                "&paymentType=" + paymentTransaction.getPaymentType();
 
         try {
             emailService.sendPaymentConfirmation(recipientName, recipientEmail, orderID, transactionId,
@@ -234,6 +236,7 @@ public class PayOrderService {
         transactionDto.setTransactionId(paymentTransaction.getTransactionId());
         transactionDto.setDatetime(paymentTransaction.getDatetime());
         transactionDto.setAmount(paymentTransaction.getAmount());
+        transactionDto.setPaymentType(paymentTransaction.getPaymentType());
         Order order = paymentTransaction.getOrder();
         PaymentOrderResponseFromReturnDTO orderDto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
         transactionDto.setOrder(orderDto);
@@ -275,7 +278,5 @@ public class PayOrderService {
         }
         return orderItemDtos;
     }
-
-
 
 }

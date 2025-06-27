@@ -27,6 +27,7 @@ public class TransactionMapper {
         dto.setAmount(transaction.getAmount());
         dto.setDatetime(transaction.getDatetime());
         dto.setOrder(orderMapper.toPaymentOrderResponseFromReturnDTO(transaction.getOrder()));
+        dto.setPaymentType(transaction.getPaymentType());
         return dto;
     }
 }

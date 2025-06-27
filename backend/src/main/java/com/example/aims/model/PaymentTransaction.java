@@ -82,4 +82,6 @@ public class PaymentTransaction {
     private Double amount;
     @Column(name = "datetime", nullable = false)
     private Date datetime;
+    @Column(name = "payment_type")
+    private String paymentType;
 }

@@ -55,7 +55,6 @@ public class MomoPayResponse {
         deliveryInfo.setRecipientName(order.getDeliveryInfo().getRecipientName());
         deliveryInfo.setMail(order.getDeliveryInfo().getMail());
 
-
         Order orderNew = new Order();
         orderNew.setOrderID(order.getOrderID());
         orderNew.setTotalAmount(order.getTotalAmount());
@@ -67,6 +66,7 @@ public class MomoPayResponse {
         // orderNew.setProvince(order.getProvince());
 
         transaction.setOrder(orderNew);
+        transaction.setPaymentType("Momo");
         return transaction;
     }
 }

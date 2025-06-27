@@ -12,7 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-
 public class VNPayPayResponse {
 
     /**
@@ -57,7 +56,6 @@ public class VNPayPayResponse {
         deliveryInfo.setRecipientName(order.getDeliveryInfo().getRecipientName());
         deliveryInfo.setMail(order.getDeliveryInfo().getMail());
 
-
         Order orderNew = new Order();
         orderNew.setOrderID(order.getOrderID());
         orderNew.setTotalAmount(order.getTotalAmount());
@@ -70,6 +68,7 @@ public class VNPayPayResponse {
         // orderNew.setProvince(order.getProvince());
 
         transaction.setOrder(orderNew);
+        transaction.setPaymentType("VNPay");
         return transaction;
     }
 

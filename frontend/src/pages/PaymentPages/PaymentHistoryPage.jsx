@@ -9,7 +9,6 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { useLocation } from "react-router-dom";
 
-// Component phụ để hiển thị thông tin hàng dọc
 const InfoRow = ({ label, value }) => (
     <Box sx={{ display: "flex", justifyContent: "space-between", my: 0.5 }}>
         <Typography variant="body2" color="text.secondary">{label}</Typography>
@@ -23,11 +22,17 @@ const PaymentHistory = () => {
     const [orderItems, setOrderItems] = useState([]);
     const [transaction, setTransaction] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [token, setToken] = useState("");
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const [cancelledNotice, setCancelledNotice] = useState("");
 
     const API_BASE = "http://localhost:8080/api/payments";
 
-    const orderId = new URLSearchParams(location.search).get("orderId");
+    const params = new URLSearchParams(location.search);
+    const orderId = params.get("orderId");
+    const transactionId = params.get("transactionId");
+    const paymentType = params.get("paymentType");
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -38,18 +43,9 @@ const PaymentHistory = () => {
                     axios.get(`${API_BASE}/transaction_history?orderId=${orderId}`),
                 ]);
 
-                if (orderRes.data.responseCode === 200) {
-                    setOrder(orderRes.data.data);
-                }
-
-                if (orderItemsRes.data.responseCode === 200) {
-                    setOrderItems(orderItemsRes.data.data);
-                }
-
-                if (transRes.data.responseCode === 200) {
-                    setTransaction(transRes.data.data);
-                }
-
+                if (orderRes.data.responseCode === 200) setOrder(orderRes.data.data);
+                if (orderItemsRes.data.responseCode === 200) setOrderItems(orderItemsRes.data.data);
+                if (transRes.data.responseCode === 200) setTransaction(transRes.data.data);
             } catch (err) {
                 console.error(err);
                 setError("Failed to load payment history.");
@@ -58,21 +54,37 @@ const PaymentHistory = () => {
             }
         };
 
-        if (orderId) {
-            fetchAll();
-        } else {
+        if (orderId) fetchAll();
+        else {
             setError("Missing orderId in URL.");
             setLoading(false);
         }
     }, [orderId]);
 
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) setToken(token);
+    }, []);
+
     const handleCancelOrder = async () => {
+        if (order?.status === "CANCELLED") {
+            setCancelledNotice("⚠️ This order has already been canceled before.");
+            return;
+        }
+
         try {
-            const res = await axios.get(`${API_BASE}/cancel_order?id=${orderId}`);
-            alert("Order canceled: " + res.data.data);
-            window.location.reload();
+            await axios.get(
+                `http://localhost:8080/api/cancel-order?orderId=${orderId}&transactionId=${transactionId}&paymentType=${paymentType}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setSuccessMessage("✅ Order has been canceled. A refund will be issued to your account shortly.");
         } catch (err) {
-            alert("Failed to cancel order.");
+            console.error(err);
+            setError("❌ Failed to cancel order. Please try again.");
         }
     };
 
@@ -85,19 +97,27 @@ const PaymentHistory = () => {
         );
     }
 
-    if (error) {
-        return (
-            <Container maxWidth="sm" sx={{ mt: 6 }}>
-                <Alert severity="error">{error}</Alert>
-            </Container>
-        );
-    }
-
     return (
         <Container maxWidth="lg" sx={{ mt: 4 }}>
             <Typography variant="h4" align="center" gutterBottom>
                 🧾 Order & Payment Details
             </Typography>
+
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+            )}
+
+            {cancelledNotice && (
+                <Alert severity="warning" sx={{ mb: 3 }}>{cancelledNotice}</Alert>
+            )}
+
+            {successMessage && (
+                <Box sx={{ backgroundColor: "#e8f5e9", p: 3, borderRadius: 2, border: "1px solid #66bb6a", mb: 3 }}>
+                    <Typography variant="h6" color="green" align="center">
+                        {successMessage}
+                    </Typography>
+                </Box>
+            )}
 
             <Grid container spacing={4}>
                 {/* Order Info */}
@@ -126,7 +146,7 @@ const PaymentHistory = () => {
                                 </>
                             )}
 
-                            {order?.status !== "APPROVED" && (
+                            {order?.status !== "APPROVED" && !successMessage && (
                                 <Button
                                     variant="contained"
                                     color="error"
@@ -156,8 +176,8 @@ const PaymentHistory = () => {
                                 {orderItems.map((item, idx) => (
                                     <ListItem key={idx} disablePadding>
                                         <ListItemText
-                                            primary={`${item.product.title} x ${item.quantity}`}
-                                            secondary={`${item.product.price?.toLocaleString()}₫ each`}
+                                            primary={`${item.productTitle} x ${item.quantity}`}
+                                            secondary={`${item.productPrice?.toLocaleString()}₫ each`}
                                         />
                                     </ListItem>
                                 ))}
@@ -181,6 +201,7 @@ const PaymentHistory = () => {
                             <InfoRow label="Transaction No" value={transaction?.transactionNo} />
                             <InfoRow label="Amount" value={`${transaction?.amount?.toLocaleString()}₫`} />
                             <InfoRow label="Paid At" value={transaction?.datetime} />
+                            <InfoRow label="Payment Type" value={transaction?.paymentType} />
                             <InfoRow label="Status" value="Success" />
                         </CardContent>
                     </Card>

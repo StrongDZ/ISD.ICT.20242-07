@@ -110,4 +110,34 @@ export const cartService = {
       return await currentCartService.getCartTotal();
     }
   },
+
+  // Tạo đơn hàng
+  createOrder: async (orderData) => {
+    updateCartServiceReference();
+    if (currentCartService === localCartService) {
+      // Nếu chưa đăng nhập, lưu đơn hàng vào localStorage (giả lập)
+      const orders = JSON.parse(localStorage.getItem("aims_orders") || "[]");
+      const newOrder = {
+        ...orderData,
+        id: `ORDER-${Date.now()}`,
+        date: new Date().toISOString(),
+        items: orderData.cartItems,
+        total:
+          orderData.cartItems.reduce(
+            (sum, item) => sum + item.product.price * item.quantity,
+            0
+          ) + (orderData.deliveryInfo.isRushOrder ? 100000 : 50000),
+      };
+      orders.push(newOrder);
+      localStorage.setItem("aims_orders", JSON.stringify(orders));
+      return newOrder;
+    } else {
+      // Nếu đã đăng nhập, gọi API tạo đơn hàng (nếu có)
+      if (typeof currentCartService.createOrder === "function") {
+        return await currentCartService.createOrder(orderData);
+      } else {
+        throw new Error("Order creation API not implemented");
+      }
+    }
+  },
 };

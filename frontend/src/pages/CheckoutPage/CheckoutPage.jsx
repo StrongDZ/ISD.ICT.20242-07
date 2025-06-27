@@ -26,15 +26,14 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
-import { useAuth } from "../../contexts/AuthContext";
 import DeliveryForm from "../../components/Order/DeliveryForm";
 import OrderSummary from "../../components/Order/OrderSummary";
 import { cartService } from "../../services/cartService";
+import { orderService } from "../../services/orderService";
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { cartItems, getCartTotal, clearCart } = useCart();
-  const { isAuthenticated } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
   const [deliveryInfo, setDeliveryInfo] = useState({
@@ -58,16 +57,11 @@ const CheckoutPage = () => {
   const steps = ["Delivery Information", "Payment Method", "Confirmation"];
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate("/login");
-      return;
-    }
-
     if (cartItems.length === 0) {
       navigate("/cart");
       return;
     }
-  }, [isAuthenticated, cartItems, navigate]);
+  }, [cartItems, navigate]);
 
   const validateDeliveryInfo = () => {
     const newErrors = {};
@@ -152,7 +146,7 @@ const CheckoutPage = () => {
           phoneNumber: deliveryInfo.phoneNumber,
         },
       };
-      const createdOrder = await cartService.createOrder(orderData);
+      const createdOrder = await orderService.createOrder(orderData);
 
       // Clear cart
       clearCart();

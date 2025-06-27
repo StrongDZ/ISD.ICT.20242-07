@@ -2,7 +2,6 @@ package com.example.aims.mapper;
 
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.UsersDTO;
 import com.example.aims.dto.order.*;
 import com.example.aims.model.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,16 +13,13 @@ public class OrderMapperTest {
 
     private OrderMapper orderMapper;
     private DeliveryInfoMapper deliveryInfoMapper;
-    private UsersMapper usersMapper;
 
     @BeforeEach
     void setUp() {
         deliveryInfoMapper = mock(DeliveryInfoMapper.class);
-        usersMapper = mock(UsersMapper.class);
 
         orderMapper = new OrderMapper();
         orderMapper.deliveryInfoMapper = deliveryInfoMapper;
-        orderMapper.customerMapper = usersMapper;
     }
 
     @Test
@@ -68,9 +64,10 @@ public class OrderMapperTest {
     @Test
     void testToPaymentOrderResponseFromReturnDTO() {
         Order order = new Order();
-        order.setOrderID("ORD003");
-        order.setTotalAmount(3000.0);
+        order.setOrderID("ORD004");
+        order.setTotalAmount(4000.0);
         order.setStatus(OrderStatus.PENDING);
+        order.setPaymentType("vnpay");
 
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         order.setDeliveryInfo(deliveryInfo);
@@ -80,34 +77,34 @@ public class OrderMapperTest {
 
         PaymentOrderResponseFromReturnDTO dto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
 
-        assertEquals("ORD003", dto.getOrderID());
-        assertEquals(3000.0, dto.getTotalAmount());
-        assertEquals(OrderStatus.PENDING, dto.getStatus());
-        assertEquals(deliveryInfoDTO, dto.getDeliveryInfo());
-        // Các field khác không được set trong mapper nên sẽ là null
-        assertNull(dto.getCustomerName());
-        assertNull(dto.getPhoneNumber());
-        assertNull(dto.getShippingAddress());
-        assertNull(dto.getProvince());
-        assertNull(dto.getCustomer());
-    }
-
-    @Test
-    void testToPaymentOrderRetrievalDTO() {
-        Order order = new Order();
-        order.setOrderID("ORD004");
-        order.setTotalAmount(4000.0);
-        order.setStatus(OrderStatus.PENDING);
-
-        PaymentOrderRetrievalDTO dto = orderMapper.toPaymentOrderRetrievalDTO(order);
-
         assertEquals("ORD004", dto.getOrderID());
         assertEquals(4000.0, dto.getTotalAmount());
         assertEquals(OrderStatus.PENDING, dto.getStatus());
-        // Các field khác không được set trong mapper nên sẽ là null
-        assertNull(dto.getCustomerName());
-        assertNull(dto.getPhoneNumber());
-        assertNull(dto.getShippingAddress());
-        assertNull(dto.getProvince());
+        assertEquals("vnpay", dto.getPaymentType());
+        assertEquals(deliveryInfoDTO, dto.getDeliveryInfo());
+    }
+
+    @Test
+    void testToPaymentOrderResponseFromReturnDTOWithNullOrder() {
+        PaymentOrderResponseFromReturnDTO dto = orderMapper.toPaymentOrderResponseFromReturnDTO(null);
+        assertNull(dto);
+    }
+
+    @Test
+    void testToOrderDTOWithNullDeliveryInfo() {
+        Order order = new Order();
+        order.setOrderID("ORD005");
+        order.setTotalAmount(5000.0);
+        order.setStatus(OrderStatus.PENDING);
+        order.setPaymentType("vnpay");
+        order.setDeliveryInfo(null);
+
+        OrderDTO dto = orderMapper.toOrderDTO(order);
+
+        assertEquals("ORD005", dto.getId());
+        assertEquals(5000.0, dto.getTotalPrice());
+        assertEquals(OrderStatus.PENDING, dto.getStatus());
+        assertEquals("vnpay", dto.getPaymentType());
+        assertNull(dto.getDeliveryInfo());
     }
 }

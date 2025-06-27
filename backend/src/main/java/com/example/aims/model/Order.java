@@ -62,12 +62,15 @@ public class Order {
     @Column(name = "status")
     private OrderStatus status;
 
-     @Column(name = "total_amount")
+    @Column(name = "total_amount")
     private Double totalAmount;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "orderID")
     private DeliveryInfo deliveryInfo;
+
+    @Column(name = "payment_type")
+    private String paymentType;
 
     public OrderStatus checkOrderStatus() {
         try {
@@ -81,16 +84,17 @@ public class Order {
         this.status = OrderStatus.REJECTED;
     }
 
-    // public Order(String id, Users customer, String customerName, String phoneNumber, OrderStatus status,
-    //         String shippingAddress, String province, Double totalAmount) {
-    //     this.orderID = id;
-    //     this.customer = customer;
-    //     this.customerName = customerName;
-    //     this.phoneNumber = phoneNumber;
-    //     this.status = status;
-    //     this.shippingAddress = shippingAddress;
-    //     this.province = province;
-    //     this.totalAmount = totalAmount;
+    // public Order(String id, Users customer, String customerName, String
+    // phoneNumber, OrderStatus status,
+    // String shippingAddress, String province, Double totalAmount) {
+    // this.orderID = id;
+    // this.customer = customer;
+    // this.customerName = customerName;
+    // this.phoneNumber = phoneNumber;
+    // this.status = status;
+    // this.shippingAddress = shippingAddress;
+    // this.province = province;
+    // this.totalAmount = totalAmount;
     // }
 
     public void changeApproveOrder() {

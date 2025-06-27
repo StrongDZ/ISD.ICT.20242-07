@@ -57,13 +57,6 @@ public class VNPayPayResponse {
         deliveryInfo.setRecipientName(order.getDeliveryInfo().getRecipientName());
         deliveryInfo.setMail(order.getDeliveryInfo().getMail());
 
-        Users customer = new Users();
-        customer.setUsername(order.getCustomerName());
-        customer.setPassword(order.getCustomer().getPassword());
-        customer.setId(order.getCustomer().getId());
-        customer.setGmail(order.getCustomer().getGmail());
-        customer.getType();
-        customer.getUserStatus();
 
         Order orderNew = new Order();
         orderNew.setOrderID(order.getOrderID());

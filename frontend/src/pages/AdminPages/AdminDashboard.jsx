@@ -60,31 +60,11 @@ const AdminDashboard = () => {
     }, []);
 
     const loadAdminData = () => {
-        // Load users
-        const mockUsers = authService.getMockUsers();
-        setUsers(mockUsers);
-
-        // Load orders
-        const mockOrders = cartService.getMockOrders();
-        setOrders(mockOrders);
-
-        // Load products
-        const mockProducts = productService.getMockProducts();
-        setProducts(mockProducts);
-
-        // Calculate system statistics
-        const totalRevenue = mockOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-        const pendingOrdersCount = mockOrders.filter((o) => o.status === "PENDING_APPROVAL").length;
-        const activeUsersCount = mockUsers.filter((u) => u.isActive).length;
-
-        setSystemStats({
-            totalUsers: mockUsers.length,
-            totalOrders: mockOrders.length,
-            totalRevenue: totalRevenue,
-            totalProducts: mockProducts.length,
-            activeUsers: activeUsersCount,
-            pendingOrders: pendingOrdersCount,
-        });
+        // TODO: Gọi API thực tế để lấy dữ liệu users, orders, products
+        // setUsers(...);
+        // setOrders(...);
+        // setProducts(...);
+        // setSystemStats({...});
     };
 
     const formatPrice = (price) => {

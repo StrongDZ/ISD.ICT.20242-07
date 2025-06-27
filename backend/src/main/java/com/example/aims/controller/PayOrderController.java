@@ -34,9 +34,9 @@ public class PayOrderController {
      * @return String indicating the payment URL
      */
     @GetMapping("/url")
-    public String getPaymentURL(@RequestParam("orderId") String orderId) {
+    public String getPaymentURL(@RequestParam("orderId") String orderId, @RequestParam("paymentType") String paymentType) {
         // Call the VNPay subsystem to get the payment URL
-        return payOrderService.getPaymentURL(orderId);
+        return payOrderService.getPaymentURL(orderId, paymentType);
     }
 
     /**
@@ -53,8 +53,8 @@ public class PayOrderController {
      *         to FAILED or CANCELLED and return an appropriate message.
      */
     @GetMapping("/vnpay-return")
-    public RedirectView vnpayReturn(@RequestParam Map<String, String> vnpayResponse) {
-        String redirectUrl = payOrderService.processPayment(vnpayResponse); // URL dạng
+    public RedirectView vnpayReturn(@RequestParam Map<String, String> vnpayResponse, @RequestParam("paymentType") String paymentType) {
+        String redirectUrl = payOrderService.processPayment(vnpayResponse, paymentType); // URL dạng
                                                                             // "http://localhost:3000/payment-success"
         return new RedirectView(redirectUrl);
     }

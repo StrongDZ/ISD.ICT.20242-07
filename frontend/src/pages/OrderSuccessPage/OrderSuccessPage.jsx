@@ -11,7 +11,7 @@ const OrderSuccessPage = () => {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
     const [orderData, setOrderData] = useState(null);
-    const [paymentUrl, setPaymentUrl] = useState(""); // Khởi tạo là chuỗi rỗng
+    const [paymentUrl, setPaymentUrl] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -57,33 +57,9 @@ const OrderSuccessPage = () => {
             }
         };
 
-        const initialOrder = getOrderData();
-
-        const fetchPaymentUrl = async (orderId) => {
-            if (!orderId) return;
-
-            try {
-                const res = await axios.get(`http://localhost:8080/api/payments/url`, {
-                    params: { orderId: orderId }
-                });
-                // --- THÊM DÒNG NÀY ĐỂ IN URL RA CONSOLE ---
-                console.log("VNPay Payment URL:", res.data);
-                // ------------------------------------------
-
-                setPaymentUrl(res.data);
-            } catch (error) {
-                console.error("Error fetching VNPay URL:", error);
-            }
-        };
-
-        if (initialOrder?.id) {
-            fetchPaymentUrl(initialOrder.id);
-        } else {
-            setLoading(false);
-        }
-
+        getOrderData();
+        setLoading(false);
     }, [isAuthenticated, location.state, navigate]);
-
 
     const handleContinueShopping = () => {
         navigate("/products");
@@ -91,6 +67,20 @@ const OrderSuccessPage = () => {
 
     const handleViewOrders = () => {
         navigate("/", { state: { message: "Order history feature coming soon!" } });
+    };
+
+    // Callback khi user chọn cổng thanh toán
+    const handleRequestPaymentUrl = async (type) => {
+        if (!orderData?.id) return;
+        setPaymentUrl("");
+        try {
+            const res = await axios.get(`http://localhost:8080/api/payments/url`, {
+                params: { orderId: orderData.id, paymentType: type }
+            });
+            setPaymentUrl(res.data);
+        } catch (error) {
+            setError("Không thể lấy link thanh toán. Vui lòng thử lại!");
+        }
     };
 
     if (loading) {
@@ -145,12 +135,12 @@ const OrderSuccessPage = () => {
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
-            {/* Truyền paymentUrl xuống OrderSuccess */}
             <OrderSuccess
                 order={orderData}
-                paymentUrl={paymentUrl} // Truyền paymentUrl vào đây
+                paymentUrl={paymentUrl}
                 onContinueShopping={handleContinueShopping}
                 onViewOrders={handleViewOrders}
+                onRequestPaymentUrl={handleRequestPaymentUrl}
             />
         </Container>
     );

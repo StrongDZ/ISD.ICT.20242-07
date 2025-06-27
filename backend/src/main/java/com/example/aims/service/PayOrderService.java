@@ -12,7 +12,7 @@ import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
-import com.example.aims.subsystem.IPaymentSystem;
+import com.example.aims.factory.PaymentSystemFactory;
 import org.springframework.mail.SimpleMailMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,24 +62,12 @@ public class PayOrderService {
     @Autowired
     private final JavaMailSender javaMailSender;
 
-    private IPaymentSystem vnpay; // = new VNPaySubsystem();
-
     public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository,
-            IPaymentSystem vnpay, JavaMailSender javaMailSender) {
+            JavaMailSender javaMailSender) {
         this.currentOrder = orderRepository;
         this.currentPaymentTransaction = paymentTransactionRepository;
-        this.vnpay = vnpay;
         this.javaMailSender = javaMailSender;
     }
-
-    // public Optional<Order> findOrderById(String orderId) {
-    // return Optional.ofNullable(currentOrder.findByOrderId(orderId));
-    // }
-
-    // public Optional<PaymentTransaction> findPaymentTransactionByOrderId(String
-    // orderId) {
-    // return Optional.ofNullable(currentPaymentTransaction.findByOrderId(orderId));
-    // }
 
     /**
      * Generates a payment URL for the given order ID.
@@ -88,7 +76,7 @@ public class PayOrderService {
      * @return The payment URL for the order.
      * @throws IllegalArgumentException if the order is not found.
      */
-    public String getPaymentURL(String orderId) {
+    public String getPaymentURL(String orderId, String paymentType) {
         Optional<Order> orderOptional = currentOrder.findByOrderID(orderId);
         if (orderOptional.isEmpty()) {
             throw new IllegalArgumentException("Order not found with ID: " + orderId);
@@ -100,7 +88,7 @@ public class PayOrderService {
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
         PaymentOrderRequestDTO dto = orderMapper.toPaymentOrderRequestDTO(order);
-        return vnpay.getPaymentUrl(dto); // 1. Gọi service/component xử lý thanh toán thực tế (tương tự như trước)
+        return PaymentSystemFactory.getPaymentSystem(paymentType).getPaymentUrl(dto);
     }
 
     /**
@@ -109,19 +97,17 @@ public class PayOrderService {
      * @param allRequestParams The parameters received from the payment gateway.
      * @return A redirect URL based on the payment response.
      */
-    public String processPayment(Map<String, String> allRequestParams) {
+    public String processPayment(Map<String, String> allRequestParams, String paymentType) {
         String responseCode = allRequestParams.get("vnp_ResponseCode");
         if (responseCode.equals("00")) {
             String orderID = allRequestParams.get("vnp_TxnRef");
             Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
             PaymentOrderResponseFromReturnDTO orderDto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
-            System.out.println("Order DTO: " + orderDto);
-            PaymentTransaction paymentTransaction = vnpay.getTransactionInfo(allRequestParams, orderDto);
-            System.out.println("Payment Transaction: " + paymentTransaction);
+            PaymentTransaction paymentTransaction = PaymentSystemFactory.getPaymentSystem(paymentType)
+                    .getTransactionInfo(allRequestParams, orderDto);
             PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
             String transactionId = savedTransaction.getTransactionId();
-            System.out.println("Saved Transaction ID: " + transactionId);
             order.setStatus(OrderStatus.PENDING);
             currentOrder.save(order);
             sendMail(transactionId);
@@ -194,5 +180,4 @@ public class PayOrderService {
         return transactionDto;
     }
 
-    
 }

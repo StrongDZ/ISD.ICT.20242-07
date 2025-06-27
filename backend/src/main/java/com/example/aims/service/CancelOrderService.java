@@ -10,7 +10,7 @@ import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
-import com.example.aims.subsystem.IPaymentSystem;
+import com.example.aims.factory.PaymentSystemFactory;
 
 @Service
 public class CancelOrderService {
@@ -19,15 +19,12 @@ public class CancelOrderService {
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
-    private IPaymentSystem vnpay; // new VNPaySubsystem();
-    @Autowired
     private TransactionMapper transactionMapper;
 
     public CancelOrderService(PaymentTransactionRepository paymentTransactionRepository,
-            OrderRepository orderRepository, IPaymentSystem vnpay) {
+            OrderRepository orderRepository) {
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.orderRepository = orderRepository;
-        this.vnpay = vnpay;
     }
 
     /**
@@ -36,9 +33,10 @@ public class CancelOrderService {
      * @param orderId       The ID of the order to cancel.
      * @param transactionId The ID of the payment transaction associated with the
      *                      order.
+     * @param paymentType   Loại cổng thanh toán (vnpay, momo, ...)
      * @return A message indicating the result of the cancellation.
      */
-    public String cancelOrder(String orderId, String transactionId) {
+    public String cancelOrder(String orderId, String transactionId, String paymentType) {
         Order order = orderRepository.findByOrderID(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         if (order.getStatus() == OrderStatus.CANCELLED) {
@@ -52,11 +50,9 @@ public class CancelOrderService {
             PaymentTransaction paymentTransaction = paymentTransactionRepository.findByTransactionId(transactionId)
                     .orElseThrow(() -> new RuntimeException("Payment transaction not found"));
             if (paymentTransaction != null) {
-
                 TransactionResponseDTO transaction = transactionMapper.toTransactionResponseDTO(paymentTransaction);
-                String refundInfo = vnpay.getRefundInfo(transaction);
+                String refundInfo = PaymentSystemFactory.getPaymentSystem(paymentType).getRefundInfo(transaction);
                 if (refundInfo != null) {
-
                     return refundInfo;
                 } else {
                     return "Failed to process refund";

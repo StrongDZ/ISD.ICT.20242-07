@@ -45,9 +45,9 @@ public class OrderMapperTest {
 
         OrderDTO dto = orderMapper.toOrderDTO(order);
 
-        assertEquals(1, dto.getId());
+        assertEquals("ORD002", dto.getId());
         assertEquals(1000.0, dto.getTotalPrice());
-        assertEquals("PAID", dto.getStatus());
+        assertEquals(OrderStatus.PENDING, dto.getStatus());
         assertEquals(101, dto.getCustomerID());
         assertEquals(deliveryInfoDTO, dto.getDeliveryInfo());
     }
@@ -64,7 +64,7 @@ public class OrderMapperTest {
 
         PaymentOrderRequestDTO dto = orderMapper.toPaymentOrderRequestDTO(order);
 
-        assertEquals(2, dto.getOrderId());
+        assertEquals("ORD002", dto.getOrderId());
         assertEquals(2000.0, dto.getAmount());
         assertTrue(dto.getContent().contains("test@gmail.com"));
     }
@@ -89,7 +89,7 @@ public class OrderMapperTest {
 
         PaymentOrderResponseFromReturnDTO dto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
 
-        assertEquals(3, dto.getOrderID());
+        assertEquals("ORD003", dto.getOrderID());
         assertEquals("John Doe", dto.getCustomerName());
         assertEquals("0123456789", dto.getPhoneNumber());
         assertEquals("Hanoi", dto.getShippingAddress());

@@ -65,22 +65,38 @@ const PaymentSuccess = () => { // Bỏ orderId khỏi props
                 if (response.data && response.data.responseCode === 200) {
                     const transactionData = response.data.data;
 
-                    setOrder({
-                        id: transactionData.order.orderID,
-                        customerName: transactionData.order.customerName,
-                        customerPhoneNumber: transactionData.order.phoneNumber,
-                        total: transactionData.order.totalAmount,
-                        status: transactionData.order.status,
-                        shippingAdress: transactionData.order.shippingAddress,
-                        province: transactionData.order.province
-                    });
+                    // Debug log để kiểm tra cấu trúc dữ liệu
+                    console.log("Transaction Data:", transactionData);
+                    console.log("Order Data:", transactionData.order);
+                    console.log("Delivery Info:", transactionData.order?.deliveryInfo);
 
+                    // Set order data với kiểm tra null safety
+                    if (transactionData.order) {
+                        setOrder({
+                            id: transactionData.order.orderID || "N/A",
+                            customerName: transactionData.order.deliveryInfo?.recipientName || "N/A",
+                            customerPhoneNumber: transactionData.order.deliveryInfo?.phoneNumber || "N/A",
+                            total: transactionData.order.totalAmount || 0,
+                            status: transactionData.order.status || "N/A",
+                            shippingAddress: transactionData.order.deliveryInfo?.addressDetail || "N/A",
+                            city: transactionData.order.deliveryInfo?.city || "N/A",
+                            district: transactionData.order.deliveryInfo?.district || "N/A",
+                            mail: transactionData.order.deliveryInfo?.mail || "N/A",
+                            paymentType: transactionData.order.paymentType || "N/A"
+                        });
+                    } else {
+                        setError("Order information not found in transaction data.");
+                        setLoading(false);
+                        return;
+                    }
+
+                    // Set payment data với kiểm tra null safety
                     setPayment({
-                        transactionId: transactionData.transactionNo,
-                        method: "VNPAY", // Giả sử phương thức thanh toán là VNPAY  
-                        amount: transactionData.amount,
-                        paidAt: transactionData.datetime,
-                        status: "Success" // Giả sử trạng thái thanh toán là thành công,
+                        transactionId: transactionData.transactionNo || transactionData.transactionId || "N/A",
+                        amount: transactionData.amount || 0,
+                        paidAt: transactionData.datetime ? new Date(transactionData.datetime).toLocaleString('vi-VN') : "N/A",
+                        status: "Success", // Giả sử trạng thái thanh toán là thành công
+                        paymentType: transactionData.order?.paymentType || "N/A"
                     });
                 } else {
                     setError(response.data.message || "Failed to fetch transaction history.");
@@ -174,10 +190,12 @@ const PaymentSuccess = () => { // Bỏ orderId khỏi props
                                 <InfoRow label="Order ID" value={order?.id || "N/A"} />
                                 <InfoRow label="Customer" value={order?.customerName || "N/A"} />
                                 <InfoRow label="Phone Number" value={order?.customerPhoneNumber || "N/A"} />
-                                <InfoRow label="Total Amount" value={`${order?.total?.toLocaleString()}₫`} />
+                                <InfoRow label="Total Amount" value={order?.total ? `${order.total.toLocaleString()}₫` : "N/A"} />
                                 <InfoRow label="Status" value={order?.status || "N/A"} />
-                                <InfoRow label="Shipping Address" value={order?.shippingAdress || "N/A"} />
-                                <InfoRow label="Province" value={order?.province || "N/A"} />
+                                <InfoRow label="Shipping Address" value={order?.shippingAddress || "N/A"} />
+                                <InfoRow label="Province" value={order?.city || "N/A"} />
+                                <InfoRow label="District" value={order?.district || "N/A"} />
+                                <InfoRow label="Email" value={order?.mail || "N/A"} />
                             </CardContent>
                         </Card>
                     </Grid>
@@ -196,8 +214,7 @@ const PaymentSuccess = () => { // Bỏ orderId khỏi props
                                 <Divider sx={{ mb: 2 }} />
                                 {/* Sử dụng dữ liệu từ state */}
                                 <InfoRow label="Transaction ID" value={payment?.transactionId || "N/A"} />
-                                <InfoRow label="Method" value={payment?.method || "N/A"} />
-                                <InfoRow label="Amount Paid" value={`${payment?.amount?.toLocaleString()}₫`} />
+                                <InfoRow label="Amount Paid" value={payment?.amount ? `${payment.amount.toLocaleString()}₫` : "N/A"} />
                                 <InfoRow label="Paid At" value={payment?.paidAt || "N/A"} />
                                 <InfoRow label="Status" value={payment?.status || "N/A"} />
                             </CardContent>

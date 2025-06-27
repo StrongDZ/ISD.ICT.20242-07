@@ -2,7 +2,6 @@ package com.example.aims.mapper;
 
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
-import com.example.aims.dto.order.PaymentOrderRetrievalDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.dto.transaction.TransactionRetrievalDTO;
 import com.example.aims.model.Order;
@@ -39,21 +38,14 @@ public class TransactionMapperTest {
         transaction.setTransactionNo("123456789");
         transaction.setAmount(1000.0);
         transaction.setDatetime(new Date());
-        transaction.setTransactionBank("Vietcombank");
-        transaction.setTransactionStatus("00");
-        transaction.setCardType("ATM");
 
         Order order = new Order();
         order.setOrderID("ORD001");
-        order.setTotalAmount(1000.0);
         order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(1000.0);
         transaction.setOrder(order);
 
         PaymentOrderResponseFromReturnDTO orderDTO = new PaymentOrderResponseFromReturnDTO();
-        orderDTO.setOrderID("ORD001");
-        orderDTO.setTotalAmount(1000.0);
-        orderDTO.setStatus(OrderStatus.PENDING);
-
         when(orderMapper.toPaymentOrderResponseFromReturnDTO(order)).thenReturn(orderDTO);
 
         // Act
@@ -71,15 +63,6 @@ public class TransactionMapperTest {
     }
 
     @Test
-    void testToTransactionResponseDTO_WithNullTransaction() {
-        // Act
-        TransactionResponseDTO result = transactionMapper.toTransactionResponseDTO(null);
-
-        // Assert
-        assertNull(result);
-    }
-
-    @Test
     void testToTransactionRetrievalDTO() {
         // Arrange
         PaymentTransaction transaction = new PaymentTransaction();
@@ -87,22 +70,15 @@ public class TransactionMapperTest {
         transaction.setTransactionNo("987654321");
         transaction.setAmount(2000.0);
         transaction.setDatetime(new Date());
-        transaction.setTransactionBank("BIDV");
-        transaction.setTransactionStatus("00");
-        transaction.setCardType("CREDIT");
 
         Order order = new Order();
         order.setOrderID("ORD002");
-        order.setTotalAmount(2000.0);
         order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(2000.0);
         transaction.setOrder(order);
 
-        PaymentOrderRetrievalDTO orderDTO = new PaymentOrderRetrievalDTO();
-        orderDTO.setOrderID("ORD002");
-        orderDTO.setTotalAmount(2000.0);
-        orderDTO.setStatus(OrderStatus.PENDING);
-
-        when(orderMapper.toPaymentOrderRetrievalDTO(order)).thenReturn(orderDTO);
+        PaymentOrderResponseFromReturnDTO orderDTO = new PaymentOrderResponseFromReturnDTO();
+        when(orderMapper.toPaymentOrderResponseFromReturnDTO(order)).thenReturn(orderDTO);
 
         // Act
         TransactionRetrievalDTO result = transactionMapper.toTransactionRetrievalDTO(transaction);
@@ -115,7 +91,16 @@ public class TransactionMapperTest {
         assertEquals(transaction.getDatetime(), result.getDatetime());
         assertEquals(orderDTO, result.getOrder());
 
-        verify(orderMapper).toPaymentOrderRetrievalDTO(order);
+        verify(orderMapper).toPaymentOrderResponseFromReturnDTO(order);
+    }
+
+    @Test
+    void testToTransactionResponseDTO_WithNullTransaction() {
+        // Act
+        TransactionResponseDTO result = transactionMapper.toTransactionResponseDTO(null);
+
+        // Assert
+        assertNull(result);
     }
 
     @Test
@@ -163,7 +148,7 @@ public class TransactionMapperTest {
         transaction.setDatetime(new Date());
         transaction.setOrder(null);
 
-        when(orderMapper.toPaymentOrderRetrievalDTO(null)).thenReturn(null);
+        when(orderMapper.toPaymentOrderResponseFromReturnDTO(null)).thenReturn(null);
 
         // Act
         TransactionRetrievalDTO result = transactionMapper.toTransactionRetrievalDTO(transaction);
@@ -176,6 +161,6 @@ public class TransactionMapperTest {
         assertEquals(transaction.getDatetime(), result.getDatetime());
         assertNull(result.getOrder());
 
-        verify(orderMapper).toPaymentOrderRetrievalDTO(null);
+        verify(orderMapper).toPaymentOrderResponseFromReturnDTO(null);
     }
 }

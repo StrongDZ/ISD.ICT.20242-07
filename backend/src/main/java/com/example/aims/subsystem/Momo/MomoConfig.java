@@ -7,7 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 class MomoConfig {
     protected static String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     // protected static String returnUrl = "http://localhost:5173/payment-success";
-    protected static String returnUrl = "https://1028-113-190-19-107.ngrok-free.app/api/payments/vnpay-return";
+    protected static String returnUrl = "https://fd02-123-16-185-32.ngrok-free.app/api/payments/vnpay-return";
     protected static String vnpayTmnCode = "DOIHA1RT";
     protected static String secretKey = "D651N17NCI55EOYGOM6XKRAJDHJ4Y2D7";
     protected static String vnpayVersion = "2.1.0";

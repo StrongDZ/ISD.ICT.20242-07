@@ -2,9 +2,8 @@ package com.example.aims.service;
 
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
-import com.example.aims.dto.order.PaymentOrderRetrievalDTO;
 import com.example.aims.dto.order.PaymentOrderRequestDTO;
-import com.example.aims.dto.transaction.TransactionRetrievalDTO;
+import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.exception.PaymentException.PaymentException;
 import com.example.aims.mapper.OrderMapper;
 import com.example.aims.mapper.VNPayErrorMapper;
@@ -165,17 +164,17 @@ public class PayOrderService {
      * @return A TransactionDto containing the payment transaction details.
      * @throws IllegalArgumentException if the payment transaction is not found.
      */
-    public TransactionRetrievalDTO getPaymentHistory(String orderId) {
+    public TransactionResponseDTO getPaymentHistory(String orderId) {
         PaymentTransaction paymentTransaction = currentPaymentTransaction.findByTransactionId(orderId)
                 .orElseThrow(
                         () -> new IllegalArgumentException("Payment transaction not found for order ID: " + orderId));
-        TransactionRetrievalDTO transactionDto = new TransactionRetrievalDTO();
+        TransactionResponseDTO transactionDto = new TransactionResponseDTO();
         transactionDto.setTransactionNo(paymentTransaction.getTransactionNo());
         transactionDto.setTransactionId(paymentTransaction.getTransactionId());
         transactionDto.setDatetime(paymentTransaction.getDatetime());
         transactionDto.setAmount(paymentTransaction.getAmount());
         Order order = paymentTransaction.getOrder();
-        PaymentOrderRetrievalDTO orderDto = orderMapper.toPaymentOrderRetrievalDTO(order);
+        PaymentOrderResponseFromReturnDTO orderDto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
         transactionDto.setOrder(orderDto);
         return transactionDto;
     }

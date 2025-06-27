@@ -2,7 +2,6 @@ package com.example.aims.controller;
 
 import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.service.products.ProductService;
-import com.example.aims.validator.OnRequest;
 import com.example.aims.security.UserDetailsImpl;
 
 
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/manager")
 @CrossOrigin(origins = "*")
-@Validated(OnRequest.class)
 public class ManagerController {
 
     private final ProductService productService;

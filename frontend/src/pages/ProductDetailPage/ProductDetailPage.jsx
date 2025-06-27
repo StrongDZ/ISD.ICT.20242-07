@@ -25,6 +25,7 @@ import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 import ProductCard from "../../components/Product/ProductCard";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";
+import { getCategoryColor } from "../../utils/getCategoryColor";
 
 const ProductDetailPage = () => {
     const { id } = useParams();
@@ -113,20 +114,7 @@ const ProductDetailPage = () => {
         }
     };
 
-    const getCategoryColor = (category) => {
-        switch (category?.toLowerCase()) {
-            case "book":
-                return "primary";
-            case "cd":
-                return "warning";
-            case "dvd":
-                return "secondary";
-            case "lp":
-                return "success";
-            default:
-                return "default";
-        }
-    };
+
 
     const renderCategorySpecificInfo = () => {
         if (!product) return null;

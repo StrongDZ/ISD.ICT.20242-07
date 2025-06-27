@@ -38,6 +38,7 @@ import { useNavigate } from "react-router-dom";
 import { productService } from "../../services/productService";
 import ProductEditDialog from "../../components/Product/ProductEditDialog";
 import ProductDetailDialog from "../../components/Product/ProductDetailDialog";
+import { getCategoryColor } from "../../utils/getCategoryColor";
 
 const ProductManagementPage = () => {
     const navigate = useNavigate();
@@ -181,18 +182,6 @@ const ProductManagementPage = () => {
         }).format(price);
     };
 
-    const getCategoryColor = (category) => {
-        switch (category?.toLowerCase()) {
-            case "book":
-                return "primary";
-            case "cd":
-                return "warning";
-            case "dvd":
-                return "secondary";
-            default:
-                return "default";
-        }
-    };
 
     const getStockStatus = (quantity) => {
         if (quantity === 0) return { label: "Out of Stock", color: "error" };

@@ -15,9 +15,11 @@ export const cartService = {
     // Add product to cart
     addToCart: async (productId, quantity = 1) => {
         try {
-            const response = await api.post(`/cart/${productId}`, null, {
-                params: { quantity },
-            });
+            const cartItemDTO = {
+                product: { productID: productId },
+                quantity: quantity,
+            };
+            const response = await api.post("/cart", cartItemDTO);
             return response.data;
         } catch (error) {
             console.error(`Error adding product ${productId} to cart:`, error);
@@ -28,9 +30,11 @@ export const cartService = {
     // Update cart item quantity
     updateCartItem: async (productId, quantity) => {
         try {
-            const response = await api.put(`/cart/${productId}`, null, {
-                params: { quantity },
-            });
+            const cartItemDTO = {
+                product: { productID: productId },
+                quantity: quantity,
+            };
+            const response = await api.put("/cart", cartItemDTO);
             return response.data;
         } catch (error) {
             console.error(`Error updating cart item ${productId}:`, error);
@@ -41,7 +45,10 @@ export const cartService = {
     // Remove product from cart
     removeFromCart: async (productId) => {
         try {
-            await api.delete(`/cart/${productId}`);
+            const cartItemDTO = {
+                product: { productID: productId },
+            };
+            await api.delete("/cart", { data: cartItemDTO });
         } catch (error) {
             console.error(`Error removing product ${productId} from cart:`, error);
             throw error;
@@ -51,7 +58,7 @@ export const cartService = {
     // Clear entire cart
     clearCart: async () => {
         try {
-            await api.delete("/cart");
+            await api.delete("/cart/clear");
         } catch (error) {
             console.error("Error clearing cart:", error);
             throw error;

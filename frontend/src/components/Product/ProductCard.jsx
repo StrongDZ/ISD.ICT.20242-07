@@ -3,6 +3,7 @@ import { Card, CardMedia, CardContent, CardActions, Typography, Button, Box, Chi
 import { ShoppingCart, Visibility } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
+import { getCategoryColor } from "../../utils/getCategoryColor";
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
@@ -16,18 +17,7 @@ const ProductCard = ({ product }) => {
         }).format(price);
     };
 
-    const getCategoryColor = (category) => {
-        switch (category?.toLowerCase()) {
-            case "book":
-                return "primary";
-            case "cd":
-                return "warning";
-            case "dvd":
-                return "secondary";
-            default:
-                return "default";
-        }
-    };
+    console.log(product);
 
     const handleViewDetails = () => {
         navigate(`/products/${product.productID}`);
@@ -72,7 +62,7 @@ const ProductCard = ({ product }) => {
                 onClick={handleViewDetails}
             >
                 <Box sx={{ position: "relative" }}>
-                    <CardMedia component="img" height="250" image={product.imageURL} alt={product.title} sx={{ objectFit: "cover" }} />
+                    <CardMedia component="img" height="250" image={`${product.imageURL}`} alt={product.title} sx={{ objectFit: "cover" }} />
                     <Chip
                         label={product.category?.toUpperCase()}
                         color={getCategoryColor(product.category)}
@@ -84,22 +74,9 @@ const ProductCard = ({ product }) => {
                             fontWeight: "bold",
                         }}
                     />
-                    {product.quantity <= 5 && product.quantity > 0 && (
+                    {product.quantity <= 5 && (
                         <Chip
-                            label="Low Stock"
-                            color="error"
-                            size="small"
-                            sx={{
-                                position: "absolute",
-                                top: 8,
-                                right: 8,
-                                fontWeight: "bold",
-                            }}
-                        />
-                    )}
-                    {product.quantity === 0 && (
-                        <Chip
-                            label="Out of Stock"
+                            label={product.quantity === 0 ? "Out of Stock" : "Low Stock"}
                             color="error"
                             size="small"
                             sx={{
@@ -132,18 +109,18 @@ const ProductCard = ({ product }) => {
 
                     {/* Category-specific information */}
                     {product.category === "book" && product.authors && (
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                            by {product.authors}
+                        <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: "20px" }}>
+                            by <b>{product.authors}</b>
                         </Typography>
                     )}
                     {product.category === "cd" && product.artist && (
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                            by {product.artist}
+                        <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: "20px" }}>
+                            by <b>{product.artist}</b>
                         </Typography>
                     )}
                     {product.category === "dvd" && product.director && (
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                            Directed by {product.director}
+                        <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: "20px" }}>
+                            Directed by <b>{product.director}</b>
                         </Typography>
                     )}
 

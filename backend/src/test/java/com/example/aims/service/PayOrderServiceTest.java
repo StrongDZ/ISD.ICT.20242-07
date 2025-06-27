@@ -6,7 +6,7 @@ import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.exception.PaymentException.PaymentException;
 import com.example.aims.mapper.OrderMapper;
-import com.example.aims.mapper.VNPayErrorMapper;
+import com.example.aims.mapper.PaymentError.VNPayErrorMapper;
 import com.example.aims.model.DeliveryInfo;
 import com.example.aims.model.Order;
 import com.example.aims.model.PaymentTransaction;

@@ -60,8 +60,7 @@ const Header = () => {
 
                 <Box sx={{ display: "flex", gap: 2, mr: "auto" }}>
                     {/* Basic navigation for all users */}
-                    {isCustomer() ||
-                        (!isAuthenticated() && (
+                    {(isCustomer() || !isAuthenticated()) && (
                             <>
                                 <Button
                                     color="inherit"
@@ -84,7 +83,7 @@ const Header = () => {
                                     Products
                                 </Button>
                             </>
-                        ))}
+                        )}
 
                     {/* Admin Links - Only for Admin */}
                     {isAdmin() && (

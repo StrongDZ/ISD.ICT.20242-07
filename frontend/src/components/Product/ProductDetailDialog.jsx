@@ -20,6 +20,7 @@ import {
     Paper,
 } from "@mui/material";
 import { Close, Edit, Inventory, TrendingUp, TrendingDown, Warning } from "@mui/icons-material";
+import { getCategoryColor } from "../../utils/getCategoryColor";
 
 const ProductDetailDialog = ({ open, onClose, product, onEdit }) => {
     if (!product) return null;
@@ -36,20 +37,6 @@ const ProductDetailDialog = ({ open, onClose, product, onEdit }) => {
         return new Date(date).toLocaleDateString("vi-VN");
     };
 
-    const getCategoryColor = (category) => {
-        switch (category?.toLowerCase()) {
-            case "book":
-                return "primary";
-            case "cd":
-                return "warning";
-            case "dvd":
-                return "secondary";
-            case "lp":
-                return "success";
-            default:
-                return "default";
-        }
-    };
 
     const getStockStatus = (quantity) => {
         if (quantity === 0) {

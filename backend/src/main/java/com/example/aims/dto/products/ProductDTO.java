@@ -2,13 +2,11 @@ package com.example.aims.dto.products;
 
 import java.util.Date;
 
-import com.example.aims.validator.OnRequest;
 import com.example.aims.validator.OnResponse;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
 import lombok.Data;
 
 @Data
@@ -19,7 +17,6 @@ import lombok.Data;
         @JsonSubTypes.Type(value = DvdDTO.class, name = "dvd")
 })
 public abstract class ProductDTO {
-    @Null(groups = OnRequest.class, message = "Không cần truyền ID khi gửi request")
     @NotNull(groups = OnResponse.class, message = "Phải có ID khi trả về")
     private String productID;
 

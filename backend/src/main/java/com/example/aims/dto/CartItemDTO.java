@@ -13,5 +13,4 @@ import lombok.NoArgsConstructor;
 public class CartItemDTO {
     private ProductDTO productDTO;
     private Integer quantity;
-    private Integer customerId;
 }

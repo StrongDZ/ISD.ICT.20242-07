@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class CartController {
     private final CartService cartService;
 
-    // Cart endpoints
+    // Get all cart items
     @GetMapping
     public ResponseEntity<List<CartItemDTO>> getCartItems(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         Integer customerId = userDetails.getId();
@@ -25,38 +25,48 @@ public class CartController {
         return ResponseEntity.ok(cartItems);
     }
 
-    @PostMapping("/{productId}")
-    public ResponseEntity<CartItemDTO> addToCart(@PathVariable String productId, @RequestParam Integer quantity,
+    // Add product to cart
+    @PostMapping
+    public ResponseEntity<CartItemDTO> addToCart(@RequestBody CartItemDTO cartItemDTO,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Integer customerId = userDetails.getId();
+        String productId = cartItemDTO.getProductDTO().getProductID();
+        Integer quantity = cartItemDTO.getQuantity();
+
         CartItemDTO cartItem = cartService.addToCart(customerId, productId, quantity);
         return ResponseEntity.ok(cartItem);
     }
 
-    @PutMapping("{productId}")
-    public ResponseEntity<CartItemDTO> updateCartItem(@PathVariable String productId, @RequestParam Integer quantity,
+    // Update cart item
+    @PutMapping
+    public ResponseEntity<CartItemDTO> updateCartItem(@RequestBody CartItemDTO cartItemDTO,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Integer customerId = userDetails.getId();
+        String productId = cartItemDTO.getProductDTO().getProductID();
+        Integer quantity = cartItemDTO.getQuantity();
+
         CartItemDTO cartItem = cartService.updateCartItem(customerId, productId, quantity);
-        // If the cart item is not found, return a 404 response
         if (cartItem == null) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(cartItem);
     }
 
-    @DeleteMapping("{productId}")
-    public ResponseEntity<Void> removeFromCart(@PathVariable String productId,
+    // Remove product from cart
+    @DeleteMapping
+    public ResponseEntity<Void> removeFromCart(@RequestBody CartItemDTO cartItemDTO,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Integer customerId = userDetails.getId();
+        String productId = cartItemDTO.getProductDTO().getProductID();
+
         cartService.removeFromCart(customerId, productId);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping()
+    // Clear entire cart
+    @DeleteMapping("/clear")
     public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         Integer customerId = userDetails.getId();
-
         cartService.clearCart(customerId);
         return ResponseEntity.ok().build();
     }

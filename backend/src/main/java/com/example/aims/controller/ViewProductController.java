@@ -35,10 +35,29 @@ public class ViewProductController {
     })
     @GetMapping
     public ResponseEntity<?> getAllProducts(
-            @Parameter(description = "Page number (0-based)") @RequestParam(required = false) Integer page,
-            @Parameter(description = "Page size") @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String sortBy) {
+        // Default pagination values
+        int p = page != null ? page : 0;
+        int s = size != null ? size : 20;
+
+        boolean hasFilter = (keyword != null && !keyword.isBlank()) ||
+                (category != null && !category.isBlank() && !"all".equalsIgnoreCase(category)) ||
+                minPrice != null || maxPrice != null || (sortBy != null && !sortBy.isBlank());
+
+        if (hasFilter) {
+            PagedResponse<ProductDTO> paged = productService.getFilteredProducts(
+                    keyword, category, minPrice, maxPrice, sortBy, p, s);
+            return ResponseEntity.ok(paged);
+        }
+
         if (page != null && size != null) {
-            PagedResponse<ProductDTO> pagedProducts = productService.getAllProducts(page, size);
+            PagedResponse<ProductDTO> pagedProducts = productService.getAllProducts(p, s);
             return ResponseEntity.ok(pagedProducts);
         } else {
             List<ProductDTO> products = productService.getAllProducts();

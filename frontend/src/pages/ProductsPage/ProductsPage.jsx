@@ -62,39 +62,24 @@ const ProductsPage = () => {
         { value: "price_desc", label: "Price High to Low" },
     ];
 
-    // Load products with pagination
+    // Load products with pagination via unified backend endpoint
     const loadProducts = async (page = 0) => {
         try {
             setLoading(true);
             setError(null);
 
-            let response;
-            const backendPage = page; // Backend uses 0-based pagination
+            const response = await productService.fetchProducts(filters, page, pageSize);
 
-            if (filters.search) {
-                response = await productService.searchProducts(filters.search, backendPage, pageSize);
-            } else if (filters.category && filters.category !== "all") {
-                response = await productService.getProductsByCategory(filters.category, backendPage, pageSize);
-            } else {
-                response = await productService.getAllProducts(backendPage, pageSize);
-            }
-
-            // Handle both paginated and non-paginated responses
             if (response.content) {
-                // Paginated response
+                // Paginated response from backend
                 setProducts(response.content);
                 setTotalPages(response.totalPages);
                 setTotalElements(response.totalElements);
             } else if (Array.isArray(response)) {
-                // Non-paginated response - apply client-side pagination
-                const filteredProducts = filterAndSortProducts(response);
-                const startIndex = page * pageSize;
-                const endIndex = startIndex + pageSize;
-                const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-
-                setProducts(paginatedProducts);
-                setTotalPages(Math.ceil(filteredProducts.length / pageSize));
-                setTotalElements(filteredProducts.length);
+                // Fallback if backend returns list (shouldn't happen but keep old behavior)
+                setProducts(response);
+                setTotalPages(1);
+                setTotalElements(response.length);
             } else {
                 setProducts([]);
                 setTotalPages(0);
@@ -107,60 +92,6 @@ const ProductsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    // Client-side filtering and sorting for fallback
-    const filterAndSortProducts = (allProducts) => {
-        let filtered = [...allProducts];
-
-        // Apply filters
-        if (filters.category && filters.category !== "all") {
-            filtered = filtered.filter((product) => product.category === filters.category);
-        }
-
-        if (filters.search) {
-            const searchTerm = filters.search.toLowerCase();
-            filtered = filtered.filter(
-                (product) =>
-                    product.title.toLowerCase().includes(searchTerm) ||
-                    product.description.toLowerCase().includes(searchTerm) ||
-                    (product.authors && product.authors.toLowerCase().includes(searchTerm)) ||
-                    (product.artist && product.artist.toLowerCase().includes(searchTerm)) ||
-                    (product.director && product.director.toLowerCase().includes(searchTerm))
-            );
-        }
-
-        if (filters.minPrice) {
-            const minPrice = parseFloat(filters.minPrice);
-            filtered = filtered.filter((product) => product.price >= minPrice);
-        }
-
-        if (filters.maxPrice) {
-            const maxPrice = parseFloat(filters.maxPrice);
-            filtered = filtered.filter((product) => product.price <= maxPrice);
-        }
-
-        // Apply sorting
-        if (filters.sortBy) {
-            switch (filters.sortBy) {
-                case "title_asc":
-                    filtered.sort((a, b) => a.title.localeCompare(b.title));
-                    break;
-                case "title_desc":
-                    filtered.sort((a, b) => b.title.localeCompare(a.title));
-                    break;
-                case "price_asc":
-                    filtered.sort((a, b) => a.price - b.price);
-                    break;
-                case "price_desc":
-                    filtered.sort((a, b) => b.price - a.price);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        return filtered;
     };
 
     // Update URL with current filters and page

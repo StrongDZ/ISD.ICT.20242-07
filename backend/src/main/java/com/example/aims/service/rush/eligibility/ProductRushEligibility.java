@@ -1,6 +1,8 @@
 package com.example.aims.service.rush.eligibility;
 
 import com.example.aims.dto.products.ProductDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,6 +37,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProductRushEligibility implements RushEligibility<ProductDTO> {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProductRushEligibility.class);
+
     /**
      * Checks if the product is eligible for rush delivery based on its internal
      * flag.
@@ -45,6 +49,21 @@ public class ProductRushEligibility implements RushEligibility<ProductDTO> {
      */
     @Override
     public boolean isRushAllowed(ProductDTO product) {
-        return product != null && product.getRushEligible();
+        if (product == null) {
+            logger.warn("Product is null, cannot check rush eligibility");
+            return false;
+        }
+        
+        Boolean rushEligible = product.getRushEligible();
+        if (rushEligible == null) {
+            logger.debug("Product {} has null rushEligible field, treating as not eligible", 
+                product.getProductID() != null ? product.getProductID() : "unknown");
+            return false;
+        }
+        
+        boolean result = rushEligible.booleanValue();
+        logger.debug("Product {} rush eligibility: {}", 
+            product.getProductID() != null ? product.getProductID() : "unknown", result);
+        return result;
     }
 }

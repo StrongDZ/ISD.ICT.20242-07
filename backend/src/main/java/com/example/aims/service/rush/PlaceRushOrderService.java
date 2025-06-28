@@ -43,9 +43,14 @@ public class PlaceRushOrderService {
 
         // Separate products into those eligible and not eligible for rush shipping
         for (ProductDTO product : products) {
-            if (productEligibility.isRushAllowed(product)) {
-                rushProducts.add(product);
-            } else {
+            try {
+                if (productEligibility.isRushAllowed(product)) {
+                    rushProducts.add(product);
+                } else {
+                    regularProducts.add(product);
+                }
+            } catch (Exception e) {
+                // If there's any error checking rush eligibility, treat as not eligible
                 regularProducts.add(product);
             }
         }

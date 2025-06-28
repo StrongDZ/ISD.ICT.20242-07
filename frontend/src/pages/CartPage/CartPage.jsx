@@ -25,6 +25,7 @@ import {
 import { Add, Remove, Delete, ShoppingCart, ArrowForward, Warning, Info } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
+import { orderService } from "../../services/orderService";
 
 const CartPage = () => {
     const navigate = useNavigate();
@@ -42,12 +43,12 @@ const CartPage = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [showError, setShowError] = useState(false);
 
-    const formatPrice = (price) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(price);
-    };
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  };
 
     // Handle error display
     const handleError = (error) => {
@@ -129,9 +130,9 @@ const CartPage = () => {
         }, 0);
     };
 
-    const handleRemoveItem = (product) => {
-        removeFromCart(product);
-    };
+  const handleRemoveItem = (product) => {
+    removeFromCart(product);
+  };
 
     const handleClearCart = () => {
         if (window.confirm("Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng?")) {
@@ -139,9 +140,9 @@ const CartPage = () => {
         }
     };
 
-    const handleContinueShopping = () => {
-        navigate("/products");
-    };
+  const handleContinueShopping = () => {
+    navigate("/products");
+  };
 
     const handleCheckout = () => {
         if (hasInventoryIssues()) {

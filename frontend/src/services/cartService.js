@@ -20,6 +20,17 @@ export const cartService = {
 
     getCurrentService: () => currentCartService,
 
+    // Refresh cart items with latest product information from server
+    refreshCartItems: async () => {
+        updateCartServiceReference();
+        if (currentCartService === localCartService) {
+            return await currentCartService.refreshCartItems();
+        } else {
+            // For authenticated users, just return current cart items (they're already up-to-date)
+            return await currentCartService.getCartItems();
+        }
+    },
+
     // Local service is sync, API service is async
 
     getCartItems: async () => {

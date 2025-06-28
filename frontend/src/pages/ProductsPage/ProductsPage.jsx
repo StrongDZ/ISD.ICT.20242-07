@@ -34,7 +34,7 @@ const ProductsPage = () => {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(12); // Items per page
+    const [pageSize] = useState(20); // Items per page
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
 

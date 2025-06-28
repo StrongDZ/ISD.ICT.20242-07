@@ -24,7 +24,7 @@ import { orderService } from "../../services/orderService";
 import { useCart } from "../../contexts/CartContext";
 
 const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
-    const { cartItems } = useCart();
+    const { selectedItems } = useCart();
     const [rushOrderDetails, setRushOrderDetails] = useState(null);
     const [loadingRushCheck, setLoadingRushCheck] = useState(false);
 
@@ -138,12 +138,12 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
     // Kiểm tra rush order eligibility khi địa chỉ thay đổi
     useEffect(() => {
         const checkRushOrderEligibility = async () => {
-            if (deliveryInfo.city && deliveryInfo.district && cartItems.length > 0) {
+            if (deliveryInfo.city && deliveryInfo.district && selectedItems.length > 0) {
                 setLoadingRushCheck(true);
                 try {
                     const response = await orderService.checkRushOrderEligibility(
                         deliveryInfo,
-                        cartItems.map(item => item.product)
+                        selectedItems.map((item) => item.productDTO)
                     );
                     setRushOrderDetails(response);
                 } catch (error) {
@@ -158,7 +158,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
         };
 
         checkRushOrderEligibility();
-    }, [deliveryInfo.city, deliveryInfo.district, cartItems]);
+    }, [deliveryInfo.city, deliveryInfo.district, selectedItems]);
 
     return (
         <Card>
@@ -354,7 +354,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, fontWeight: "medium" }}>
                                 Additional Rush Delivery Information
                             </Typography>
-                            
+
                             <Grid container spacing={3}>
                                 <Grid item xs={12} sm={6}>
                                     <TextField
@@ -372,7 +372,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                                         helperText="Select your preferred delivery time"
                                     />
                                 </Grid>
-                                
+
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
@@ -384,7 +384,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                                         helperText="Any special delivery instructions (optional)"
                                     />
                                 </Grid>
-                                
+
                                 <Grid item xs={12}>
                                     <TextField
                                         fullWidth
@@ -394,7 +394,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                                         helperText="Name of person to contact during delivery (optional)"
                                     />
                                 </Grid>
-                                
+
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
@@ -404,7 +404,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                                         helperText="Phone number for delivery contact (optional)"
                                     />
                                 </Grid>
-                                
+
                                 <Grid item xs={12} sm={6}>
                                     <TextField
                                         fullWidth
@@ -428,9 +428,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
 
                             {rushOrderDetails.supported ? (
                                 <Alert severity="success" sx={{ mb: 2 }}>
-                                    <Typography variant="body2">
-                                        ✅ Rush delivery is available for your order!
-                                    </Typography>
+                                    <Typography variant="body2">✅ Rush delivery is available for your order!</Typography>
                                     <Typography variant="body2" sx={{ mt: 1 }}>
                                         Select rush delivery to provide additional delivery information for same-day service.
                                     </Typography>

@@ -21,6 +21,7 @@ import {
     Chip,
     Tooltip,
     Snackbar,
+    Checkbox,
 } from "@mui/material";
 import { Add, Remove, Delete, ShoppingCart, ArrowForward, Warning, Info } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -31,27 +32,40 @@ const CartPage = () => {
     const navigate = useNavigate();
     const {
         cartItems,
+        selectedItems,
         updateCartItem,
         removeFromCart,
         clearCart,
-        getCartTotal,
         getCartCount,
-        getTotalExcludingVAT,
-        getVATAmount,
         hasInventoryIssues,
         loadCartItems,
         getInventoryStatus,
+        validateStock,
+        selectItem,
+        unselectItem,
+        selectAll,
+        unselectAll,
+        getSelectedItems,
+        getSelectedCartTotal,
     } = useCart();
     const [errorMessage, setErrorMessage] = useState("");
     const [showError, setShowError] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // Load cart items when component mounts
+    // Load cart items when component mounts and validate stock
     useEffect(() => {
         const loadCart = async () => {
             try {
                 setLoading(true);
                 await loadCartItems();
+
+                // Validate stock after loading
+                const validation = await validateStock(cartItems);
+
+                if (!validation.isValid) {
+                    setErrorMessage(`Một số sản phẩm trong giỏ hàng đã hết hàng hoặc không đủ số lượng. Giỏ hàng đã được cập nhật.`);
+                    setShowError(true);
+                }
             } catch (error) {
                 console.error("Failed to load cart:", error);
                 handleError(error);
@@ -89,7 +103,6 @@ const CartPage = () => {
             handleError(error);
         }
     };
-
 
     // Get inventory status color
     const getStatusColor = (status) => {
@@ -129,12 +142,59 @@ const CartPage = () => {
         navigate("/products");
     };
 
-    const handleCheckout = () => {
-        if (hasInventoryIssues()) {
-            alert("Vui lòng kiểm tra lại số lượng sản phẩm trước khi thanh toán!");
+    const handleCheckout = async () => {
+        const selectedItemsList = getSelectedItems();
+
+        if (selectedItemsList.length === 0) {
+            alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán!");
             return;
         }
-        navigate("/checkout");
+
+        // Validate stock for selected items before checkout
+        try {
+            const validation = await validateStock(selectedItemsList);
+            if (!validation.isValid) {
+                alert("Một số sản phẩm đã hết hàng hoặc không đủ số lượng. Vui lòng kiểm tra lại giỏ hàng!");
+                return;
+            }
+
+            navigate("/checkout");
+        } catch (error) {
+            handleError(error);
+        }
+    };
+
+    // Handle checkbox changes
+    const handleSelectItem = (productId, checked) => {
+        if (checked) {
+            selectItem(productId);
+        } else {
+            unselectItem(productId);
+        }
+    };
+
+    const handleSelectAll = (checked) => {
+        if (checked) {
+            selectAll();
+        } else {
+            unselectAll();
+        }
+    };
+
+    const isAllSelected = cartItems.length > 0 && cartItems.every((item) => selectedItems.has(item.productDTO?.productID));
+    const isSomeSelected = cartItems.some((item) => selectedItems.has(item.productDTO?.productID));
+
+    // Helper functions for selected items calculations
+    const getSelectedTotalExcludingVAT = () => {
+        return getSelectedCartTotal() / 1.1; // Assuming 10% VAT
+    };
+
+    const getSelectedVATAmount = () => {
+        return getSelectedCartTotal() - getSelectedTotalExcludingVAT();
+    };
+
+    const getSelectedItemsCount = () => {
+        return getSelectedItems().reduce((count, item) => count + item.quantity, 0);
     };
 
     if (loading) {
@@ -173,7 +233,7 @@ const CartPage = () => {
 
     return (
         <>
-            <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Container maxWidth="xl" sx={{ py: 4 }}>
                 <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: "bold" }}>
                     Giỏ hàng
                 </Typography>
@@ -203,15 +263,30 @@ const CartPage = () => {
                                 </Button>
                             </Box>
 
-                            <TableContainer>
-                                <Table>
+                            <TableContainer sx={{ overflowX: "auto" }}>
+                                <Table sx={{ minWidth: 800 }}>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Sản phẩm</TableCell>
-                                            <TableCell align="center">Số lượng</TableCell>
-                                            <TableCell align="right">Đơn giá</TableCell>
-                                            <TableCell align="right">Thành tiền</TableCell>
-                                            <TableCell align="center">Thao tác</TableCell>
+                                            <TableCell padding="checkbox" sx={{ width: "50px" }}>
+                                                <Checkbox
+                                                    indeterminate={isSomeSelected && !isAllSelected}
+                                                    checked={isAllSelected}
+                                                    onChange={(e) => handleSelectAll(e.target.checked)}
+                                                />
+                                            </TableCell>
+                                            <TableCell sx={{ minWidth: "300px" }}>Sản phẩm</TableCell>
+                                            <TableCell align="center" sx={{ minWidth: "180px" }}>
+                                                Số lượng
+                                            </TableCell>
+                                            <TableCell align="right" sx={{ minWidth: "120px" }}>
+                                                Đơn giá
+                                            </TableCell>
+                                            <TableCell align="right" sx={{ minWidth: "140px" }}>
+                                                Thành tiền
+                                            </TableCell>
+                                            <TableCell align="center" sx={{ width: "80px" }}>
+                                                Thao tác
+                                            </TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -222,9 +297,19 @@ const CartPage = () => {
 
                                             const product = item.productDTO;
                                             const inventoryStatus = getInventoryStatus(item);
+                                            const isSelected = selectedItems.has(product.productID);
 
                                             return (
                                                 <TableRow key={product.productID}>
+                                                    <TableCell padding="checkbox">
+                                                        <Checkbox
+                                                            checked={isSelected}
+                                                            onChange={(e) => handleSelectItem(product.productID, e.target.checked)}
+                                                            disabled={
+                                                                inventoryStatus.status === "out-of-stock" || inventoryStatus.status === "insufficient"
+                                                            }
+                                                        />
+                                                    </TableCell>
                                                     <TableCell>
                                                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                                             <img
@@ -235,13 +320,17 @@ const CartPage = () => {
                                                                     height: 60,
                                                                     objectFit: "cover",
                                                                     borderRadius: 4,
+                                                                    flexShrink: 0,
                                                                 }}
                                                             />
-                                                            <Box sx={{ flex: 1 }}>
-                                                                <Typography variant="subtitle1" sx={{ fontWeight: "medium" }}>
+                                                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                                <Typography
+                                                                    variant="subtitle1"
+                                                                    sx={{ fontWeight: "medium", wordBreak: "break-word" }}
+                                                                >
                                                                     {product.title}
                                                                 </Typography>
-                                                                <Typography variant="body2" color="text.secondary">
+                                                                <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-word" }}>
                                                                     ID: {product.productID} | Loại: {product.category}
                                                                 </Typography>
                                                                 <Box sx={{ mt: 1 }}>
@@ -257,46 +346,52 @@ const CartPage = () => {
                                                     </TableCell>
 
                                                     <TableCell align="center">
-                                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: "center" }}>
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => handleQuantityUpdate(product, item.quantity - 1)}
-                                                                disabled={item.quantity <= 1}
-                                                            >
-                                                                <Remove />
-                                                            </IconButton>
-                                                            <TextField
-                                                                size="small"
-                                                                value={item.quantity}
-                                                                onChange={(e) => {
-                                                                    const value = parseInt(e.target.value);
-                                                                    if (!isNaN(value) && value > 0) {
-                                                                        handleQuantityUpdate(product, value);
+                                                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                                <IconButton
+                                                                    size="small"
+                                                                    onClick={() => handleQuantityUpdate(product, item.quantity - 1)}
+                                                                    disabled={item.quantity <= 1}
+                                                                >
+                                                                    <Remove />
+                                                                </IconButton>
+                                                                <TextField
+                                                                    size="small"
+                                                                    value={item.quantity}
+                                                                    onChange={(e) => {
+                                                                        const value = parseInt(e.target.value);
+                                                                        if (!isNaN(value) && value > 0) {
+                                                                            handleQuantityUpdate(product, value);
+                                                                        }
+                                                                    }}
+                                                                    inputProps={{
+                                                                        style: { textAlign: "center", width: "50px" },
+                                                                        min: 1,
+                                                                        max: product.quantity || 999,
+                                                                    }}
+                                                                    error={
+                                                                        inventoryStatus.status === "out-of-stock" ||
+                                                                        inventoryStatus.status === "insufficient"
                                                                     }
-                                                                }}
-                                                                inputProps={{
-                                                                    style: { textAlign: "center", width: "50px" },
-                                                                    min: 1,
-                                                                    max: product.quantity || 999,
-                                                                }}
-                                                                error={
-                                                                    inventoryStatus.status === "out-of-stock" ||
-                                                                    inventoryStatus.status === "insufficient"
-                                                                }
-                                                                helperText={
-                                                                    inventoryStatus.status === "insufficient" ? `Tối đa: ${product.quantity}` : ""
-                                                                }
-                                                            />
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => handleQuantityUpdate(product, item.quantity + 1)}
-                                                                disabled={
-                                                                    inventoryStatus.status === "out-of-stock" ||
-                                                                    (product.quantity && item.quantity >= product.quantity)
-                                                                }
-                                                            >
-                                                                <Add />
-                                                            </IconButton>
+                                                                />
+                                                                <IconButton
+                                                                    size="small"
+                                                                    onClick={() => handleQuantityUpdate(product, item.quantity + 1)}
+                                                                    disabled={inventoryStatus.status === "out-of-stock"}
+                                                                >
+                                                                    <Add />
+                                                                </IconButton>
+                                                            </Box>
+                                                            {/* Di chuyển cảnh báo ra ngoài để không làm chèn TextField */}
+                                                            {inventoryStatus.status === "insufficient" && (
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    color="error"
+                                                                    sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                                                                >
+                                                                    Tối đa: {product.quantity}
+                                                                </Typography>
+                                                            )}
                                                         </Box>
                                                     </TableCell>
 
@@ -312,7 +407,7 @@ const CartPage = () => {
 
                                                     <TableCell align="center">
                                                         <Tooltip title="Xóa sản phẩm">
-                                                            <IconButton color="error" onClick={() => handleRemoveItem(product)}>
+                                                            <IconButton color="error" onClick={() => handleRemoveItem(product)} size="small">
                                                                 <Delete />
                                                             </IconButton>
                                                         </Tooltip>
@@ -331,17 +426,25 @@ const CartPage = () => {
                         <Card sx={{ position: "sticky", top: 24 }}>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>
-                                    Tóm tắt đơn hàng
+                                    Order Summary
                                 </Typography>
+
+                                {getSelectedItems().length > 0 && (
+                                    <Box sx={{ mb: 2, p: 2, backgroundColor: "primary.50", borderRadius: 1 }}>
+                                        <Typography variant="body2" color="primary.main" sx={{ fontWeight: "medium" }}>
+                                            Đã chọn {getSelectedItemsCount()} sản phẩm ({getSelectedItems().length} loại)
+                                        </Typography>
+                                    </Box>
+                                )}
 
                                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                                     <Typography variant="body1">Tạm tính (chưa VAT):</Typography>
-                                    <Typography variant="body1">{formatPrice(getTotalExcludingVAT())}</Typography>
+                                    <Typography variant="body1">{formatPrice(getSelectedTotalExcludingVAT())}</Typography>
                                 </Box>
 
                                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                                     <Typography variant="body1">VAT (10%):</Typography>
-                                    <Typography variant="body1">{formatPrice(getVATAmount())}</Typography>
+                                    <Typography variant="body1">{formatPrice(getSelectedVATAmount())}</Typography>
                                 </Box>
 
                                 <Divider sx={{ my: 2 }} />
@@ -351,7 +454,7 @@ const CartPage = () => {
                                         Tổng cộng:
                                     </Typography>
                                     <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary.main" }}>
-                                        {formatPrice(getCartTotal())}
+                                        {formatPrice(getSelectedCartTotal())}
                                     </Typography>
                                 </Box>
 
@@ -362,9 +465,9 @@ const CartPage = () => {
                                     onClick={handleCheckout}
                                     endIcon={<ArrowForward />}
                                     sx={{ mb: 2 }}
-                                    disabled={hasInventoryIssues()}
+                                    disabled={getSelectedItems().length === 0}
                                 >
-                                    Tiến hành thanh toán
+                                    {getSelectedItems().length === 0 ? "Chọn sản phẩm để thanh toán" : "Tiến hành thanh toán"}
                                 </Button>
 
                                 <Button variant="outlined" fullWidth onClick={handleContinueShopping}>

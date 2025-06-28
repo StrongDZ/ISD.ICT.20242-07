@@ -1,0 +1,67 @@
+@startuml View_Product_Details
+' View Product Details – Frontend + Backend (simplified API)
+
+title View Product Details Flow
+
+actor User
+boundary ProductDetailPage
+boundary ProductService
+boundary "API" as API
+control ProductController
+control BProductService
+boundary ProductRepository
+boundary BookRepository
+boundary CDRepository
+boundary DVDRepository
+entity Product
+entity Book
+entity CD
+entity DVD
+
+User -> ProductDetailPage: Navigate to /products/:id
+ProductDetailPage -> ProductService: getProductById(id)
+ProductService -> API: GET api/products/:id
+API -> ProductController: getProductById(id)
+ProductController -> BProductService: getProductById(id)
+BProductService -> ProductRepository: findById(id)
+ProductRepository -> Product: read
+Product --> ProductRepository
+ProductRepository --> BProductService: Product entity
+
+alt Product found
+    BProductService -> BProductService: choose strategy by category
+    alt BookStrategy
+        BProductService -> BookRepository: findById(id)
+        BookRepository -> Book: read
+        Book --> BookRepository
+        BookRepository --> BProductService: Book entity
+        BProductService -> BProductService: mapToBookDTO()
+    else CDStrategy
+        BProductService -> CDRepository: findById(id)
+        CDRepository -> CD: read
+        CD --> CDRepository
+        CDRepository --> BProductService: CD entity
+        BProductService -> BProductService: mapToCdDTO()
+    else DVDStrategy
+        BProductService -> DVDRepository: findById(id)
+        DVDRepository -> DVD: read
+        DVD --> DVDRepository
+        DVDRepository --> BProductService: DVD entity
+        BProductService -> BProductService: mapToDvdDTO()
+    end
+    BProductService --> ProductController: ProductDTO
+    ProductController --> API: 200 OK
+    API --> ProductService: ProductDTO
+    ProductService --> ProductDetailPage: Product details
+else Not found
+    BProductService --> ProductController: 404 Not Found
+    ProductController --> API: 404
+    API --> ProductService: Error
+    ProductService --> ProductDetailPage: Error
+end
+
+ProductDetailPage -> ProductService: getRelatedProducts()
+ProductService --> ProductDetailPage: Related products
+ProductDetailPage --> User: Render detail & related products
+
+@enduml 

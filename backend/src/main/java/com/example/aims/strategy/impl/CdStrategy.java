@@ -79,15 +79,6 @@ public class CdStrategy implements ProductStrategy {
     }
 
     @Override
-    public List<ProductDTO> searchProducts(String keyword) {
-        return cdRepository.findAll().stream()
-                .filter(cd -> cd.getTitle() != null &&
-                        cd.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-                .map(cd -> (ProductDTO) cdMapper.toDTO(cd))
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public String getProductType() {
         return ProductType.cd.name();
     }

@@ -1,0 +1,35 @@
+@startuml Search_Product
+' Search Product – Frontend + Backend (simplified API)
+
+title Search Product Flow
+
+actor User
+boundary ProductsPage
+control ProductService
+boundary API
+control ViewProductController
+control BProductService
+boundary ProductRepository
+entity Product
+
+
+User -> ProductsPage: Change search params
+ProductsPage -> ProductsPage: handleFilterChange()
+
+ProductsPage -> ProductsPage: loadProducts(page)
+ProductsPage -> ProductService: getFilteredProducts(filters, page, size)
+ProductService -> API: GET api/products/search?keyword=keyword&... (params)
+API -> ViewProductController: getAllProducts(filters, page, size)
+ViewProductController -> BProductService: getFilteredProducts(filters, pageable)
+BProductService -> ProductRepository: searchProducts(keyword, category, min, max, pageable)
+ProductRepository -> Product: execute query
+Product --> ProductRepository
+BProductService -> BProductService: map to DTOs
+BProductService --> ViewProductController: PagedResponse
+ViewProductController --> API: 200 OK + PageResponse
+API --> ProductService: PagedResponse
+ProductService --> ProductsPage: data
+ProductsPage -> ProductsPage: render list & pagination
+ProductsPage --> User: Show results
+
+@enduml 

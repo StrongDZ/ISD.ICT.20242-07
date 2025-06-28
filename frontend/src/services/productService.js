@@ -41,7 +41,6 @@ export const productService = {
         }
     },
 
-
     // Search products with pagination
     searchProducts: async (keyword, page = 0, size = 20) => {
         try {
@@ -51,7 +50,6 @@ export const productService = {
             throw new Error(error.response?.data?.message || "Failed to search products");
         }
     },
-
 
     // Create new product (Manager only)
     createProduct: async (productData) => {

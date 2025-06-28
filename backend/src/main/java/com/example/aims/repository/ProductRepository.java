@@ -13,24 +13,24 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, String> {
-    List<Product> findByCategory(ProductType category);
+        List<Product> findByCategory(ProductType category);
 
-    List<Product> findByTitleContainingIgnoreCase(String title);
+        List<Product> findByTitleContainingIgnoreCase(String title);
 
-    // Pagination support methods
-    Page<Product> findByCategory(ProductType category, Pageable pageable);
+        // Pagination support methods
+        Page<Product> findByCategory(ProductType category, Pageable pageable);
 
-    Page<Product> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+        Page<Product> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 
-    @Query("SELECT p FROM Product p " +
-            "WHERE (:keyword IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:category IS NULL OR p.category = :category) " +
-            "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
-            "AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
-    Page<Product> searchProducts(
-            @Param("keyword") String keyword,
-            @Param("category") ProductType category,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            Pageable pageable);
+        @Query("SELECT p FROM Product p " +
+                        "WHERE (:keyword IS NULL OR p.title LIKE %:keyword%) " +
+                        "AND (:category IS NULL OR p.category = :category) " +
+                        "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+                        "AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
+        Page<Product> searchProducts(
+                        @Param("keyword") String keyword,
+                        @Param("category") ProductType category,
+                        @Param("minPrice") Double minPrice,
+                        @Param("maxPrice") Double maxPrice,
+                        Pageable pageable);
 }

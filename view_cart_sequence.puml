@@ -1,0 +1,65 @@
+@startuml View_Cart
+' View Cart – Frontend + Backend with Stock Validation
+
+title View Cart Flow with Stock Validation
+
+actor User
+boundary CartPage
+control CartContext
+control CartService
+control LocalCartService
+control ApiCartService
+boundary API
+control CartController
+control BCartService
+boundary ProductRepository
+boundary CartItemRepository
+entity Product
+entity CartItem
+
+User -> CartPage: Navigate to Cart
+CartPage -> CartContext: loadCart()
+CartContext -> CartService: getCartItems()
+CartService -> CartService: updateServiceReference()
+
+alt Authenticated user
+    CartService -> ApiCartService: getCartItems()
+    ApiCartService -> API: GET api/cart
+    API -> CartController: getCartItems(userId)
+    CartController -> BCartService: getCartItems(userId)
+    BCartService -> CartItemRepository: findByCustomer(userId)
+    CartItemRepository -> CartItem: read all items
+    CartItem --> CartItemRepository: CartItem list
+    
+    loop For each cart item
+        BCartService -> ProductRepository: findById(productId)
+        ProductRepository -> Product: read current stock
+        Product --> ProductRepository: Product with current stock
+        BCartService -> BCartService: validate stock availability
+        note right: Compare cart quantity \nwith current product stock
+    end
+    
+    BCartService --> CartController: CartItemDTO list with stock status
+    CartController --> API: 200 OK
+    API --> ApiCartService: CartItemDTO list
+    ApiCartService --> CartService: CartItemDTO list
+else Guest user
+    CartService -> LocalCartService: getCartItems()
+    LocalCartService -> LocalCartService: read from localStorage
+    LocalCartService --> CartService: CartItem list
+end
+
+CartService --> CartContext: CartItem list
+CartContext --> CartPage: display cart with stock validation
+
+CartPage -> CartPage: validateStockOnLoad()
+CartPage -> CartPage: show stock warnings for insufficient items
+CartPage --> User: Cart displayed with stock status
+
+note right of CartPage
+  Stock validation occurs during cart load.
+  Items with insufficient stock are marked
+  and warnings are displayed to user.
+end note
+
+@enduml 

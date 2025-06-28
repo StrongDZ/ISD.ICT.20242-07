@@ -78,10 +78,6 @@ export const localCartService = {
             const item = cartItems.find((item) => item.productDTO.productID === product.productID);
 
             if (item) {
-                if (quantity <= 0) {
-                    localCartService.removeFromCart(product);
-                    return null;
-                }
                 item.quantity = quantity;
                 localCartService.saveCart(cartItems);
                 return { productDTO: product, quantity };

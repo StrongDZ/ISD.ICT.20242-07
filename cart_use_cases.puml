@@ -1,0 +1,55 @@
+@startuml Cart_Use_Cases
+' Cart Management Use Cases
+
+title Cart Management Use Cases
+
+left to right direction
+
+actor Customer as C
+actor Guest as G
+
+rectangle "Shopping Cart System" {
+    usecase "UC-01: Add Product to Cart" as UC1
+    usecase "UC-02: Update Cart Item Quantity" as UC2
+    usecase "UC-03: Remove Cart Item" as UC3
+    usecase "UC-04: View Cart" as UC4
+    usecase "UC-05: Select Items for Checkout" as UC5
+    usecase "UC-06: Clear Cart" as UC6
+    usecase "UC-07: Validate Stock on Cart Load" as UC7
+    usecase "UC-08: Continue Shopping" as UC8
+}
+
+' Actor relationships
+C --> UC1
+C --> UC2
+C --> UC3
+C --> UC4
+C --> UC5
+C --> UC6
+C --> UC7
+C --> UC8
+
+G --> UC1
+G --> UC2
+G --> UC3
+G --> UC4
+G --> UC5
+G --> UC6
+G --> UC7
+G --> UC8
+
+' Include relationships
+UC4 ..> UC7 : <<include>>
+UC5 ..> UC7 : <<include>>
+
+' Extend relationships
+UC2 ..> UC3 : <<extend>>
+note right of UC2 : If quantity = 0
+
+' Notes
+note top of UC1 : No stock validation during add
+note top of UC2 : No stock validation during update
+note top of UC7 : Stock validation only at critical points
+note top of UC5 : New feature for selective checkout
+
+@enduml 

@@ -104,7 +104,6 @@ public class CartService {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        product.validateStock(quantity);
 
         CartItem cartItem = cartItemRepository.findById(new CartItem.CartItemId(customerId, productId))
                 .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));

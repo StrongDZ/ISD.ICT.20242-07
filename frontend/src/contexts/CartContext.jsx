@@ -39,7 +39,8 @@ export const CartProvider = ({ children }) => {
 
     const loadCartItems = async () => {
         try {
-            const items = await cartService.getCartItems();
+            // For non-authenticated users, refresh cart items to get latest stock info
+            const items = await cartService.refreshCartItems();
             setCartItems(items);
         } catch (error) {
             console.error("Failed to load cart items:", error);
@@ -255,6 +256,7 @@ export const CartProvider = ({ children }) => {
         validateProducts,
         getCartCount,
         hasInventoryIssues,
+        loadCartItems,
     };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

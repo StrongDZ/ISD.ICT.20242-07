@@ -14,6 +14,39 @@ export const localCartService = {
         }
     },
 
+    // Refresh product information from server to update stock quantities
+    refreshCartItems: async () => {
+        try {
+            const cartItems = localCartService.getCartItems();
+            const updatedCartItems = [];
+
+            for (const item of cartItems) {
+                try {
+                    // Fetch latest product information from server
+                    const response = await api.get(`/products/${item.productDTO.productID}`);
+                    const updatedProduct = response.data;
+
+                    // Update the product information while keeping the quantity
+                    updatedCartItems.push({
+                        productDTO: updatedProduct,
+                        quantity: item.quantity,
+                    });
+                } catch (error) {
+                    console.error(`Error refreshing product ${item.productDTO.productID}:`, error);
+                    // If we can't fetch the product, keep the old information
+                    updatedCartItems.push(item);
+                }
+            }
+
+            // Save updated cart
+            localCartService.saveCart(updatedCartItems);
+            return updatedCartItems;
+        } catch (error) {
+            console.error("Error refreshing cart items:", error);
+            return localCartService.getCartItems();
+        }
+    },
+
     // Add product to localStorage cart (với full product object)
     addToCart: (product, quantity = 1) => {
         try {

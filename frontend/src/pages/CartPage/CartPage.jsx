@@ -39,15 +39,34 @@ const CartPage = () => {
         getTotalExcludingVAT,
         getVATAmount,
         hasInventoryIssues,
+        loadCartItems,
     } = useCart();
     const [errorMessage, setErrorMessage] = useState("");
     const [showError, setShowError] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-    }).format(price);
+    // Load cart items when component mounts
+    useEffect(() => {
+        const loadCart = async () => {
+            try {
+                setLoading(true);
+                await loadCartItems();
+            } catch (error) {
+                console.error("Failed to load cart:", error);
+                handleError(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCart();
+    }, []);
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(price);
     };
 
     // Handle error display
@@ -130,9 +149,9 @@ const CartPage = () => {
         }, 0);
     };
 
-  const handleRemoveItem = (product) => {
-    removeFromCart(product);
-  };
+    const handleRemoveItem = (product) => {
+        removeFromCart(product);
+    };
 
     const handleClearCart = () => {
         if (window.confirm("Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng?")) {
@@ -140,9 +159,9 @@ const CartPage = () => {
         }
     };
 
-  const handleContinueShopping = () => {
-    navigate("/products");
-  };
+    const handleContinueShopping = () => {
+        navigate("/products");
+    };
 
     const handleCheckout = () => {
         if (hasInventoryIssues()) {
@@ -151,6 +170,21 @@ const CartPage = () => {
         }
         navigate("/checkout");
     };
+
+    if (loading) {
+        return (
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Paper sx={{ p: 4, textAlign: "center" }}>
+                    <Typography variant="h6" gutterBottom>
+                        Đang tải giỏ hàng...
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Vui lòng chờ trong giây lát
+                    </Typography>
+                </Paper>
+            </Container>
+        );
+    }
 
     if (cartItems.length === 0) {
         return (

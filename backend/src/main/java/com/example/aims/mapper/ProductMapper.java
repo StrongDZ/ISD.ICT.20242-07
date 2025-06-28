@@ -1,5 +1,6 @@
 package com.example.aims.mapper;
 
+import com.example.aims.common.ProductType;
 import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.model.Product;
 
@@ -23,5 +24,5 @@ public interface ProductMapper<T extends Product, D extends ProductDTO> {
 
     List<T> toEntityList(List<D> dtos);
 
-    String getProductType();
+    ProductType getProductType();
 }

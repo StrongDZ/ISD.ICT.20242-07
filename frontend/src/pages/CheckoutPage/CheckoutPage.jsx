@@ -28,7 +28,6 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
 import DeliveryForm from "../../components/Order/DeliveryForm";
 import OrderSummary from "../../components/Order/OrderSummary";
-import { cartService } from "../../services/cartService";
 import { orderService } from "../../services/orderService";
 
 const CheckoutPage = () => {

@@ -1,4 +1,4 @@
-package com.example.aims.dto;
+package com.example.aims.dto.rush;
 
 import com.example.aims.dto.products.ProductDTO;
 import java.util.List;

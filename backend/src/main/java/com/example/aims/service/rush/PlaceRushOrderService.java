@@ -1,8 +1,8 @@
 package com.example.aims.service.rush;
 
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.PlaceRushOrderResponse;
 import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.dto.rush.PlaceRushOrderResponse;
 import com.example.aims.service.rush.eligibility.RushEligibility;
 import org.springframework.stereotype.Service;
 

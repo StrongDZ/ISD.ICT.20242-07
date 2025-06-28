@@ -4,28 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.aims.common.OrderStatus;
-import com.example.aims.dto.transaction.TransactionResponseDTO;
-import com.example.aims.mapper.TransactionMapper;
 import com.example.aims.model.Order;
-import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
-import com.example.aims.repository.PaymentTransactionRepository;
-import com.example.aims.factory.PaymentSystemFactory;
 
 @Service
 public class CancelOrderService {
     @Autowired
-    private PaymentTransactionRepository paymentTransactionRepository;
-    @Autowired
     private OrderRepository orderRepository;
-    @Autowired
-    private TransactionMapper transactionMapper;
-    @Autowired
-    private PaymentSystemFactory paymentSystemFactory;
 
-    public CancelOrderService(PaymentTransactionRepository paymentTransactionRepository,
-            OrderRepository orderRepository) {
-        this.paymentTransactionRepository = paymentTransactionRepository;
+    public CancelOrderService(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 

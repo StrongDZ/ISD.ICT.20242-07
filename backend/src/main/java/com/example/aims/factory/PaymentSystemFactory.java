@@ -55,24 +55,4 @@ public class PaymentSystemFactory {
         return paymentSystem;
     }
 
-    /**
-     * Gets all supported payment types.
-     * 
-     * @return List of supported payment types
-     */
-    public List<String> getSupportedPaymentTypes() {
-        return paymentSystems.keySet().stream()
-                .sorted()
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Checks if a payment type is supported.
-     * 
-     * @param type The payment type to check
-     * @return true if supported, false otherwise
-     */
-    public boolean isSupported(String type) {
-        return type != null && paymentSystems.containsKey(type.toLowerCase());
-    }
 }

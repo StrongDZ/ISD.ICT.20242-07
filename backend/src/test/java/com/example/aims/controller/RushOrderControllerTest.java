@@ -1,9 +1,9 @@
 package com.example.aims.controller;
 
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.PlaceRushOrderResponse;
 import com.example.aims.dto.products.BookDTO;
 import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.dto.rush.PlaceRushOrderResponse;
 import com.example.aims.dto.rush.RushOrderCheckRequest;
 import com.example.aims.service.rush.PlaceRushOrderService;
 import org.junit.jupiter.api.BeforeEach;

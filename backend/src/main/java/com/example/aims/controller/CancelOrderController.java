@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.PayOrderResponseObjectDTO;
 import com.example.aims.service.CancelOrderService;
 
@@ -28,14 +29,9 @@ public class CancelOrderController {
      * @return ResponseEntity with success message
      */
     @GetMapping("")
-    public ResponseEntity<PayOrderResponseObjectDTO> cancelOrder(@RequestParam("orderId") String orderId,
+    public ResponseEntity<Boolean> cancelOrder(@RequestParam("orderId") String orderId,
             @RequestParam("transactionId") String transactionId, @RequestParam("paymentType") String paymentType) {
-        String message = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
-        PayOrderResponseObjectDTO response = PayOrderResponseObjectDTO.builder()
-                .responseCode(200)
-                .message(null)
-                .data(message)
-                .build();
-        return ResponseEntity.ok(response);
+        OrderStatus status = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
+        return ResponseEntity.ok(status == OrderStatus.CANCELLED);
     }
 }

@@ -1,10 +1,11 @@
-package com.example.aims.service.rush;
+package com.example.aims.service;
 
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.PlaceRushOrderResponse;
 import com.example.aims.dto.products.BookDTO;
 import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.dto.rush.PlaceRushOrderResponse;
 import com.example.aims.dto.rush.RushOrderCheckRequest;
+import com.example.aims.service.rush.PlaceRushOrderService;
 import com.example.aims.service.rush.eligibility.AddressRushEligibility;
 import com.example.aims.service.rush.eligibility.ProductRushEligibility;
 import org.junit.jupiter.api.BeforeEach;

@@ -2,6 +2,7 @@ package com.example.aims.mapper;
 
 import org.mapstruct.Mapper;
 
+import com.example.aims.common.ProductType;
 import com.example.aims.dto.products.DvdDTO;
 import com.example.aims.model.DVD;
 
@@ -15,7 +16,7 @@ public interface DvdMapper extends ProductMapper<DVD, DvdDTO> {
     DVD toEntity(DvdDTO dvdDTO);
 
     @Override
-    default String getProductType() {
-        return "dvd";
+    default ProductType getProductType() {
+        return ProductType.dvd;
     }
 }

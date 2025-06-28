@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { cartService } from "../services/cartService";
 import { useAuth } from "./AuthContext";
+import { productService } from "../services/productService";
 
 const CartContext = createContext();
 
@@ -116,7 +117,15 @@ export const CartProvider = ({ children }) => {
             if (error.response && error.response.data) {
                 const errorMessage = error.response.data.message || error.response.data;
                 if (errorMessage.includes("Not enough stock") || errorMessage.includes("insufficient")) {
-                    throw new Error(`Hàng không đủ: ${product.title}. Số lượng có sẵn: ${product.quantity}`);
+                    // Fetch latest product info from server
+                    try {
+                        const response = await productService.getProductById(product.productID);
+                        const latestProduct = response.data || response;
+                        await loadCartItems();
+                        throw new Error(`Hàng không đủ: ${product.title}. Số lượng có sẵn mới nhất: ${latestProduct.quantity}`);
+                    } catch (refreshError) {
+                        throw new Error("Số lượng hàng trong kho vừa được cập nhật");
+                    }
                 }
             }
 

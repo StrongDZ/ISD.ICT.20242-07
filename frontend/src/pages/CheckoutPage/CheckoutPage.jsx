@@ -57,6 +57,10 @@ const CheckoutPage = () => {
     severity: "success",
   });
   const [confirmDialog, setConfirmDialog] = useState(false);
+  const [inventoryErrorDialog, setInventoryErrorDialog] = useState({
+    open: false,
+    insufficientItems: [],
+  });
 
   const steps = ["Delivery Information", "Payment Method", "Confirmation"];
 
@@ -206,9 +210,9 @@ const CheckoutPage = () => {
               </Typography>
               <Alert severity="info" sx={{ mt: 2 }}>
                 <Typography variant="body2">
-                  Payment via VNPay/Momo are currently the only available payment
-                  method. You will pay securely through VNPay/Momo at the time of
-                  placing your order.
+                  Payment via VNPay/Momo are currently the only available
+                  payment method. You will pay securely through VNPay/Momo at
+                  the time of placing your order.
                 </Typography>
               </Alert>
               <Box
@@ -225,8 +229,8 @@ const CheckoutPage = () => {
                   <Typography variant="h6">Payment via VNPay/Momo</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  Pay in advance via VNPay/Momo. You will be redirected to the VNPay/Momo
-                  payment gateway to complete the transaction.
+                  Pay in advance via VNPay/Momo. You will be redirected to the
+                  VNPay/Momo payment gateway to complete the transaction.
                 </Typography>
               </Box>
             </CardContent>
@@ -417,6 +421,82 @@ const CheckoutPage = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Inventory Error Dialog */}
+      <Dialog
+        open={inventoryErrorDialog.open}
+        onClose={() =>
+          setInventoryErrorDialog({ ...inventoryErrorDialog, open: false })
+        }
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Inventory Error</DialogTitle>
+        <DialogContent>
+          <Typography gutterBottom>
+            Một số sản phẩm trong giỏ hàng không đủ tồn kho. Vui lòng cập nhật
+            số lượng hoặc xóa sản phẩm:
+          </Typography>
+          <Box sx={{ mt: 2 }}>
+            {inventoryErrorDialog.insufficientItems.map((item, index) => (
+              <Box
+                key={index}
+                sx={{
+                  p: 2,
+                  mb: 1,
+                  border: 1,
+                  borderColor: "error.light",
+                  borderRadius: 1,
+                  bgcolor: "error.50",
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
+                  {item.productDTO.title}
+                </Typography>
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Số lượng yêu cầu:</strong> {item.quantity}
+                  </Typography>
+                  <Typography variant="body2" color="error.main">
+                    <strong>Tồn kho hiện tại:</strong>{" "}
+                    {item.productDTO.quantity}
+                  </Typography>
+                  <Typography variant="body2" color="error.main">
+                    <strong>Số lượng thiếu:</strong>{" "}
+                    {item.quantity - item.productDTO.quantity}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              Vui lòng quay lại giỏ hàng để cập nhật số lượng sản phẩm hoặc xóa
+              các sản phẩm không đủ tồn kho.
+            </Typography>
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setInventoryErrorDialog({ open: false, insufficientItems: [] })
+            }
+            variant="contained"
+          >
+            Đóng
+          </Button>
+          <Button
+            onClick={() => {
+              setInventoryErrorDialog({ open: false, insufficientItems: [] });
+              navigate("/cart");
+            }}
+            variant="outlined"
+            color="primary"
+          >
+            Quay lại giỏ hàng
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

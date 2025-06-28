@@ -103,6 +103,8 @@ export const CartProvider = ({ children }) => {
 
     const updateCartItem = async (product, quantity) => {
         try {
+            if (quantity > product.quantity) quantity = product.quantity;
+
             const updatedItem = await cartService.updateCartItem(product, quantity);
             await loadCartItems();
             return updatedItem;

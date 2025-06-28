@@ -11,7 +11,7 @@ const OrderSummary = ({ order, items = [], showTitle = true, compact = false, de
     };
 
     const calculateSubtotal = () => {
-        return items.reduce((total, item) => total + item.product?.price * item.quantity, 0);
+        return items.reduce((total, item) => total + item.productDTO?.price * item.quantity, 0);
     };
 
     const subtotal = order?.subtotal || calculateSubtotal();
@@ -32,33 +32,33 @@ const OrderSummary = ({ order, items = [], showTitle = true, compact = false, de
                 {items.length > 0 && (
                     <List dense={compact}>
                         {items.map((item) => (
-                            <ListItem key={item.product?.productID} sx={{ px: 0 }}>
+                            <ListItem key={item.productDTO?.productID} sx={{ px: 0 }}>
                                 <ListItemAvatar>
                                     <Avatar
-                                        src={item.product?.imageURL}
-                                        alt={item.product?.title}
+                                        src={item.productDTO?.imageURL}
+                                        alt={item.productDTO?.title}
                                         sx={{ width: compact ? 40 : 56, height: compact ? 40 : 56 }}
                                     />
                                 </ListItemAvatar>
                                 <ListItemText
                                     primary={
                                         <Typography variant={compact ? "body2" : "body1"} noWrap>
-                                            {item.product?.title}
+                                            {item.productDTO?.title}
                                         </Typography>
                                     }
                                     secondary={
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                             <Typography variant="body2" color="text.secondary">
-                                                {formatPrice(item.product?.price)} × {item.quantity}
+                                                {formatPrice(item.productDTO?.price)} × {item.quantity}
                                             </Typography>
-                                            {item.product?.category && (
-                                                <Chip label={item.product.category.toUpperCase()} size="small" variant="outlined" />
+                                            {item.productDTO?.category && (
+                                                <Chip label={item.productDTO.category.toUpperCase()} size="small" variant="outlined" />
                                             )}
                                         </Box>
                                     }
                                 />
                                 <Typography variant={compact ? "body2" : "body1"} sx={{ fontWeight: "bold" }}>
-                                    {formatPrice((item.product?.price || 0) * item.quantity)}
+                                    {formatPrice((item.productDTO?.price || 0) * item.quantity)}
                                 </Typography>
                             </ListItem>
                         ))}

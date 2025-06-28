@@ -79,15 +79,6 @@ public class BookStrategy implements ProductStrategy {
     }
 
     @Override
-    public List<ProductDTO> searchProducts(String keyword) {
-        return bookRepository.findAll().stream()
-                .filter(book -> book.getTitle() != null &&
-                        book.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-                .map(book -> (ProductDTO) bookMapper.toDTO(book))
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public String getProductType() {
         return ProductType.book.name();
     }

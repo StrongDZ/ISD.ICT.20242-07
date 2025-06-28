@@ -115,8 +115,6 @@ const ProductDetailPage = () => {
         }
     };
 
-
-
     const renderCategorySpecificInfo = () => {
         if (!product) return null;
 

@@ -14,7 +14,5 @@ public interface ProductStrategy {
 
     List<ProductDTO> getAllProducts();
 
-    List<ProductDTO> searchProducts(String keyword);
-
     String getProductType();
 }

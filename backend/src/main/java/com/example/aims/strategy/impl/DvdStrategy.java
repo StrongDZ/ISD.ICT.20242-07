@@ -78,16 +78,7 @@ public class DvdStrategy implements ProductStrategy {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<ProductDTO> searchProducts(String keyword) {
-        return dvdRepository.findAll().stream()
-                .filter(dvd -> dvd.getTitle() != null &&
-                        dvd.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-                .map(dvd -> (ProductDTO) dvdMapper.toDTO(dvd))
-                .collect(Collectors.toList());
-    }
-
-    @Override
+    @Override   
     public String getProductType() {
         return ProductType.dvd.name();
     }

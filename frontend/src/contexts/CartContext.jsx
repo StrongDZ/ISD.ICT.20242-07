@@ -15,6 +15,7 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState(new Set());
     const { user } = useAuth();
 
     // Load cart items when user changes
@@ -27,15 +28,87 @@ export const CartProvider = ({ children }) => {
         cartService.updateServiceReference();
     }, [user]);
 
-
     const loadCartItems = async () => {
         try {
             // For non-authenticated users, refresh cart items to get latest stock info
             const items = await cartService.refreshCartItems();
             setCartItems(items);
+            // Clear selected items that no longer exist in cart
+            const productIds = new Set(items.map((item) => item.productDTO?.productID).filter(Boolean));
+            setSelectedItems((prev) => new Set([...prev].filter((id) => productIds.has(id))));
         } catch (error) {
             console.error("Failed to load cart items:", error);
         }
+    };
+
+    // Stock validation functions
+    const validateStock = async (items) => {
+        const invalidItems = [];
+
+        for (const item of items) {
+            try {
+                const response = await productService.getProductById(item.productDTO.productID);
+                const latestProduct = response.data || response;
+
+                if (latestProduct.quantity < item.quantity) {
+                    invalidItems.push({
+                        ...item,
+                        availableStock: latestProduct.quantity,
+                        requestedQuantity: item.quantity,
+                    });
+                }
+            } catch (error) {
+                console.error(`Failed to validate stock for product ${item.productDTO.productID}:`, error);
+                invalidItems.push({
+                    ...item,
+                    availableStock: 0,
+                    requestedQuantity: item.quantity,
+                });
+            }
+        }
+
+        if (invalidItems.length > 0) {
+            // Refresh cart items to get updated stock
+            await loadCartItems();
+            return { isValid: false, invalidItems };
+        }
+
+        return { isValid: true, invalidItems: [] };
+    };
+
+    // Selected items management
+    const selectItem = (productId) => {
+        setSelectedItems((prev) => new Set([...prev, productId]));
+    };
+
+    const unselectItem = (productId) => {
+        setSelectedItems((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(productId);
+            return newSet;
+        });
+    };
+
+    const selectAll = () => {
+        const allProductIds = cartItems.map((item) => item.productDTO?.productID).filter(Boolean);
+        setSelectedItems(new Set(allProductIds));
+    };
+
+    const unselectAll = () => {
+        setSelectedItems(new Set());
+    };
+
+    const getSelectedItems = () => {
+        return cartItems.filter((item) => selectedItems.has(item.productDTO?.productID));
+    };
+
+    const getSelectedCartTotal = () => {
+        return getSelectedItems().reduce((total, item) => {
+            if (item && item.productDTO) {
+                return total + item.productDTO.price * item.quantity;
+            }
+            return total;
+        }, 0);
     };
 
     const getCartCount = () => {
@@ -46,7 +119,6 @@ export const CartProvider = ({ children }) => {
             return count;
         }, 0);
     };
-
 
     const addToCart = async (product, quantity = 1) => {
         try {
@@ -61,8 +133,6 @@ export const CartProvider = ({ children }) => {
 
     const updateCartItem = async (product, quantity) => {
         try {
-            if (quantity > product.quantity) quantity = product.quantity;
-
             const updatedItem = await cartService.updateCartItem(product, quantity);
             await loadCartItems();
             return updatedItem;
@@ -114,7 +184,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-
     const getCartTotal = () => {
         return cartItems.reduce((total, item) => {
             if (item && item.productDTO) {
@@ -131,8 +200,6 @@ export const CartProvider = ({ children }) => {
     const getVATAmount = () => {
         return getCartTotal() - getTotalExcludingVAT();
     };
-
-
 
     const getInventoryStatus = (item) => {
         if (!item || !item.productDTO) return { status: "unknown", message: "", shortfall: 0 };
@@ -169,7 +236,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-
     const hasInventoryIssues = () => {
         return cartItems.some((item) => {
             if (!item || !item.productDTO) return false;
@@ -182,6 +248,7 @@ export const CartProvider = ({ children }) => {
 
     const value = {
         cartItems,
+        selectedItems,
         addToCart,
         updateCartItem,
         removeFromCart,
@@ -193,6 +260,13 @@ export const CartProvider = ({ children }) => {
         getCartCount,
         hasInventoryIssues,
         loadCartItems,
+        validateStock,
+        selectItem,
+        unselectItem,
+        selectAll,
+        unselectAll,
+        getSelectedItems,
+        getSelectedCartTotal,
     };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

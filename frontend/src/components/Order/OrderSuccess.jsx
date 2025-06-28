@@ -117,6 +117,40 @@ const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders, onR
                             <Typography variant="body2"><strong>Phone:</strong> {order.deliveryInfo.phoneNumber}</Typography>
                             <Typography variant="body2"><strong>Address:</strong> {order.deliveryInfo.addressDetail}, {order.deliveryInfo.district}, {order.deliveryInfo.city}</Typography>
                             <Typography variant="body2"><strong>Order Date:</strong> {formatDate(order.date)}</Typography>
+                            
+                            {/* Rush Delivery Information */}
+                            {order.deliveryInfo.isRushOrder && (
+                                <Box sx={{ mt: 2, p: 2, bgcolor: "success.light", borderRadius: 1 }}>
+                                    <Typography variant="subtitle2" gutterBottom sx={{ color: "success.dark", fontWeight: "bold" }}>
+                                        🚀 Rush Delivery Details
+                                    </Typography>
+                                    {order.deliveryInfo.deliveryTime && (
+                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
+                                            <strong>Preferred Time:</strong> {order.deliveryInfo.deliveryTime}
+                                        </Typography>
+                                    )}
+                                    {order.deliveryInfo.specialInstructions && (
+                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
+                                            <strong>Special Instructions:</strong> {order.deliveryInfo.specialInstructions}
+                                        </Typography>
+                                    )}
+                                    {order.deliveryInfo.contactPerson && (
+                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
+                                            <strong>Contact Person:</strong> {order.deliveryInfo.contactPerson}
+                                        </Typography>
+                                    )}
+                                    {order.deliveryInfo.contactPhone && (
+                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
+                                            <strong>Contact Phone:</strong> {order.deliveryInfo.contactPhone}
+                                        </Typography>
+                                    )}
+                                    {order.deliveryInfo.buildingAccess && (
+                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
+                                            <strong>Building Access:</strong> {order.deliveryInfo.buildingAccess}
+                                        </Typography>
+                                    )}
+                                </Box>
+                            )}
                         </Box>
                     )}
                 </CardContent>

@@ -112,25 +112,39 @@ public class PlaceOrderService {
 
     @Transactional
     public OrderDTO createOrder(OrderRequestDTO orderRequestDTO) {
-        // 1. Tạo và lưu order entity trước để có orderID
+        // 1. Validate rush order if requested
+        if (orderRequestDTO.getDeliveryInfo().getIsRushOrder() != null && 
+            orderRequestDTO.getDeliveryInfo().getIsRushOrder()) {
+            
+            List<ProductDTO> products = orderRequestDTO.getCartItems().stream()
+                .map(CartItemDTO::getProductDTO)
+                .collect(Collectors.toList());
+            
+            boolean isRushSupported = isRushOrderSupported(orderRequestDTO.getDeliveryInfo(), products);
+            if (!isRushSupported) {
+                throw new RuntimeException("Rush order is not supported for the selected products and delivery address.");
+            }
+        }
+
+        // 2. Tạo và lưu order entity trước để có orderID
         Order order = createNewOrder();
 
-        // 2. Map và lưu delivery info, set orderID
+        // 3. Map và lưu delivery info, set orderID
         DeliveryInfo deliveryInfo = createAndSaveDeliveryInfo(order, orderRequestDTO.getDeliveryInfo());
 
-        // 3. Lưu order items
+        // 4. Lưu order items
         saveOrderItems(order, orderRequestDTO.getCartItems());
 
-        // 4. Cập nhật tồn kho
+        // 5. Cập nhật tồn kho
         updateProductStocks(orderRequestDTO.getCartItems());
 
-        // 5. Tính tổng tiền
+        // 6. Tính tổng tiền
         double totalAmount = calculateTotalPrice(orderRequestDTO.getCartItems());
 
-        // 6. Gán lại các thuộc tính vào order và lưu lại
+        // 7. Gán lại các thuộc tính vào order và lưu lại
         updateOrderWithDeliveryAndTotal(order, deliveryInfo, totalAmount);
 
-        // 7. Trả về DTO
+        // 8. Trả về DTO
         return orderMapper.toOrderDTO(order);
     }
 

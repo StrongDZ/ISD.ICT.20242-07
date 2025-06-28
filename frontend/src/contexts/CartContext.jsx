@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { cartService } from "../services/cartService";
 import { useAuth } from "./AuthContext";
+import { orderService } from "../services/orderService";
 
 const CartContext = createContext();
 
@@ -154,7 +155,23 @@ export const CartProvider = ({ children }) => {
         return item ? item.quantity : 0;
     };
 
-    const isRushOrderEligible = () => {
+    const isRushOrderEligible = async () => {
+        try {
+            // Gọi API để kiểm tra tính đủ điều kiện rush order
+            const response = await orderService.checkRushOrderEligibility(
+                deliveryInfo,
+                cartItems.map(item => item.product)
+            );
+            return response.supported;
+        } catch (error) {
+            console.error("Error checking rush order eligibility:", error);
+            // Fallback to local logic if API fails
+            return isRushOrderEligibleLocal();
+        }
+    };
+
+    // Local fallback logic
+    const isRushOrderEligibleLocal = () => {
         // Check if delivery address supports rush order
         const isEligibleAddress =
             deliveryInfo.city === "Hà Nội" &&
@@ -191,12 +208,11 @@ export const CartProvider = ({ children }) => {
     const getDeliveryDetails = () => {
         const subtotal = getTotalExcludingVAT();
         const isRushEligible = isRushOrderEligible();
-        const rushFee = deliveryInfo.isRushOrder && isRushEligible ? 50000 : 0;
 
         return {
             isEligible: isRushEligible,
-            fee: rushFee,
-            estimatedTime: deliveryInfo.isRushOrder && isRushEligible ? "2-4 hours" : "3-5 days",
+            fee: 0, // No rush fee
+            estimatedTime: deliveryInfo.isRushOrder && isRushEligible ? "Same day" : "3-5 days",
             restrictions: !isRushEligible ? "Rush delivery only available in Hanoi inner districts" : null,
         };
     };
@@ -225,13 +241,10 @@ export const CartProvider = ({ children }) => {
             baseFee += 15000; // Inter-city fee
         }
 
-        // Rush order fee
-        if (useRushOrder && isRushOrderEligible()) {
-            baseFee += 50000;
-        }
+        // No rush order fee - removed
 
         // Free shipping threshold
-        if (subtotal >= 500000 && !useRushOrder) {
+        if (subtotal >= 500000) {
             baseFee = Math.max(0, baseFee - 25000); // Free standard shipping
         }
 
@@ -250,9 +263,7 @@ export const CartProvider = ({ children }) => {
             baseFee += 15000;
         }
 
-        if (deliveryInfo.isRushOrder && isRushOrderEligible()) {
-            baseFee += 50000;
-        }
+        // No rush order fee - removed
 
         return Math.min(baseFee, 100000);
     };

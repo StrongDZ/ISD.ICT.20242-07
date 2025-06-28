@@ -44,6 +44,11 @@ const CheckoutPage = () => {
     district: "",
     addressDetail: "",
     isRushOrder: false,
+    deliveryTime: "",
+    specialInstructions: "",
+    contactPerson: "",
+    contactPhone: "",
+    buildingAccess: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -144,6 +149,12 @@ const CheckoutPage = () => {
           recipientName: deliveryInfo.recipientName,
           mail: deliveryInfo.mail,
           phoneNumber: deliveryInfo.phoneNumber,
+          isRushOrder: deliveryInfo.isRushOrder,
+          deliveryTime: deliveryInfo.deliveryTime,
+          specialInstructions: deliveryInfo.specialInstructions,
+          contactPerson: deliveryInfo.contactPerson,
+          contactPhone: deliveryInfo.contactPhone,
+          buildingAccess: deliveryInfo.buildingAccess,
         },
       };
       const createdOrder = await orderService.createOrder(orderData);
@@ -258,7 +269,7 @@ const CheckoutPage = () => {
                   {deliveryInfo.district}, {deliveryInfo.city}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Delivery Type:</strong>{" "}
+                  <strong>Delivery:</strong>{" "}
                   {deliveryInfo.isRushOrder
                     ? "Rush Delivery (Same day)"
                     : "Standard Delivery (3-5 days)"}
@@ -327,8 +338,9 @@ const CheckoutPage = () => {
           <OrderSummary
             items={cartItems}
             order={{
-              deliveryFee: deliveryInfo.isRushOrder ? 100000 : 50000,
+              deliveryFee: 50000, // Fixed delivery fee, no rush fee
             }}
+            deliveryInfo={deliveryInfo}
           />
         </Grid>
       </Grid>
@@ -372,8 +384,8 @@ const CheckoutPage = () => {
             <Typography variant="body2">
               <strong>Delivery:</strong>{" "}
               {deliveryInfo.isRushOrder
-                ? "Rush (Same day)"
-                : "Standard (3-5 days)"}
+                ? "Rush Delivery (Same day)"
+                : "Standard Delivery (3-5 days)"}
             </Typography>
           </Box>
         </DialogContent>

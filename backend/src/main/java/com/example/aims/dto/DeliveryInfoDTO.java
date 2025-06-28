@@ -24,6 +24,14 @@ public class DeliveryInfoDTO {
     private String recipientName;
     private String mail;
     private String phoneNumber;
+    private Boolean isRushOrder;   // ✅ Indicates if this is a rush order
+    
+    // ✅ Additional rush delivery information
+    private String deliveryTime;           // Preferred delivery time for rush orders
+    private String specialInstructions;    // Special delivery instructions
+    private String contactPerson;          // Contact person if different from recipient
+    private String contactPhone;           // Contact phone if different from recipient
+    private String buildingAccess;         // Building/apartment access information
 
     // ✅ Default constructor — required for serialization frameworks like Jackson
     public DeliveryInfoDTO() {}

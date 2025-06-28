@@ -19,6 +19,7 @@ const OrderSummary = ({
   items = [],
   showTitle = true,
   compact = false,
+  deliveryInfo = null,
 }) => {
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -125,6 +126,28 @@ const OrderSummary = ({
             </Typography>
           </Box>
         </Box>
+
+        {/* Rush Delivery Information */}
+        {deliveryInfo && deliveryInfo.isRushOrder && (
+          <Box sx={{ mt: 2, p: 2, bgcolor: "success.light", borderRadius: 1 }}>
+            <Typography variant="subtitle2" gutterBottom sx={{ color: "success.dark" }}>
+              🚀 Rush Delivery Selected
+            </Typography>
+            <Typography variant="body2" sx={{ color: "success.dark", mb: 1 }}>
+              Same day delivery service
+            </Typography>
+            {deliveryInfo.deliveryTime && (
+              <Typography variant="body2" sx={{ color: "success.dark" }}>
+                Preferred time: {deliveryInfo.deliveryTime}
+              </Typography>
+            )}
+            {deliveryInfo.specialInstructions && (
+              <Typography variant="body2" sx={{ color: "success.dark" }}>
+                Special instructions: {deliveryInfo.specialInstructions}
+              </Typography>
+            )}
+          </Box>
+        )}
 
         {/* Order Info */}
         {order && (

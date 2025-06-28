@@ -11,6 +11,19 @@ export const orderService = {
         }
     },
 
+    // Kiểm tra tính đủ điều kiện rush order
+    checkRushOrderEligibility: async (deliveryInfo, products) => {
+        try {
+            const response = await api.post("/rush-order/check", {
+                deliveryInfo,
+                products
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Không thể kiểm tra rush order");
+        }
+    },
+
     async getAllOrders() {
         const response = await api.get("/orders");
         return response.data;

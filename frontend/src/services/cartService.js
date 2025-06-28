@@ -42,21 +42,21 @@ export const cartService = {
     },
 
     // Update, remove and other operations still use productId
-    updateCartItem: async (productId, quantity) => {
+    updateCartItem: async (product, quantity) => {
         updateCartServiceReference();
         if (currentCartService === localCartService) {
-            return currentCartService.updateCartItem(productId, quantity);
+            return currentCartService.updateCartItem(product, quantity);
         } else {
-            return await currentCartService.updateCartItem(productId, quantity);
+            return await currentCartService.updateCartItem(product, quantity);
         }
     },
 
-    removeFromCart: async (productId) => {
+    removeFromCart: async (product) => {
         updateCartServiceReference();
         if (currentCartService === localCartService) {
-            return currentCartService.removeFromCart(productId);
+            return currentCartService.removeFromCart(product);
         } else {
-            return await currentCartService.removeFromCart(productId);
+            return await currentCartService.removeFromCart(product);
         }
     },
 
@@ -69,15 +69,6 @@ export const cartService = {
         }
     },
 
-    isInCart: async (productId) => {
-        updateCartServiceReference();
-        // Handle sync/async difference
-        if (currentCartService === localCartService) {
-            return currentCartService.isInCart(productId);
-        } else {
-            return await currentCartService.isInCart(productId);
-        }
-    },
 
     getItemQuantity: async (productId) => {
         updateCartServiceReference();

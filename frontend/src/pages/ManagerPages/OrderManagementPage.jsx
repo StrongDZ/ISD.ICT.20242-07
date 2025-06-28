@@ -52,7 +52,6 @@ import {
     HourglassEmpty,
     Refresh,
 } from "@mui/icons-material";
-import { cartService } from "../../services/cartService";
 import OrderDialog from "../../components/Manager/OrderDialog";
 import RejectOrderDialog from "../../components/Manager/RejectOrderDialog";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";

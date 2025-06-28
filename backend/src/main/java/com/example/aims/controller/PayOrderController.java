@@ -130,20 +130,4 @@ public class PayOrderController {
                 .data(productDtos)
                 .build());
     }
-
-    /**
-     * Send mail
-     * This method is used to send mail to the user when the payment is successful.
-     * 
-     * @return ResponseEntity with success message
-     */
-    // Test send mail
-    @GetMapping("/send_mail")
-    public ResponseEntity<PayOrderResponseObjectDTO> sendMail() {
-        payOrderService.sendMail("ORD003");
-        return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
-                .message("Send mail success")
-                .responseCode(HttpStatus.OK.value())
-                .build());
-    }
 }

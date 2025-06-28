@@ -322,4 +322,11 @@ public class SearchProductTest {
         dvdDTO.setSubtitle("English, Vietnamese");
         return dvdDTO;
     }
+
+    private Product createProduct(String title, double price) {
+        Book p = new Book();
+        p.setTitle(title);
+        p.setPrice(price);
+        return p;
+    }
 }

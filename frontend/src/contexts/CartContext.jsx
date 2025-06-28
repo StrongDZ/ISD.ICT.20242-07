@@ -15,8 +15,6 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
-    const [selectedItems, setSelectedItems] = useState([]);
-    const [validationErrors, setValidationErrors] = useState([]);
     const { user } = useAuth();
 
     // Load cart items when user changes
@@ -29,14 +27,6 @@ export const CartProvider = ({ children }) => {
         cartService.updateServiceReference();
     }, [user]);
 
-    // Validate cart items when cart changes
-    useEffect(() => {
-        if (cartItems.length > 0) {
-            validateCart();
-        } else {
-            setValidationErrors([]);
-        }
-    }, [cartItems]);
 
     const loadCartItems = async () => {
         try {
@@ -57,40 +47,6 @@ export const CartProvider = ({ children }) => {
         }, 0);
     };
 
-    const validateCart = async () => {
-        if (cartItems.length === 0) {
-            setValidationErrors([]);
-            return;
-        }
-
-        try {
-            const products = cartItems.map((item) => item.productDTO);
-            const errors = await validateProducts(products);
-            setValidationErrors(errors);
-        } catch (error) {
-            console.error("Failed to validate cart:", error);
-        }
-    };
-
-    const validateProducts = async (products) => {
-        if (!products || products.length === 0) return [];
-
-        try {
-            const errors = [];
-            for (const product of products) {
-                if (product.quantity < 1) {
-                    errors.push({
-                        productId: product.productID,
-                        message: `Sản phẩm "${product.title}" không đủ số lượng trong kho (có ${product.quantity})`,
-                    });
-                }
-            }
-            return errors;
-        } catch (error) {
-            console.error("Error validating products:", error);
-            return [];
-        }
-    };
 
     const addToCart = async (product, quantity = 1) => {
         try {
@@ -152,47 +108,12 @@ export const CartProvider = ({ children }) => {
         try {
             await cartService.clearCart();
             setCartItems([]);
-            setSelectedItems([]);
         } catch (error) {
             console.error("Failed to clear cart:", error);
             throw error;
         }
     };
 
-    const toggleItemSelection = (productId) => {
-        setSelectedItems((prev) => {
-            if (prev.includes(productId)) {
-                return prev.filter((id) => id !== productId);
-            } else {
-                return [...prev, productId];
-            }
-        });
-    };
-
-    const selectAllItems = () => {
-        const allProductIds = cartItems
-            .filter((item) => item && item.productDTO) // Filter out items without productDTO
-            .map((item) => item.productDTO.productID);
-        setSelectedItems(allProductIds);
-    };
-
-    const deselectAllItems = () => {
-        setSelectedItems([]);
-    };
-
-    const getSelectedCartItems = () => {
-        return cartItems.filter((item) => item && item.productDTO && selectedItems.includes(item.productDTO.productID));
-    };
-
-    const getTotalPrice = () => {
-        const itemsToCalculate = selectedItems.length > 0 ? getSelectedCartItems() : [];
-        return itemsToCalculate.reduce((total, item) => {
-            if (item && item.productDTO) {
-                return total + item.productDTO.price * item.quantity;
-            }
-            return total;
-        }, 0);
-    };
 
     const getCartTotal = () => {
         return cartItems.reduce((total, item) => {
@@ -211,25 +132,43 @@ export const CartProvider = ({ children }) => {
         return getCartTotal() - getTotalExcludingVAT();
     };
 
-    const getTotalWithVAT = () => {
-        return getTotalPrice();
+
+
+    const getInventoryStatus = (item) => {
+        if (!item || !item.productDTO) return { status: "unknown", message: "", shortfall: 0 };
+
+        const product = item.productDTO;
+        const availableStock = product.quantity || 0;
+        const requestedQuantity = item.quantity || 0;
+
+        if (availableStock === 0) {
+            return {
+                status: "out-of-stock",
+                message: "Sản phẩm hiện không có sẵn",
+                shortfall: requestedQuantity,
+            };
+        } else if (requestedQuantity > availableStock) {
+            const shortfall = requestedQuantity - availableStock;
+            return {
+                status: "insufficient",
+                message: `Chỉ còn ${availableStock} (thiếu ${shortfall})`,
+                shortfall: shortfall,
+            };
+        } else if (availableStock <= 5) {
+            return {
+                status: "low-stock",
+                message: `Chỉ còn ${availableStock} sản phẩm trong kho`,
+                shortfall: 0,
+            };
+        } else {
+            return {
+                status: "available",
+                message: `${availableStock} sản phẩm có sẵn`,
+                shortfall: 0,
+            };
+        }
     };
 
-    const getSelectedItemsCount = () => {
-        return selectedItems.length;
-    };
-
-    const hasSelectedItems = () => {
-        return selectedItems.length > 0;
-    };
-
-    const hasValidationErrors = () => {
-        return validationErrors.length > 0;
-    };
-
-    const getValidationErrorsForProduct = (productId) => {
-        return validationErrors.filter((error) => error.productId === productId);
-    };
 
     const hasInventoryIssues = () => {
         return cartItems.some((item) => {
@@ -243,26 +182,14 @@ export const CartProvider = ({ children }) => {
 
     const value = {
         cartItems,
-        selectedItems,
-        validationErrors,
         addToCart,
         updateCartItem,
         removeFromCart,
         clearCart,
-        toggleItemSelection,
-        selectAllItems,
-        deselectAllItems,
-        getSelectedCartItems,
-        getTotalPrice,
         getCartTotal,
         getTotalExcludingVAT,
         getVATAmount,
-        getTotalWithVAT,
-        getSelectedItemsCount,
-        hasSelectedItems,
-        hasValidationErrors,
-        getValidationErrorsForProduct,
-        validateProducts,
+        getInventoryStatus,
         getCartCount,
         hasInventoryIssues,
         loadCartItems,

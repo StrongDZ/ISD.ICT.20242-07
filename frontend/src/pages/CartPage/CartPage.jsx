@@ -40,6 +40,7 @@ const CartPage = () => {
         getVATAmount,
         hasInventoryIssues,
         loadCartItems,
+        getInventoryStatus,
     } = useCart();
     const [errorMessage, setErrorMessage] = useState("");
     const [showError, setShowError] = useState(false);
@@ -89,41 +90,6 @@ const CartPage = () => {
         }
     };
 
-    // Check inventory status for each item
-    const getInventoryStatus = (item) => {
-        if (!item || !item.productDTO) return { status: "unknown", message: "", shortfall: 0 };
-
-        const product = item.productDTO;
-        const availableStock = product.quantity || 0;
-        const requestedQuantity = item.quantity || 0;
-
-        if (availableStock === 0) {
-            return {
-                status: "out-of-stock",
-                message: "Sản phẩm hiện không có sẵn",
-                shortfall: requestedQuantity,
-            };
-        } else if (requestedQuantity > availableStock) {
-            const shortfall = requestedQuantity - availableStock;
-            return {
-                status: "insufficient",
-                message: `Chỉ còn ${availableStock} (thiếu ${shortfall})`,
-                shortfall: shortfall,
-            };
-        } else if (availableStock <= 5) {
-            return {
-                status: "low-stock",
-                message: `Chỉ còn ${availableStock} sản phẩm trong kho`,
-                shortfall: 0,
-            };
-        } else {
-            return {
-                status: "available",
-                message: `${availableStock} sản phẩm có sẵn`,
-                shortfall: 0,
-            };
-        }
-    };
 
     // Get inventory status color
     const getStatusColor = (status) => {

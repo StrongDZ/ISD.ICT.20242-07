@@ -33,12 +33,12 @@ const CartPage = () => {
         }).format(price);
     };
 
-    const handleQuantityChange = (productID, newQuantity) => {
-        updateCartItem(productID, newQuantity);
+    const handleQuantityChange = (product, newQuantity) => {
+        updateCartItem(product, newQuantity);
     };
 
-    const handleRemoveItem = (productID) => {
-        removeFromCart(productID);
+    const handleRemoveItem = (product) => {
+        removeFromCart(product);
     };
 
     const handleClearCart = () => {
@@ -134,7 +134,7 @@ const CartPage = () => {
                                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, justifyContent: "center" }}>
                                                     <IconButton
                                                         size="small"
-                                                        onClick={() => handleQuantityChange(item.product.productID, item.quantity - 1)}
+                                                        onClick={() => handleQuantityChange(item.product, item.quantity - 1)}
                                                         disabled={item.quantity <= 1}
                                                     >
                                                         <Remove />
@@ -145,7 +145,7 @@ const CartPage = () => {
                                                         onChange={(e) => {
                                                             const value = parseInt(e.target.value);
                                                             if (!isNaN(value) && value > 0) {
-                                                                handleQuantityChange(item.product.productID, value);
+                                                                handleQuantityChange(item.product, value);
                                                             }
                                                         }}
                                                         inputProps={{
@@ -153,10 +153,7 @@ const CartPage = () => {
                                                             min: 1,
                                                         }}
                                                     />
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleQuantityChange(item.product.productID, item.quantity + 1)}
-                                                    >
+                                                    <IconButton size="small" onClick={() => handleQuantityChange(item.product, item.quantity + 1)}>
                                                         <Add />
                                                     </IconButton>
                                                 </Box>
@@ -171,7 +168,7 @@ const CartPage = () => {
                                             </TableCell>
 
                                             <TableCell align="center">
-                                                <IconButton color="error" onClick={() => handleRemoveItem(item.product.productID)}>
+                                                <IconButton color="error" onClick={() => handleRemoveItem(item.product)}>
                                                     <Delete />
                                                 </IconButton>
                                             </TableCell>

@@ -17,7 +17,7 @@ import ProductsPage from "./pages/ProductsPage/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage/ProductDetailPage";
 import CartPage from "./pages/CartPage/CartPage";
 import CheckoutPage from "./pages/CheckoutPage/CheckoutPage";
-import OrderSuccessPage from "./pages/OrderSuccessPage/OrderSuccessPage";
+import OrderSuccessPage from "./pages/OrderPage/OrderSuccessPage";
 import LoginPage from "./pages/LoginPage/LoginPage";
 
 // Admin Pages

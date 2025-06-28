@@ -10,21 +10,13 @@ import com.example.aims.mapper.PaymentError.VNPayErrorMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Arrays;
-import java.util.List;
-
 class PaymentErrorMapperFactoryTest {
 
     private PaymentErrorMapperFactory factory;
-    private VNPayErrorMapper vnpayMapper;
-    private MomoErrorMapper momoMapper;
 
     @BeforeEach
     void setUp() {
-        vnpayMapper = new VNPayErrorMapper();
-        momoMapper = new MomoErrorMapper();
-        List<IPaymentErrorMapper> mappers = Arrays.asList(vnpayMapper, momoMapper);
-        factory = new PaymentErrorMapperFactory(mappers);
+        factory = new PaymentErrorMapperFactory();
     }
 
     @Test
@@ -58,25 +50,27 @@ class PaymentErrorMapperFactoryTest {
     void testGetMapper_UnsupportedPaymentType() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> factory.getMapper("unsupported"));
-        assertEquals("No error mapper found for payment type: unsupported", exception.getMessage());
+        assertEquals("Unsupported payment type: unsupported", exception.getMessage());
     }
 
     @Test
-    void testGetSupportedPaymentTypes() {
-        List<String> supportedTypes = factory.getSupportedPaymentTypes();
-        assertNotNull(supportedTypes);
-        assertEquals(2, supportedTypes.size());
-        assertTrue(supportedTypes.contains("vnpay"));
-        assertTrue(supportedTypes.contains("momo"));
+    void testGetMapper_NullPaymentType() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> factory.getMapper(null));
+        assertEquals("Payment type cannot be null", exception.getMessage());
     }
 
     @Test
-    void testIsSupported() {
-        assertTrue(factory.isSupported("vnpay"));
-        assertTrue(factory.isSupported("momo"));
-        assertTrue(factory.isSupported("VNPAY"));
-        assertTrue(factory.isSupported("MOMO"));
-        assertFalse(factory.isSupported("unsupported"));
-        assertFalse(factory.isSupported("paypal"));
+    void testGetMapper_EmptyPaymentType() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> factory.getMapper(""));
+        assertEquals("Unsupported payment type: ", exception.getMessage());
+    }
+
+    @Test
+    void testGetMapper_WhitespacePaymentType() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> factory.getMapper("   "));
+        assertEquals("Unsupported payment type:    ", exception.getMessage());
     }
 }

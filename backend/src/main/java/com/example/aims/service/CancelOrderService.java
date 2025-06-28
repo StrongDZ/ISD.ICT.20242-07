@@ -20,6 +20,8 @@ public class CancelOrderService {
     private OrderRepository orderRepository;
     @Autowired
     private TransactionMapper transactionMapper;
+    @Autowired
+    private PaymentSystemFactory paymentSystemFactory;
 
     public CancelOrderService(PaymentTransactionRepository paymentTransactionRepository,
             OrderRepository orderRepository) {
@@ -36,32 +38,19 @@ public class CancelOrderService {
      * @param paymentType   Loại cổng thanh toán (vnpay, momo, ...)
      * @return A message indicating the result of the cancellation.
      */
-    public String cancelOrder(String orderId, String transactionId, String paymentType) {
+    public OrderStatus cancelOrder(String orderId, String transactionId, String paymentType) {
         Order order = orderRepository.findByOrderID(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         if (order.getStatus() == OrderStatus.CANCELLED) {
-            return "Order is already cancelled";
+            return order.getStatus();
         } else if (order.getStatus() == OrderStatus.APPROVED || order.getStatus() == OrderStatus.REJECTED) {
-            return "Order cannot be cancelled after approval or rejection";
+            return order.getStatus();
         } else if (order.getStatus() == OrderStatus.PENDING) {
             order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
             // If the order has a payment transaction, refund it
-            PaymentTransaction paymentTransaction = paymentTransactionRepository.findByTransactionId(transactionId)
-                    .orElseThrow(() -> new RuntimeException("Payment transaction not found"));
-            if (paymentTransaction != null) {
-                TransactionResponseDTO transaction = transactionMapper.toTransactionResponseDTO(paymentTransaction);
-                String refundInfo = PaymentSystemFactory.getPaymentSystem(paymentType).getRefundInfo(transaction);
-                if (refundInfo != null) {
-                    return refundInfo;
-                } else {
-                    return "Failed to process refund";
-                }
-            } else {
-                return "No payment transaction found for this order";
-            }
-        } else {
-            return "Order cannot be cancelled at this stage";
+            return OrderStatus.CANCELLED;
         }
+        throw new RuntimeException("Order cannot be cancelled at this stage");
     }
 }

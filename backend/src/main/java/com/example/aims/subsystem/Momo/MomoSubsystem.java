@@ -45,4 +45,14 @@ public class MomoSubsystem implements IPaymentSystem {
         String response = refundRequest.requestMomoRefund(dto);
         return refundResponse.parseResponse(response);
     }
+
+    /**
+     * Returns the payment type identifier for MoMo.
+     * 
+     * @return "momo"
+     */
+    @Override
+    public String getPaymentType() {
+        return "momo";
+    }
 }

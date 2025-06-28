@@ -1,4 +1,5 @@
 import api from "./api";
+import { productService } from "./productService";
 
 export const apiCartService = {
     // Get cart items from API
@@ -9,7 +10,8 @@ export const apiCartService = {
             const transformedItems = response.data.map((item) => ({
                 product: item.productDTO,
                 quantity: item.quantity,
-            }));
+            })).sort((a, b) => a.product.productID.localeCompare(b.product.productID));
+
             return transformedItems;
         } catch (error) {
             console.error("Error fetching cart items from API:", error);
@@ -33,30 +35,27 @@ export const apiCartService = {
         }
     },
 
-    // Update cart item quantity via API (với productId)
-    updateCartItem: async (productId, quantity) => {
+    // Update cart item quantity via API (với full product)
+    updateCartItem: async (product, quantity) => {
         try {
             const cartItemDTO = {
-                productDTO: { productID: productId },
+                productDTO: product,
                 quantity: quantity,
             };
             const response = await api.put("/cart", cartItemDTO);
             return response.data;
         } catch (error) {
-            console.error(`Error updating cart item ${productId} via API:`, error);
+            console.error(`Error updating cart item ${product.productID} via API:`, error);
             throw error;
         }
     },
 
-    // Remove product from cart via API (với productId)
-    removeFromCart: async (productId) => {
+    // Remove product from cart via API (với full product)
+    removeFromCart: async (product) => {
         try {
-            const cartItemDTO = {
-                productDTO: { productID: productId },
-            };
-            await api.delete("/cart", { data: cartItemDTO });
+            await api.delete("/cart", { data: product });
         } catch (error) {
-            console.error(`Error removing product ${productId} from cart via API:`, error);
+            console.error(`Error removing product ${product.productID} from cart via API:`, error);
             throw error;
         }
     },
@@ -71,22 +70,11 @@ export const apiCartService = {
         }
     },
 
-    // Check if item exists in cart
-    isInCart: async (productId) => {
-        try {
-            const cartItems = await apiCartService.getCartItems();
-            return cartItems.some((item) => item.product.productID === productId);
-        } catch (error) {
-            console.error(`Error checking if product ${productId} is in cart:`, error);
-            return false;
-        }
-    },
 
     // Get item quantity
     getItemQuantity: async (productId) => {
         try {
-            const cartItems = await apiCartService.getCartItems();
-            const item = cartItems.find((item) => item.product.productID === productId);
+            const item = await productService.getProductById(productId);
             return item ? item.quantity : 0;
         } catch (error) {
             console.error(`Error getting quantity for product ${productId}:`, error);

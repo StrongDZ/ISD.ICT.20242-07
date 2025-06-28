@@ -2,14 +2,10 @@ package com.example.aims.controller;
 
 import com.example.aims.dto.PayOrderResponseObjectDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
-import com.example.aims.dto.order.PaymentOrderRequestDTO;
-import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
-import com.example.aims.dto.products.ProductDTO;
+
 import com.example.aims.dto.order.OrderInfoDTO;
 import com.example.aims.dto.order.OrderItemDTO;
-import com.example.aims.model.Order;
-import com.example.aims.model.OrderItem;
-import com.example.aims.model.Product;
+
 import com.example.aims.service.*;
 
 import java.util.List;
@@ -95,6 +91,13 @@ public class PayOrderController {
                 .build());
     }
 
+    /**
+     * Get order info
+     * This method is used to get the order information.
+     * 
+     * @param id
+     * @return
+     */
     // Get order info
     @GetMapping("order_info")
     public ResponseEntity<PayOrderResponseObjectDTO> getOrderInfo(@RequestParam String id) {
@@ -106,6 +109,13 @@ public class PayOrderController {
                 .build());
     }
 
+    /**
+     * Get order product
+     * This method is used to get the product information of the order.
+     * 
+     * @param id
+     * @return
+     */
     // Get order product
     @GetMapping("order_product")
     public ResponseEntity<PayOrderResponseObjectDTO> getProductInfo(@RequestParam String id) {
@@ -114,16 +124,6 @@ public class PayOrderController {
                 .message("Get order product success")
                 .responseCode(HttpStatus.OK.value())
                 .data(productDtos)
-                .build());
-    }
-
-    // Test send mail
-    @GetMapping("/send_mail")
-    public ResponseEntity<PayOrderResponseObjectDTO> sendMail() {
-        payOrderService.sendMail("ORD003");
-        return ResponseEntity.ok(PayOrderResponseObjectDTO.builder()
-                .message("Send mail success")
-                .responseCode(HttpStatus.OK.value())
                 .build());
     }
 }

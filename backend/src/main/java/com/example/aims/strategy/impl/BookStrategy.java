@@ -7,7 +7,7 @@ import com.example.aims.mapper.BookMapper;
 import com.example.aims.model.Book;
 import com.example.aims.repository.BookRepository;
 import com.example.aims.strategy.ProductStrategy;
-import com.example.aims.util.IdGenerator;
+import com.example.aims.common.ProductType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,17 +23,13 @@ public class BookStrategy implements ProductStrategy {
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
 
-
     @Override
     public ProductDTO createProduct(ProductDTO productDTO) {
         BookDTO bookDTO = (BookDTO) productDTO;
 
         // Create Book entity (includes Product fields)
         Book book = bookMapper.toEntity(bookDTO);
-        if (book.getProductID() == null) {
-            book.setProductID(IdGenerator.generateProductId("book"));
-        }
-        book.setCategory("book");
+        book.setCategory(ProductType.book);
         Book savedBook = bookRepository.save(book);
 
         // Return DTO
@@ -52,7 +48,7 @@ public class BookStrategy implements ProductStrategy {
         // Update Book
         Book book = bookMapper.toEntity(bookDTO);
         book.setProductID(id);
-        book.setCategory("book");
+        book.setCategory(ProductType.book);
         Book savedBook = bookRepository.save(book);
 
         // Return DTO
@@ -93,6 +89,6 @@ public class BookStrategy implements ProductStrategy {
 
     @Override
     public String getProductType() {
-        return "book";
+        return ProductType.book.name();
     }
 }

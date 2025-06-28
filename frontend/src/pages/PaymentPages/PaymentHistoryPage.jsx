@@ -73,7 +73,7 @@ const PaymentHistory = () => {
         }
 
         try {
-            await axios.get(
+            var res = await axios.get(
                 `http://localhost:8080/api/cancel-order?orderId=${orderId}&transactionId=${transactionId}&paymentType=${paymentType}`,
                 {
                     headers: {
@@ -81,7 +81,15 @@ const PaymentHistory = () => {
                     }
                 }
             );
-            setSuccessMessage("✅ Order has been canceled. A refund will be issued to your account shortly.");
+            const isCancelledNow = res.data;
+
+            if (isCancelledNow === true) {
+                setSuccessMessage("✅ Order has been canceled. A refund will be issued to your account shortly.");
+                // Optionally: update local order state
+                setOrder(prev => ({ ...prev, status: "CANCELLED" }));
+            } else {
+                setCancelledNotice("⚠️ This order has been APPROVED/REJECTED before.");
+            }
         } catch (err) {
             console.error(err);
             setError("❌ Failed to cancel order. Please try again.");

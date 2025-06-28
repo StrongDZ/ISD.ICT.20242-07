@@ -2,6 +2,7 @@ package com.example.aims.mapper;
 
 import org.mapstruct.Mapper;
 
+import com.example.aims.common.ProductType;
 import com.example.aims.dto.products.CdDTO;
 import com.example.aims.model.CD;
 
@@ -15,7 +16,7 @@ public interface CdMapper extends ProductMapper<CD, CdDTO> {
     CD toEntity(CdDTO cdDTO);
 
     @Override
-    default String getProductType() {
-        return "cd";
+    default ProductType getProductType() {
+        return ProductType.cd;
     }
 }

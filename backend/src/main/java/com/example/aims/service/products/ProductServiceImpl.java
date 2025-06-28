@@ -6,6 +6,8 @@ import com.example.aims.factory.ProductFactory;
 import com.example.aims.model.Product;
 import com.example.aims.repository.ProductRepository;
 import com.example.aims.strategy.ProductStrategy;
+import com.example.aims.common.ProductType;
+import com.example.aims.exception.ResourceNotFoundException;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
 
         List<ProductDTO> productDTOs = productPage.getContent().stream()
                 .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
                     return strategy.getProductById(product.getProductID());
                 })
                 .collect(Collectors.toList());
@@ -55,9 +57,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO getProductById(String productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
 
-        ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+        ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
         return strategy.getProductById(productId);
     }
 
@@ -79,7 +81,7 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(String productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
-        ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+        ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
         strategy.deleteProduct(productId);
     }
 
@@ -88,7 +90,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products = productRepository.findByTitleContainingIgnoreCase(query);
         return products.stream()
                 .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
                     return strategy.getProductById(product.getProductID());
                 })
                 .collect(Collectors.toList());
@@ -101,7 +103,7 @@ public class ProductServiceImpl implements ProductService {
 
         List<ProductDTO> productDTOs = productPage.getContent().stream()
                 .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
                     return strategy.getProductById(product.getProductID());
                 })
                 .collect(Collectors.toList());
@@ -122,11 +124,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public PagedResponse<ProductDTO> getProductsByCategory(String category, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> productPage = productRepository.findByCategory(category, pageable);
+        ProductType productType = ProductType.valueOf(category.toLowerCase());
+        Page<Product> productPage = productRepository.findByCategory(productType, pageable);
 
         List<ProductDTO> productDTOs = productPage.getContent().stream()
                 .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory());
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
                     return strategy.getProductById(product.getProductID());
                 })
                 .collect(Collectors.toList());

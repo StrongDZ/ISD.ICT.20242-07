@@ -1,10 +1,11 @@
-package com.example.aims.service.rush;
+package com.example.aims.service;
 
 import com.example.aims.dto.DeliveryInfoDTO;
-import com.example.aims.dto.PlaceRushOrderResponse;
 import com.example.aims.dto.products.BookDTO;
 import com.example.aims.dto.products.ProductDTO;
+import com.example.aims.dto.rush.PlaceRushOrderResponse;
 import com.example.aims.dto.rush.RushOrderCheckRequest;
+import com.example.aims.service.rush.PlaceRushOrderService;
 import com.example.aims.service.rush.eligibility.AddressRushEligibility;
 import com.example.aims.service.rush.eligibility.ProductRushEligibility;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +73,7 @@ class PlaceRushOrderServiceTest {
     void testPlaceRushOrder_AddressNotEligible() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Ho Chi Minh");
+        deliveryInfo.setCity("Hồ  Chí Minh");
         deliveryInfo.setDistrict("District 1");
 
         BookDTO product = new BookDTO();
@@ -164,7 +165,7 @@ class PlaceRushOrderServiceTest {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
         deliveryInfo.setCity("Hà Nội");
-        deliveryInfo.setDistrict("Ba Dinh");
+        deliveryInfo.setDistrict("Ba Đình");
 
         BookDTO product = new BookDTO();
         product.setProductID("B001");

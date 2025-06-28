@@ -28,7 +28,6 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
 import DeliveryForm from "../../components/Order/DeliveryForm";
 import OrderSummary from "../../components/Order/OrderSummary";
-import { cartService } from "../../services/cartService";
 import { orderService } from "../../services/orderService";
 
 const CheckoutPage = () => {
@@ -207,8 +206,8 @@ const CheckoutPage = () => {
               </Typography>
               <Alert severity="info" sx={{ mt: 2 }}>
                 <Typography variant="body2">
-                  Payment via VNPay is currently the only available payment
-                  method. You will pay securely through VNPay at the time of
+                  Payment via VNPay/Momo are currently the only available payment
+                  method. You will pay securely through VNPay/Momo at the time of
                   placing your order.
                 </Typography>
               </Alert>
@@ -223,10 +222,10 @@ const CheckoutPage = () => {
               >
                 <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                   <CreditCard color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="h6">Payment via VNPay</Typography>
+                  <Typography variant="h6">Payment via VNPay/Momo</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  Pay in advance via VNPay. You will be redirected to the VNPay
+                  Pay in advance via VNPay/Momo. You will be redirected to the VNPay/Momo
                   payment gateway to complete the transaction.
                 </Typography>
               </Box>

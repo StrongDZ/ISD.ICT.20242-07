@@ -63,6 +63,7 @@ public class CartService {
      * @return CartItemDTO representing the added/updated cart item
      * @throws com.example.aims.exception.BadRequestException if quantity is invalid
      *                                                        or insufficient stock
+     * 
      * @throws ResourceNotFoundException                      if customer or product
      *                                                        not found
      */

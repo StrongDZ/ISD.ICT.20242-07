@@ -4,7 +4,6 @@ import { ShoppingCart, Search, AccountCircle, Store } from "@mui/icons-material"
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
-
 const Header = () => {
     const navigate = useNavigate();
     const location = useLocation();

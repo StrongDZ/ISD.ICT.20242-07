@@ -1,17 +1,17 @@
 import { localCartService } from "./localCartService";
 import { apiCartService } from "./apiCartService";
 
-// Helper function to check if user is logged in
-const isLoggedIn = () => {
+// Helper function to check if user is authenticated
+const isAuthenticated = () => {
     return !!localStorage.getItem("token");
 };
 
 // Current cart service reference - switches based on auth status
-let currentCartService = isLoggedIn() ? apiCartService : localCartService;
+let currentCartService = isAuthenticated() ? apiCartService : localCartService;
 
 // Update the current cart service reference
 const updateCartServiceReference = () => {
-    currentCartService = isLoggedIn() ? apiCartService : localCartService;
+    currentCartService = isAuthenticated() ? apiCartService : localCartService;
 };
 
 export const cartService = {
@@ -31,32 +31,48 @@ export const cartService = {
         }
     },
 
-    // Add product với full product object
+    // Add product to cart (với full product)
     addToCart: async (product, quantity = 1) => {
         updateCartServiceReference();
-        if (currentCartService === localCartService) {
-            return currentCartService.addToCart(product, quantity);
-        } else {
-            return await currentCartService.addToCart(product, quantity);
+        try {
+            if (currentCartService === localCartService) {
+                return currentCartService.addToCart(product, quantity);
+            } else {
+                return await currentCartService.addToCart(product, quantity);
+            }
+        } catch (error) {
+            console.error(`Error adding product ${product.productID} to cart:`, error);
+            throw error;
         }
     },
 
-    // Update, remove and other operations still use productId
+    // Update cart item quantity (với full product)
     updateCartItem: async (product, quantity) => {
         updateCartServiceReference();
-        if (currentCartService === localCartService) {
-            return currentCartService.updateCartItem(product, quantity);
-        } else {
-            return await currentCartService.updateCartItem(product, quantity);
+        try {
+            if (currentCartService === localCartService) {
+                return currentCartService.updateCartItem(product, quantity);
+            } else {
+                return await currentCartService.updateCartItem(product, quantity);
+            }
+        } catch (error) {
+            console.error(`Error updating cart item ${product.productID}:`, error);
+            throw error;
         }
     },
 
+    // Remove product from cart (với full product)
     removeFromCart: async (product) => {
         updateCartServiceReference();
-        if (currentCartService === localCartService) {
-            return currentCartService.removeFromCart(product);
-        } else {
-            return await currentCartService.removeFromCart(product);
+        try {
+            if (currentCartService === localCartService) {
+                return currentCartService.removeFromCart(product);
+            } else {
+                return await currentCartService.removeFromCart(product);
+            }
+        } catch (error) {
+            console.error(`Error removing product ${product.productID} from cart:`, error);
+            throw error;
         }
     },
 
@@ -66,17 +82,6 @@ export const cartService = {
             return currentCartService.clearCart();
         } else {
             return await currentCartService.clearCart();
-        }
-    },
-
-
-    getItemQuantity: async (productId) => {
-        updateCartServiceReference();
-        // Handle sync/async difference
-        if (currentCartService === localCartService) {
-            return currentCartService.getItemQuantity(productId);
-        } else {
-            return await currentCartService.getItemQuantity(productId);
         }
     },
 

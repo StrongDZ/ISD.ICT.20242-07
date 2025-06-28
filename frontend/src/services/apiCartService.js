@@ -6,11 +6,13 @@ export const apiCartService = {
     getCartItems: async () => {
         try {
             const response = await api.get("/cart");
-            // Transform API response từ {productDTO, quantity} thành {product, quantity}
-            const transformedItems = response.data.map((item) => ({
-                product: item.productDTO,
+            // Return items with productDTO property to match CartContext expectations
+            const transformedItems = response.data
+                .map((item) => ({
+                    productDTO: item.productDTO,
                 quantity: item.quantity,
-            })).sort((a, b) => a.product.productID.localeCompare(b.product.productID));
+                }))
+                .sort((a, b) => a.productDTO.productID.localeCompare(b.productDTO.productID));
 
             return transformedItems;
         } catch (error) {
@@ -19,12 +21,11 @@ export const apiCartService = {
         }
     },
 
-    // Add product to cart via API (với full product object)
-    addToCart: async (product, quantity = 1) => {
-        console.log("product", product);
+    // Add product to cart via API (với full product)
+    addToCart: async (product, quantity) => {
         try {
             const cartItemDTO = {
-                productDTO: product, // Gửi toàn bộ product object
+                productDTO: product,
                 quantity: quantity,
             };
             const response = await api.post("/cart", cartItemDTO);
@@ -70,18 +71,6 @@ export const apiCartService = {
         }
     },
 
-
-    // Get item quantity
-    getItemQuantity: async (productId) => {
-        try {
-            const item = await productService.getProductById(productId);
-            return item ? item.quantity : 0;
-        } catch (error) {
-            console.error(`Error getting quantity for product ${productId}:`, error);
-            return 0;
-        }
-    },
-
     // Get cart count
     getCartCount: async () => {
         try {
@@ -98,7 +87,7 @@ export const apiCartService = {
         try {
             const cartItems = await apiCartService.getCartItems();
             return cartItems.reduce((total, item) => {
-                return total + item.product.price * item.quantity;
+                return total + item.productDTO.price * item.quantity;
             }, 0);
         } catch (error) {
             console.error("Error getting cart total:", error);

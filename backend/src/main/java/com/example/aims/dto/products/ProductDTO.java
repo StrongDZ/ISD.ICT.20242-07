@@ -31,15 +31,15 @@ public abstract class ProductDTO {
     private String dimensions;
     private Double weight;
     private String imageURL;
-    private Boolean rushEligible;
+    private Boolean eligible;
 
-    // Manual getter and setter for rushEligible to ensure compatibility
-    public Boolean getRushEligible() {
-        return rushEligible;
+    // Manual getter and setter for eligible to ensure compatibility
+    public Boolean getEligible() {
+        return eligible;
     }
 
-    public void setRushEligible(Boolean rushEligible) {
-        this.rushEligible = rushEligible;
+    public void setEligible(Boolean eligible) {
+        this.eligible = eligible;
     }
 
     // Manual getter for productID to ensure compatibility

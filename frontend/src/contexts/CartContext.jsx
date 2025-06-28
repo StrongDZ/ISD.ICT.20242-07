@@ -193,13 +193,12 @@ export const CartProvider = ({ children }) => {
         const allProductsEligible = cartItems.every((item) => {
             const product = item.product;
 
-            // For localStorage items, we might not have rushEligible info
-            // so we assume books, CDs, and some DVDs are eligible
-            if (product.rushEligible !== undefined) {
-                return product.rushEligible;
+            // For localStorage items, we might not have eligible info
+            if (product.eligible !== undefined) {
+                return product.eligible;
             }
-            // Fallback logic for localStorage items
-            return product.category === "book" || product.category === "cd" || (product.category === "dvd" && product.price < 1000000);
+            // Default to false if no information available
+            return false;
         });
 
         return isEligibleAddress && allProductsEligible && cartItems.length > 0;

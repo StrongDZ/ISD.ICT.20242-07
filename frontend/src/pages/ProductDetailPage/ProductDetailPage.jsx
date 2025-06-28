@@ -449,7 +449,7 @@ const ProductDetailPage = () => {
                                 <span style={{ color: "red" }}>Out of Stock</span>
                             )}
                         </Typography>
-                        {product.rushEligible && <Chip label="Rush Delivery Available" color="success" size="small" />}
+                        {product.eligible && <Chip label="Rush Delivery Available" color="success" size="small" />}
                     </Box>
 
                     {/* Description */}

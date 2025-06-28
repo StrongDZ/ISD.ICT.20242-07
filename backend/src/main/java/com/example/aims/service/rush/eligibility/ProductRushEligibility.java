@@ -44,7 +44,7 @@ public class ProductRushEligibility implements RushEligibility<ProductDTO> {
      * flag.
      *
      * @param product the product to check
-     * @return true if product is not null and is marked as rush eligible; false
+     * @return true if product is not null and is marked as eligible; false
      *         otherwise
      */
     @Override
@@ -54,14 +54,14 @@ public class ProductRushEligibility implements RushEligibility<ProductDTO> {
             return false;
         }
         
-        Boolean rushEligible = product.getRushEligible();
-        if (rushEligible == null) {
-            logger.debug("Product {} has null rushEligible field, treating as not eligible", 
+        Boolean eligible = product.getEligible();
+        if (eligible == null) {
+            logger.debug("Product {} has null eligible field, treating as not eligible", 
                 product.getProductID() != null ? product.getProductID() : "unknown");
             return false;
         }
         
-        boolean result = rushEligible.booleanValue();
+        boolean result = eligible.booleanValue();
         logger.debug("Product {} rush eligibility: {}", 
             product.getProductID() != null ? product.getProductID() : "unknown", result);
         return result;

@@ -16,5 +16,15 @@ public class BookDTO extends ProductDTO {
     private String genre;
     private Date pubDate;
 
+    // Manual getter and setter for eligible to ensure compatibility
+    @Override
+    public Boolean getEligible() {
+        return super.getEligible();
+    }
+
+    @Override
+    public void setEligible(Boolean eligible) {
+        super.setEligible(eligible);
+    }
 }
  

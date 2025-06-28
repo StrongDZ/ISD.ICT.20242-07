@@ -41,12 +41,12 @@ class RushOrderControllerTest {
     void testCheckRushOrder_Success() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Ha Noi");
+        deliveryInfo.setCity("Hà Nội");
         deliveryInfo.setDistrict("Ba Dinh");
 
         BookDTO product = new BookDTO();
         product.setProductID("B001");
-        product.setRushEligible(true);
+        product.setEligible(true);
 
         List<ProductDTO> products = Arrays.asList(product);
 
@@ -83,7 +83,7 @@ class RushOrderControllerTest {
 
         BookDTO product = new BookDTO();
         product.setProductID("B001");
-        product.setRushEligible(false);
+        product.setEligible(false);
 
         List<ProductDTO> products = Arrays.asList(product);
 

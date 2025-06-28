@@ -215,7 +215,7 @@ public class ManageCartTest {
         book.setQuantity(10);
         book.setImageURL("http://example.com/image.jpg");
         book.setCategory("book");
-        book.setRushEligible(true);
+        book.setEligible(true);
         book.setWarehouseEntryDate(new Date());
         book.setDimensions("10x10x10");
         book.setWeight(1.0);

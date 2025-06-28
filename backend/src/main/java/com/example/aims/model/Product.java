@@ -32,7 +32,7 @@ public abstract class Product {
     private String dimensions;
     private Double weight;
     private String imageURL;
-    private Boolean rushEligible;
+    private Boolean eligible;
 
     /**
      * Validates that there is sufficient stock for the requested quantity.

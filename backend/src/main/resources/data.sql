@@ -1,5 +1,5 @@
 INSERT INTO public.product (
-    productid, barcode, category, description, dimensions, imageurl, rush_eligible, price, quantity, title, value, warehouse_entry_date, weight)
+    productid, barcode, category, description, dimensions, imageurl, eligible, price, quantity, title, value, warehouse_entry_date, weight)
      VALUES
 -- Books (Giá VNĐ)
 ('B001', '9781234567890', 'book', 'Mystery novel in London', '20x13x3 cm', 'https://drive.google.com/file/d/1MMD7eQ1V8tJhaE91WekgA94Kvs7WMZjn/view?usp=drive_link', true, 159000, 100, 'The London Enigma', 4.5, DATE '2025-06-10', 0.5),

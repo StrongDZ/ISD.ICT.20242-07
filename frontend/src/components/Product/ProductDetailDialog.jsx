@@ -432,8 +432,8 @@ const ProductDetailDialog = ({ open, onClose, product, onEdit }) => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <Chip
-                                                        label={product.isRushEligible || product.rushEligible ? "Yes" : "No"}
-                                                        color={product.isRushEligible || product.rushEligible ? "success" : "default"}
+                                                        label={product.isRushEligible || product.eligible ? "Yes" : "No"}
+                                                        color={product.isRushEligible || product.eligible ? "success" : "default"}
                                                         size="small"
                                                     />
                                                 </TableCell>

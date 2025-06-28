@@ -14,4 +14,14 @@ public class CdDTO extends ProductDTO {
     private String recordLabel;
     private String musicType;
 
+    // Manual getter and setter for eligible to ensure compatibility
+    @Override
+    public Boolean getEligible() {
+        return super.getEligible();
+    }
+
+    @Override
+    public void setEligible(Boolean eligible) {
+        super.setEligible(eligible);
+    }
 }

@@ -12,7 +12,7 @@ CREATE TABLE Product (
     dimensions VARCHAR,
     weight DOUBLE PRECISION,
     imageURL VARCHAR,
-    rushEligible BOOLEAN
+    eligible BOOLEAN
 );
 
 -- Bảng Book kế thừa Product

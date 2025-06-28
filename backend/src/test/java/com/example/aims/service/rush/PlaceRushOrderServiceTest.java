@@ -36,19 +36,19 @@ class PlaceRushOrderServiceTest {
     }
 
     @Test
-    void testPlaceRushOrder_WithNullRushEligibleField() {
+    void testPlaceRushOrder_WithNullEligibleField() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Ha Noi");
-        deliveryInfo.setDistrict("Ba Dinh");
+        deliveryInfo.setCity("Hà Nội");
+        deliveryInfo.setDistrict("Ba Đình");
 
         BookDTO product1 = new BookDTO();
         product1.setProductID("B001");
-        product1.setRushEligible(null); // Null rushEligible field
+        product1.setEligible(null); // Null eligible field
 
         BookDTO product2 = new BookDTO();
         product2.setProductID("B002");
-        product2.setRushEligible(true);
+        product2.setEligible(true);
 
         List<ProductDTO> products = Arrays.asList(product1, product2);
 
@@ -77,7 +77,7 @@ class PlaceRushOrderServiceTest {
 
         BookDTO product = new BookDTO();
         product.setProductID("B001");
-        product.setRushEligible(true);
+        product.setEligible(true);
 
         List<ProductDTO> products = Arrays.asList(product);
 
@@ -96,19 +96,19 @@ class PlaceRushOrderServiceTest {
     }
 
     @Test
-    void testPlaceRushOrder_NoRushEligibleProducts() {
+    void testPlaceRushOrder_NoEligibleProducts() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Ha Noi");
+        deliveryInfo.setCity("Hà Nội");
         deliveryInfo.setDistrict("Ba Dinh");
 
         BookDTO product1 = new BookDTO();
         product1.setProductID("B001");
-        product1.setRushEligible(false);
+        product1.setEligible(false);
 
         BookDTO product2 = new BookDTO();
         product2.setProductID("B002");
-        product2.setRushEligible(false);
+        product2.setEligible(false);
 
         List<ProductDTO> products = Arrays.asList(product1, product2);
 
@@ -130,16 +130,16 @@ class PlaceRushOrderServiceTest {
     void testPlaceRushOrder_SuccessfulRushOrder() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Ha Noi");
+        deliveryInfo.setCity("Hà Nội");
         deliveryInfo.setDistrict("Ba Dinh");
 
         BookDTO product1 = new BookDTO();
         product1.setProductID("B001");
-        product1.setRushEligible(true);
+        product1.setEligible(true);
 
         BookDTO product2 = new BookDTO();
         product2.setProductID("B002");
-        product2.setRushEligible(false);
+        product2.setEligible(false);
 
         List<ProductDTO> products = Arrays.asList(product1, product2);
 
@@ -163,16 +163,18 @@ class PlaceRushOrderServiceTest {
     void testRushOrderCheckRequest_WithValidData() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Ha Noi");
+        deliveryInfo.setCity("Hà Nội");
         deliveryInfo.setDistrict("Ba Dinh");
 
         BookDTO product = new BookDTO();
         product.setProductID("B001");
-        product.setRushEligible(true);
+        product.setEligible(true);
 
         List<ProductDTO> products = Arrays.asList(product);
 
-        RushOrderCheckRequest request = new RushOrderCheckRequest(deliveryInfo, products);
+        RushOrderCheckRequest request = new RushOrderCheckRequest();
+        request.setDeliveryInfo(deliveryInfo);
+        request.setProducts(products);
 
         // Act & Assert
         assertNotNull(request);

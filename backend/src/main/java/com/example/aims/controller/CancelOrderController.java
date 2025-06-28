@@ -18,6 +18,15 @@ public class CancelOrderController {
     @Autowired
     private CancelOrderService cancelOrderService;
 
+    /**
+     * Cancel order
+     * This method is used to cancel the order.
+     * 
+     * @param orderId
+     * @param transactionId
+     * @param paymentType
+     * @return ResponseEntity with success message
+     */
     @GetMapping("")
     public ResponseEntity<PayOrderResponseObjectDTO> cancelOrder(@RequestParam("orderId") String orderId,
             @RequestParam("transactionId") String transactionId, @RequestParam("paymentType") String paymentType) {

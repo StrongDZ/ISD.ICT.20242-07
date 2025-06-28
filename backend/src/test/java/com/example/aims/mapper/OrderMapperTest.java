@@ -67,7 +67,6 @@ public class OrderMapperTest {
         order.setOrderID("ORD004");
         order.setTotalAmount(4000.0);
         order.setStatus(OrderStatus.PENDING);
-        order.setPaymentType("vnpay");
 
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         order.setDeliveryInfo(deliveryInfo);
@@ -80,7 +79,6 @@ public class OrderMapperTest {
         assertEquals("ORD004", dto.getOrderID());
         assertEquals(4000.0, dto.getTotalAmount());
         assertEquals(OrderStatus.PENDING, dto.getStatus());
-        assertEquals("vnpay", dto.getPaymentType());
         assertEquals(deliveryInfoDTO, dto.getDeliveryInfo());
     }
 
@@ -96,7 +94,6 @@ public class OrderMapperTest {
         order.setOrderID("ORD005");
         order.setTotalAmount(5000.0);
         order.setStatus(OrderStatus.PENDING);
-        order.setPaymentType("vnpay");
         order.setDeliveryInfo(null);
 
         OrderDTO dto = orderMapper.toOrderDTO(order);
@@ -104,7 +101,6 @@ public class OrderMapperTest {
         assertEquals("ORD005", dto.getId());
         assertEquals(5000.0, dto.getTotalPrice());
         assertEquals(OrderStatus.PENDING, dto.getStatus());
-        assertEquals("vnpay", dto.getPaymentType());
         assertNull(dto.getDeliveryInfo());
     }
 }

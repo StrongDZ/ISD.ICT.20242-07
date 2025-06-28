@@ -3,10 +3,8 @@ package com.example.aims.service;
 import com.example.aims.common.OrderStatus;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.dto.order.PaymentOrderRequestDTO;
-import com.example.aims.dto.order.OrderDTO;
 import com.example.aims.dto.order.OrderInfoDTO;
 import com.example.aims.dto.order.OrderItemDTO;
-import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.exception.PaymentException.PaymentException;
 import com.example.aims.mapper.OrderMapper;
@@ -14,7 +12,6 @@ import com.example.aims.mapper.PaymentError.IPaymentErrorMapper;
 import com.example.aims.model.Order;
 import com.example.aims.model.OrderItem;
 import com.example.aims.model.PaymentTransaction;
-import com.example.aims.model.Product;
 import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
@@ -70,6 +67,8 @@ public class PayOrderService {
     private OrderMapper orderMapper;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private PaymentSystemFactory paymentSystemFactory;
 
     public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository,
             OrderItemRepository orderItemRepository) {
@@ -97,7 +96,7 @@ public class PayOrderService {
                     "Order is not in PENDING state for payment. Current status: " + order.getStatus());
         }
         PaymentOrderRequestDTO dto = orderMapper.toPaymentOrderRequestDTO(order);
-        return PaymentSystemFactory.getPaymentSystem(paymentType).getPaymentUrl(dto);
+        return paymentSystemFactory.getPaymentSystem(paymentType).getPaymentUrl(dto);
     }
 
     /**
@@ -116,13 +115,20 @@ public class PayOrderService {
             Order order = currentOrder.findByOrderID(orderID)
                     .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderID));
             PaymentOrderResponseFromReturnDTO orderDto = orderMapper.toPaymentOrderResponseFromReturnDTO(order);
-            PaymentTransaction paymentTransaction = PaymentSystemFactory.getPaymentSystem(paymentType)
+            PaymentTransaction paymentTransaction = paymentSystemFactory.getPaymentSystem(paymentType)
                     .getTransactionInfo(allRequestParams, orderDto);
             PaymentTransaction savedTransaction = currentPaymentTransaction.save(paymentTransaction);
             String transactionId = savedTransaction.getTransactionId();
             order.setStatus(OrderStatus.PENDING);
             currentOrder.save(order);
-            sendMail(transactionId);
+
+            try {
+                emailService.sendPaymentConfirmationEmail(transactionId);
+            } catch (Exception e) {
+                // Log error but don't throw to avoid breaking payment flow
+                System.err.println("Failed to send payment confirmation email: " + e.getMessage());
+            }
+
             return "http://localhost:3001/payment-success?orderId=" + orderID;
         } else if (isCancelResponse(responseCode, paymentType)) { // Payment decline/cancel
             return "http://localhost:3001/payment-decline";
@@ -190,33 +196,6 @@ public class PayOrderService {
                 return "24".equals(responseCode);
             default:
                 return "24".equals(responseCode);
-        }
-    }
-
-    /**
-     * Sends a confirmation email after a successful payment.
-     * 
-     * @param transactionId The ID of the payment transaction.
-     */
-    public void sendMail(String transactionId) {
-        PaymentTransaction paymentTransaction = currentPaymentTransaction
-                .findByTransactionId(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Payment transaction not found for transaction Id: " + transactionId));
-        Order order = paymentTransaction.getOrder();
-        String orderID = order.getOrderID();
-        String recipientName = order.getDeliveryInfo().getRecipientName();
-        String recipientEmail = order.getDeliveryInfo().getMail();
-        String transactionLink = "localhost:3001/payment-history?orderId=" + orderID +
-                "&transactionId=" + transactionId +
-                "&paymentType=" + paymentTransaction.getPaymentType();
-
-        try {
-            emailService.sendPaymentConfirmation(recipientName, recipientEmail, orderID, transactionId,
-                    transactionLink);
-        } catch (Exception e) {
-            // Log error but don't throw to avoid breaking payment flow
-            System.err.println("Failed to send payment confirmation email: " + e.getMessage());
         }
     }
 

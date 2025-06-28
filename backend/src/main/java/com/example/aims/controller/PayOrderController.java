@@ -95,6 +95,13 @@ public class PayOrderController {
                 .build());
     }
 
+    /**
+     * Get order info
+     * This method is used to get the order information.
+     * 
+     * @param id
+     * @return
+     */
     // Get order info
     @GetMapping("order_info")
     public ResponseEntity<PayOrderResponseObjectDTO> getOrderInfo(@RequestParam String id) {
@@ -106,6 +113,13 @@ public class PayOrderController {
                 .build());
     }
 
+    /**
+     * Get order product
+     * This method is used to get the product information of the order.
+     * 
+     * @param id
+     * @return
+     */
     // Get order product
     @GetMapping("order_product")
     public ResponseEntity<PayOrderResponseObjectDTO> getProductInfo(@RequestParam String id) {
@@ -117,6 +131,12 @@ public class PayOrderController {
                 .build());
     }
 
+    /**
+     * Send mail
+     * This method is used to send mail to the user when the payment is successful.
+     * 
+     * @return ResponseEntity with success message
+     */
     // Test send mail
     @GetMapping("/send_mail")
     public ResponseEntity<PayOrderResponseObjectDTO> sendMail() {

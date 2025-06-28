@@ -57,9 +57,6 @@ public class Order {
     @JoinColumn(name = "orderID")
     private DeliveryInfo deliveryInfo;
 
-    @Column(name = "payment_type")
-    private String paymentType;
-
     @Column(name = "rejected_reason")
     private String rejectedReason;
 
@@ -68,12 +65,11 @@ public class Order {
     }
 
     public Order(String orderID, OrderStatus status, Double totalAmount, 
-                DeliveryInfo deliveryInfo, String paymentType, String rejectedReason) {
+                DeliveryInfo deliveryInfo, String rejectedReason) {
         this.orderID = orderID;
         this.status = status;
         this.totalAmount = totalAmount;
         this.deliveryInfo = deliveryInfo;
-        this.paymentType = paymentType;
         this.rejectedReason = rejectedReason;
     }
 
@@ -110,13 +106,6 @@ public class Order {
         this.deliveryInfo = deliveryInfo;
     }
 
-    public String getPaymentType() {
-        return paymentType;
-    }
-
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
-    }
 
     public String getRejectedReason() {
         return rejectedReason;

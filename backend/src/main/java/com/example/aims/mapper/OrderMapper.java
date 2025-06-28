@@ -28,7 +28,6 @@ public class OrderMapper {
         dto.setOrderID(order.getOrderID());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setStatus(order.getStatus());
-        dto.setPaymentType(order.getPaymentType());
 
         if (order.getDeliveryInfo() != null) {
             dto.setDeliveryInfo(deliveryInfoMapper.toDto(order.getDeliveryInfo()));
@@ -51,7 +50,6 @@ public class OrderMapper {
         dto.setId(order.getOrderID());
         dto.setTotalPrice(order.getTotalAmount());
         dto.setStatus(order.getStatus());
-        dto.setPaymentType(order.getPaymentType());
         // dto.setCustomerID(order.getCustomer().getId());
         dto.setDeliveryInfo(deliveryInfoMapper.toDto(order.getDeliveryInfo()));
         // dto.setItems(order.get);

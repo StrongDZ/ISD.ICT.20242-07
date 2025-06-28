@@ -15,10 +15,12 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import com.example.aims.factory.PaymentErrorMapperFactory;
 import com.example.aims.factory.PaymentSystemFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -44,7 +46,7 @@ import java.util.Optional;
 // - ✅ LSP respected: no inheritance misuse
 // - ✅ ISP acceptable now, but keep in mind if adding interfaces later
 // - ❌ DIP violated: depends directly on concrete classes; should rely on interfaces
-
+@RequiredArgsConstructor
 @Service
 public class PayOrderService {
 
@@ -55,27 +57,13 @@ public class PayOrderService {
     // used.
     // → Suggestion: In future, pass only necessary fields (e.g., orderId,
     // totalAmount) to reduce coupling to Data level.
-    @Autowired
     private final OrderRepository currentOrder;
-    @Autowired
     private final PaymentTransactionRepository currentPaymentTransaction;
-    @Autowired
     private final OrderItemRepository orderItemRepository;
-    @Autowired
     private PaymentErrorMapperFactory errorMapperFactory;
-    @Autowired
     private OrderMapper orderMapper;
-    @Autowired
     private EmailService emailService;
-    @Autowired
     private PaymentSystemFactory paymentSystemFactory;
-
-    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository,
-            OrderItemRepository orderItemRepository) {
-        this.currentOrder = orderRepository;
-        this.currentPaymentTransaction = paymentTransactionRepository;
-        this.orderItemRepository = orderItemRepository;
-    }
 
     /**
      * Generates a payment URL for the given order ID.
@@ -129,9 +117,9 @@ public class PayOrderService {
                 System.err.println("Failed to send payment confirmation email: " + e.getMessage());
             }
 
-            return "http://localhost:3000/payment-success?orderId=" + orderID;
+            return "http://localhost:3001/payment-success?orderId=" + orderID;
         } else if (isCancelResponse(responseCode, paymentType)) { // Payment decline/cancel
-            return "http://localhost:3000/payment-decline";
+            return "http://localhost:3001/payment-decline";
         } else { // Payment error
             try {
                 IPaymentErrorMapper errorMapper = errorMapperFactory.getMapper(paymentType);
@@ -139,7 +127,7 @@ public class PayOrderService {
             } catch (PaymentException e) {
                 System.out.println(e.getMessage());
             }
-            return "http://localhost:3000/payment-error";
+            return "http://localhost:3001/payment-error";
         }
     }
 

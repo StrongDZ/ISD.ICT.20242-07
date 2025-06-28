@@ -72,6 +72,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers("/api/rush-order/check/**").permitAll()
                         .requestMatchers("/api/cancel-order/**").permitAll()
+                        .requestMatchers("/api/check-inventory/**").permitAll()
                         .requestMatchers("/api/create-order/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/api/user/**").authenticated()

@@ -144,6 +144,37 @@ const CartPage = () => {
     navigate("/products");
   };
 
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    try {
+      // Kiểm tra tồn kho trước khi chuyển đến checkout
+      const cartItemsForCheck = cartItems.map((item) => ({
+        productDTO: item.product,
+        quantity: item.quantity,
+      }));
+
+      const inventoryCheck = await orderService.checkInventory(
+        cartItemsForCheck
+      );
+      console.log("Inventory check result:", inventoryCheck);
+
+      if (!inventoryCheck.success) {
+        // Hiển thị dialog với danh sách sản phẩm không đủ tồn kho
+        setInventoryErrorDialog({
+          open: true,
+          insufficientItems: inventoryCheck.insufficientItems,
+        });
+        return;
+      }
+
+      // Nếu đủ tồn kho, chuyển đến trang checkout
+      navigate("/checkout");
+    } catch (error) {
+      alert(error.message || "Không thể kiểm tra tồn kho. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
     const handleCheckout = () => {
         if (hasInventoryIssues()) {
             alert("Vui lòng kiểm tra lại số lượng sản phẩm trước khi thanh toán!");
@@ -371,27 +402,90 @@ const CartPage = () => {
                                     Tiếp tục mua sắm
                                 </Button>
 
-                                <Box sx={{ mt: 3, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}>
-                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-                                        <strong>Miễn phí vận chuyển</strong> cho đơn hàng trên 100,000 VND
-                                        <br />
-                                        (giảm tối đa 25,000 VND)
-                                    </Typography>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                </Grid>
-            </Container>
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 2,
+                  backgroundColor: "grey.50",
+                  borderRadius: 1,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: "center" }}
+                >
+                  <strong>Free shipping</strong> for orders over 100,000 VND
+                  <br />
+                  (up to 25,000 VND discount)
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
-            {/* Error Snackbar */}
-            <Snackbar open={showError} autoHideDuration={6000} onClose={handleCloseError} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
-                <Alert onClose={handleCloseError} severity="error" sx={{ width: "100%" }}>
-                    {errorMessage}
-                </Alert>
-            </Snackbar>
-        </>
-    );
+      {/* Inventory Error Dialog */}
+      <Dialog
+        open={inventoryErrorDialog.open}
+        onClose={() =>
+          setInventoryErrorDialog({ open: false, insufficientItems: [] })
+        }
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ color: "error.main" }}>Tồn kho không đủ</DialogTitle>
+        <DialogContent>
+          <Typography gutterBottom>
+            Một số sản phẩm trong giỏ hàng không đủ tồn kho. Vui lòng cập nhật
+            số lượng hoặc xóa sản phẩm:
+          </Typography>
+          <Box sx={{ mt: 2 }}>
+            {(inventoryErrorDialog.insufficientItems || []).map(
+              (item, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    p: 2,
+                    mb: 1,
+                    border: 1,
+                    borderColor: "error.light",
+                    borderRadius: 1,
+                    bgcolor: "error.50",
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
+                    {item.productDTO.title}
+                  </Typography>
+                  <Typography variant="body2" color="error.main">
+                    Yêu cầu: {item.quantity} | Có sẵn:{" "}
+                    {item.productDTO.quantity} | Thiếu:{" "}
+                    {item.quantity - item.productDTO.quantity}
+                  </Typography>
+                </Box>
+              )
+            )}
+          </Box>
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              Vui lòng cập nhật số lượng sản phẩm hoặc xóa các sản phẩm không đủ
+              tồn kho trước khi tiếp tục.
+            </Typography>
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setInventoryErrorDialog({ open: false, insufficientItems: [] })
+            }
+            variant="contained"
+          >
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
+  );
 };
 
 export default CartPage;

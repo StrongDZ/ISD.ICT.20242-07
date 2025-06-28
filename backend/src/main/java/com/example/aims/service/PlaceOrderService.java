@@ -11,7 +11,6 @@ import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.DeliveryInfoDTO;
 import com.example.aims.dto.order.OrderDTO;
 import com.example.aims.dto.order.OrderRequestDTO;
-import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.mapper.DeliveryInfoMapper;
 import com.example.aims.mapper.OrderMapper;
 import com.example.aims.model.DeliveryInfo;
@@ -74,7 +73,6 @@ public class PlaceOrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
-    private final PlaceRushOrderService placeRushOrderService;
     private final DeliveryInfoMapper deliveryInfoMapper;
     private final OrderMapper orderMapper;
     private final DeliveryInfoRepository deliveryInfoRepository;
@@ -84,63 +82,45 @@ public class PlaceOrderService {
             DeliveryInfoRepository deliveryInfoRepository, PaymentTransactionRepository paymentTransactionRepository,
             InvoiceRepository invoiceRepository, UsersRepository userRepository,
             ProductRepository productRepository, CartItemRepository cartItemRepository,
-            PlaceRushOrderService placeRushOrderService,
             DeliveryInfoMapper deliveryInfoMapper,
             OrderMapper orderMapper,
             CalculateFeeService calculateFeeService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
-        this.placeRushOrderService = placeRushOrderService;
         this.deliveryInfoMapper = deliveryInfoMapper;
         this.orderMapper = orderMapper;
         this.deliveryInfoRepository = deliveryInfoRepository;
         this.calculateFeeService = calculateFeeService;
     }
 
-    // public boolean isRushOrderSupported(DeliveryInfoDTO deliveryInfo, List<ProductDTO> products) {
-    //     return placeRushOrderService.placeRushOrder(deliveryInfo, products).isSupported();
-    // }
 
     @Transactional
-    public OrderDTO createOrder(OrderRequestDTO orderRequestDTO) {
-        // // 1. Validate rush order if requested
-        // if (orderRequestDTO.getDeliveryInfo().getIsRushOrder() != null && 
-        //     orderRequestDTO.getDeliveryInfo().getIsRushOrder()) {
-            
-        //     List<ProductDTO> products = orderRequestDTO.getCartItems().stream()
-        //         .map(CartItemDTO::getProductDTO)
-        //         .collect(Collectors.toList());
-            
-        //     boolean isRushSupported = isRushOrderSupported(orderRequestDTO.getDeliveryInfo(), products);
-        //     if (!isRushSupported) {
-        //         throw new RuntimeException("Rush order is not supported for the selected products and delivery address.");
-        //     }
-        // }
+    public OrderDTO placeOrder(OrderRequestDTO orderRequestDTO) {
 
-        // 2. Tạo và lưu order entity trước để có orderID
+        // 1. Tạo và lưu order entity trước để có orderID
         Order order = createNewOrder();
 
-        // 3. Map và lưu delivery info, set orderID
+        // 2. Map và lưu delivery info, set orderID
         DeliveryInfo deliveryInfo = createAndSaveDeliveryInfo(order, orderRequestDTO.getDeliveryInfo());
 
-        // 4. Lưu order items
+        // 3. Lưu order items
         saveOrderItems(order, orderRequestDTO.getCartItems());
 
-        // 5. Cập nhật tồn kho
+        // 4. Cập nhật tồn kho
         updateProductStocks(orderRequestDTO.getCartItems());
 
-        // 6. Tính tổng tiền sử dụng CalculateFeeService
+        // 5. Tính tổng tiền sử dụng CalculateFeeService
         double totalAmount = calculateFeeService.calculateTotalPrice(
             orderRequestDTO.getCartItems(), 
             deliveryInfo.getIsRushOrder(), 
             orderRequestDTO.getDeliveryInfo()
         );
 
-        // 7. Gán lại các thuộc tính vào order và lưu lại
+        // 6. Gán lại các thuộc tính vào order và lưu lại
         updateOrderWithDeliveryAndTotal(order, deliveryInfo, totalAmount);
 
-        // 8. Trả về DTO
+        // 7. Trả về DTO
         return orderMapper.toOrderDTO(order);
     }
 

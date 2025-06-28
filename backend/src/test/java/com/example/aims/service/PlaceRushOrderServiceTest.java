@@ -73,7 +73,7 @@ class PlaceRushOrderServiceTest {
     void testPlaceRushOrder_AddressNotEligible() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Ho Chi Minh");
+        deliveryInfo.setCity("Hồ  Chí Minh");
         deliveryInfo.setDistrict("District 1");
 
         BookDTO product = new BookDTO();
@@ -165,7 +165,7 @@ class PlaceRushOrderServiceTest {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
         deliveryInfo.setCity("Hà Nội");
-        deliveryInfo.setDistrict("Ba Dinh");
+        deliveryInfo.setDistrict("Ba Đình");
 
         BookDTO product = new BookDTO();
         product.setProductID("B001");

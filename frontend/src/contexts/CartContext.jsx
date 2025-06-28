@@ -14,161 +14,245 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const { isAuthenticated } = useAuth();
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [validationErrors, setValidationErrors] = useState([]);
+    const { user } = useAuth();
 
-    // Load cart items on component mount
+    // Load cart items when user changes
     useEffect(() => {
         loadCartItems();
-    }, []);
+    }, [user]);
 
-    // Handle auth state changes - just reload cart without merging
+    // Update cart service reference when auth status changes
     useEffect(() => {
-        const handleAuthChange = async () => {
-            // Service sẽ tự động switch giữa localStorage và API
-            await loadCartItems();
-        };
+        cartService.updateServiceReference();
+    }, [user]);
 
-        handleAuthChange();
-    }, [isAuthenticated()]);
+    // Validate cart items when cart changes
+    useEffect(() => {
+        if (cartItems.length > 0) {
+            validateCart();
+        } else {
+            setValidationErrors([]);
+        }
+    }, [cartItems]);
 
     const loadCartItems = async () => {
         try {
-            setLoading(true);
             const items = await cartService.getCartItems();
-            setCartItems(items || []);
+            setCartItems(items);
         } catch (error) {
-            console.error("Error loading cart items:", error);
-            setCartItems([]);
-        } finally {
-            setLoading(false);
+            console.error("Failed to load cart items:", error);
+        }
+    };
+
+    const getCartCount = () => {
+        return cartItems.reduce((count, item) => {
+            if (item && item.quantity) {
+                return count + item.quantity;
+            }
+            return count;
+        }, 0);
+    };
+
+    const validateCart = async () => {
+        if (cartItems.length === 0) {
+            setValidationErrors([]);
+            return;
+        }
+
+        try {
+            const products = cartItems.map((item) => item.productDTO);
+            const errors = await validateProducts(products);
+            setValidationErrors(errors);
+        } catch (error) {
+            console.error("Failed to validate cart:", error);
+        }
+    };
+
+    const validateProducts = async (products) => {
+        if (!products || products.length === 0) return [];
+
+        try {
+            const errors = [];
+            for (const product of products) {
+                if (product.quantity < 1) {
+                    errors.push({
+                        productId: product.productID,
+                        message: `Sản phẩm "${product.title}" không đủ số lượng trong kho (có ${product.quantity})`,
+                    });
+                }
+            }
+            return errors;
+        } catch (error) {
+            console.error("Error validating products:", error);
+            return [];
         }
     };
 
     const addToCart = async (product, quantity = 1) => {
         try {
-            setLoading(true);
-            await cartService.addToCart(product, quantity);
-            await loadCartItems(); // Reload cart to get updated state
+            const newItem = await cartService.addToCart(product, quantity);
+            await loadCartItems();
+            return newItem;
         } catch (error) {
-            console.error("Error adding to cart:", error);
+            console.error("Failed to add to cart:", error);
             throw error;
-        } finally {
-            setLoading(false);
         }
     };
 
     const updateCartItem = async (product, quantity) => {
         try {
-            if (quantity <= 0) {
-                await removeFromCart(product);
-                return;
+            const updatedItem = await cartService.updateCartItem(product, quantity);
+            await loadCartItems();
+            return updatedItem;
+        } catch (error) {
+            console.error("Failed to update cart item:", error);
+
+            // Handle inventory error specifically
+            if (error.response && error.response.data) {
+                const errorMessage = error.response.data.message || error.response.data;
+                if (errorMessage.includes("Not enough stock") || errorMessage.includes("insufficient")) {
+                    throw new Error(`Hàng không đủ: ${product.title}. Số lượng có sẵn: ${product.quantity}`);
+                }
             }
 
-            // Update in backend/localStorage with full product
-            await cartService.updateCartItem(product, quantity);
-            await loadCartItems();
-        } catch (error) {
-            console.error("Error updating cart item:", error);
-            // Reload cart on error to ensure consistency
-            await loadCartItems();
+            // Handle other errors
+            if (error.message) {
+                throw new Error(error.message);
+            } else {
+                throw new Error("Có lỗi xảy ra khi cập nhật giỏ hàng");
+            }
         }
     };
 
     const removeFromCart = async (product) => {
         try {
-            // Remove from backend/localStorage with full product
             await cartService.removeFromCart(product);
             await loadCartItems();
         } catch (error) {
-            console.error("Error removing from cart:", error);
-            // Reload cart on error to ensure consistency
-            await loadCartItems();
+            console.error("Failed to remove from cart:", error);
+            throw error;
         }
     };
 
     const clearCart = async () => {
         try {
             await cartService.clearCart();
-            await loadCartItems();
+            setCartItems([]);
+            setSelectedItems([]);
         } catch (error) {
-            console.error("Error clearing cart:", error);
-            // Reload cart on error to ensure consistency
-            await loadCartItems();
+            console.error("Failed to clear cart:", error);
+            throw error;
         }
+    };
+
+    const toggleItemSelection = (productId) => {
+        setSelectedItems((prev) => {
+            if (prev.includes(productId)) {
+                return prev.filter((id) => id !== productId);
+            } else {
+                return [...prev, productId];
+            }
+        });
+    };
+
+    const selectAllItems = () => {
+        const allProductIds = cartItems
+            .filter((item) => item && item.productDTO) // Filter out items without productDTO
+            .map((item) => item.productDTO.productID);
+        setSelectedItems(allProductIds);
+    };
+
+    const deselectAllItems = () => {
+        setSelectedItems([]);
+    };
+
+    const getSelectedCartItems = () => {
+        return cartItems.filter((item) => item && item.productDTO && selectedItems.includes(item.productDTO.productID));
+    };
+
+    const getTotalPrice = () => {
+        const itemsToCalculate = selectedItems.length > 0 ? getSelectedCartItems() : [];
+        return itemsToCalculate.reduce((total, item) => {
+            if (item && item.productDTO) {
+                return total + item.productDTO.price * item.quantity;
+            }
+            return total;
+        }, 0);
     };
 
     const getCartTotal = () => {
         return cartItems.reduce((total, item) => {
-            return total + item.product.price * item.quantity;
+            if (item && item.productDTO) {
+                return total + item.productDTO.price * item.quantity;
+            }
+            return total;
         }, 0);
     };
 
-    const getCartCount = () => {
-        return cartItems.reduce((count, item) => count + item.quantity, 0);
-    };
-
     const getTotalExcludingVAT = () => {
-        const total = getCartTotal();
-        return total / 1.1; // Remove 10% VAT
+        return getCartTotal() / 1.1; // Assuming 10% VAT
     };
 
     const getVATAmount = () => {
         return getCartTotal() - getTotalExcludingVAT();
     };
 
-    const isInCart = (productID) => {
+    const getTotalWithVAT = () => {
+        return getTotalPrice();
+    };
+
+    const getSelectedItemsCount = () => {
+        return selectedItems.length;
+    };
+
+    const hasSelectedItems = () => {
+        return selectedItems.length > 0;
+    };
+
+    const hasValidationErrors = () => {
+        return validationErrors.length > 0;
+    };
+
+    const getValidationErrorsForProduct = (productId) => {
+        return validationErrors.filter((error) => error.productId === productId);
+    };
+
+    const hasInventoryIssues = () => {
         return cartItems.some((item) => {
-            return item.product.productID === productID;
+            if (!item || !item.productDTO) return false;
+            const product = item.productDTO;
+            const availableStock = product.quantity || 0;
+            const requestedQuantity = item.quantity || 0;
+            return availableStock === 0 || requestedQuantity > availableStock;
         });
-    };
-
-    const getItemQuantity = (productID) => {
-        const item = cartItems.find((item) => {
-            return item.product.productID === productID;
-        });
-        return item ? item.quantity : 0;
-    };
-
-    const validateCart = () => {
-        const errors = [];
-
-        if (cartItems.length === 0) {
-            errors.push("Cart is empty");
-        }
-
-        // Check stock availability (for API items)
-        cartItems.forEach((item) => {
-            const product = item.product;
-            const productTitle = product.title;
-            const stockQuantity = product.quantity;
-
-            if (item.quantity && stockQuantity && item.quantity > stockQuantity) {
-                errors.push(`${productTitle}: Requested quantity (${item.quantity}) exceeds available stock (${stockQuantity})`);
-            }
-        });
-
-        return {
-            isValid: errors.length === 0,
-            errors,
-        };
     };
 
     const value = {
         cartItems,
-        loading,
+        selectedItems,
+        validationErrors,
         addToCart,
         updateCartItem,
         removeFromCart,
         clearCart,
-        loadCartItems,
+        toggleItemSelection,
+        selectAllItems,
+        deselectAllItems,
+        getSelectedCartItems,
+        getTotalPrice,
         getCartTotal,
-        getCartCount,
         getTotalExcludingVAT,
         getVATAmount,
-        isInCart,
-        getItemQuantity,
-        validateCart,
+        getTotalWithVAT,
+        getSelectedItemsCount,
+        hasSelectedItems,
+        hasValidationErrors,
+        getValidationErrorsForProduct,
+        validateProducts,
+        getCartCount,
+        hasInventoryIssues,
     };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -18,20 +18,20 @@ export const localCartService = {
     addToCart: (product, quantity = 1) => {
         try {
             const cartItems = localCartService.getCartItems();
-            const existingItem = cartItems.find((item) => item.product.productID === product.productID);
+            const existingItem = cartItems.find((item) => item.productDTO.productID === product.productID);
 
             if (existingItem) {
-                existingItem.quantity += quantity;
+                existingItem.quantity = quantity;
             } else {
                 // Lưu dạng {product, quantity} giống API
                 cartItems.push({
-                    product: product, // Lưu nguyên product object
+                    productDTO: product,
                     quantity: quantity,
                 });
             }
 
             localCartService.saveCart(cartItems);
-            return cartItems.find((item) => item.product.productID === product.productID);
+            return { productDTO: product, quantity: existingItem ? existingItem.quantity : quantity };
         } catch (error) {
             console.error(`Error adding product ${product.productID} to local cart:`, error);
             throw error;
@@ -42,16 +42,16 @@ export const localCartService = {
     updateCartItem: (product, quantity) => {
         try {
             const cartItems = localCartService.getCartItems();
-            const itemIndex = cartItems.findIndex((item) => item.product.productID === product.productID);
+            const item = cartItems.find((item) => item.productDTO.productID === product.productID);
 
-            if (itemIndex !== -1) {
+            if (item) {
                 if (quantity <= 0) {
-                    cartItems.splice(itemIndex, 1);
-                } else {
-                    cartItems[itemIndex].quantity = quantity;
+                    localCartService.removeFromCart(product);
+                    return null;
                 }
+                item.quantity = quantity;
                 localCartService.saveCart(cartItems);
-                return cartItems[itemIndex] || null;
+                return { productDTO: product, quantity };
             }
             return null;
         } catch (error) {
@@ -64,7 +64,7 @@ export const localCartService = {
     removeFromCart: (product) => {
         try {
             const cartItems = localCartService.getCartItems();
-            const filteredItems = cartItems.filter((item) => item.product.productID !== product.productID);
+            const filteredItems = cartItems.filter((item) => item.productDTO.productID !== product.productID);
             localCartService.saveCart(filteredItems);
         } catch (error) {
             console.error(`Error removing product ${product.productID} from local cart:`, error);
@@ -90,13 +90,6 @@ export const localCartService = {
         }
     },
 
-    // Get item quantity
-    getItemQuantity: (productId) => {
-        const cartItems = localCartService.getCartItems();
-        const item = cartItems.find((item) => item.product.productID === productId);
-        return item ? item.quantity : 0;
-    },
-
     // Get cart count
     getCartCount: () => {
         const cartItems = localCartService.getCartItems();
@@ -106,6 +99,6 @@ export const localCartService = {
     // Get cart total
     getCartTotal: () => {
         const cartItems = localCartService.getCartItems();
-        return cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+        return cartItems.reduce((total, item) => total + item.productDTO.price * item.quantity, 0);
     },
 };

@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import com.example.aims.factory.PaymentErrorMapperFactory;
 import com.example.aims.factory.PaymentSystemFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -46,24 +47,35 @@ import java.util.Optional;
 // - ✅ LSP respected: no inheritance misuse
 // - ✅ ISP acceptable now, but keep in mind if adding interfaces later
 // - ❌ DIP violated: depends directly on concrete classes; should rely on interfaces
-@RequiredArgsConstructor
 @Service
 public class PayOrderService {
 
-    // 🔗 Coupling:
-    // Stamp Coupling – This class depends on whole Order and PaymentTransaction
-    // objects,
-    // even though only specific fields (e.g., order.getId(), order.getStatus()) are
-    // used.
-    // → Suggestion: In future, pass only necessary fields (e.g., orderId,
-    // totalAmount) to reduce coupling to Data level.
     private final OrderRepository currentOrder;
     private final PaymentTransactionRepository currentPaymentTransaction;
     private final OrderItemRepository orderItemRepository;
-    private PaymentErrorMapperFactory errorMapperFactory;
-    private OrderMapper orderMapper;
-    private EmailService emailService;
-    private PaymentSystemFactory paymentSystemFactory;
+    private final PaymentErrorMapperFactory errorMapperFactory;
+    private final EmailService emailService;
+    private final PaymentSystemFactory paymentSystemFactory;
+
+    @Autowired
+    private OrderMapper orderMapper; // 🔧 Inject thủ công mapper dạng component
+
+    @Autowired
+    public PayOrderService(
+            OrderRepository currentOrder,
+            PaymentTransactionRepository currentPaymentTransaction,
+            OrderItemRepository orderItemRepository,
+            PaymentErrorMapperFactory errorMapperFactory,
+            EmailService emailService,
+            PaymentSystemFactory paymentSystemFactory
+    ) {
+        this.currentOrder = currentOrder;
+        this.currentPaymentTransaction = currentPaymentTransaction;
+        this.orderItemRepository = orderItemRepository;
+        this.errorMapperFactory = errorMapperFactory;
+        this.emailService = emailService;
+        this.paymentSystemFactory = paymentSystemFactory;
+    }
 
     /**
      * Generates a payment URL for the given order ID.

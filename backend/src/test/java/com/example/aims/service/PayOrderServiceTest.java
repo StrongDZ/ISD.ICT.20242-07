@@ -1,64 +1,66 @@
 package com.example.aims.service;
 
 import com.example.aims.common.OrderStatus;
+import com.example.aims.dto.order.OrderInfoDTO;
 import com.example.aims.dto.order.OrderItemDTO;
 import com.example.aims.dto.order.PaymentOrderRequestDTO;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
-import com.example.aims.dto.order.OrderInfoDTO;
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.exception.PaymentException.PaymentException;
 import com.example.aims.mapper.OrderMapper;
 import com.example.aims.mapper.PaymentError.IPaymentErrorMapper;
+import com.example.aims.model.Book;
 import com.example.aims.model.Order;
 import com.example.aims.model.OrderItem;
 import com.example.aims.model.PaymentTransaction;
-import com.example.aims.model.Book;
 import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
-import com.example.aims.factory.PaymentSystemFactory;
 import com.example.aims.factory.PaymentErrorMapperFactory;
+import com.example.aims.factory.PaymentSystemFactory;
 import com.example.aims.subsystem.IPaymentSystem;
 
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class PayOrderServiceTest {
+
     private OrderRepository orderRepository;
     private PaymentTransactionRepository paymentTransactionRepository;
     private OrderItemRepository orderItemRepository;
-    private OrderMapper orderMapper;
-    private EmailService emailService;
     private PaymentErrorMapperFactory errorMapperFactory;
+    private EmailService emailService;
     private PaymentSystemFactory paymentSystemFactory;
+    private OrderMapper orderMapper;
 
     private PayOrderService payOrderService;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         orderRepository = mock(OrderRepository.class);
         paymentTransactionRepository = mock(PaymentTransactionRepository.class);
         orderItemRepository = mock(OrderItemRepository.class);
-        orderMapper = mock(OrderMapper.class);
-        emailService = mock(EmailService.class);
         errorMapperFactory = mock(PaymentErrorMapperFactory.class);
+        emailService = mock(EmailService.class);
         paymentSystemFactory = mock(PaymentSystemFactory.class);
+        orderMapper = mock(OrderMapper.class);
 
-        payOrderService = new PayOrderService(orderRepository, paymentTransactionRepository, orderItemRepository);
+        payOrderService = new PayOrderService(
+                orderRepository,
+                paymentTransactionRepository,
+                orderItemRepository,
+                errorMapperFactory,
+                emailService,
+                paymentSystemFactory,
+                orderMapper
+        );
 
-        // Inject via reflection for final fields
-        FieldUtils.writeField(payOrderService, "orderMapper", orderMapper, true);
-        FieldUtils.writeField(payOrderService, "emailService", emailService, true);
-        FieldUtils.writeField(payOrderService, "errorMapperFactory", errorMapperFactory, true);
-        FieldUtils.writeField(payOrderService, "paymentSystemFactory", paymentSystemFactory, true);
+        // inject manually since orderMapper is @Autowired
     }
 
     @Test
@@ -98,11 +100,12 @@ class PayOrderServiceTest {
     @Test
     void testProcessPayment_Success() throws Exception {
         Map<String, String> params = Map.of("vnp_ResponseCode", "00", "vnp_TxnRef", "ORD001");
+
         Order order = new Order();
         order.setOrderID("ORD001");
         order.setStatus(OrderStatus.PENDING);
 
-        PaymentOrderResponseFromReturnDTO dto = new PaymentOrderResponseFromReturnDTO();
+        PaymentOrderResponseFromReturnDTO orderDto = new PaymentOrderResponseFromReturnDTO();
         PaymentTransaction transaction = new PaymentTransaction();
         transaction.setTransactionId("TXN001");
         transaction.setOrder(order);
@@ -110,13 +113,14 @@ class PayOrderServiceTest {
         IPaymentSystem paymentSystem = mock(IPaymentSystem.class);
 
         when(orderRepository.findByOrderID("ORD001")).thenReturn(Optional.of(order));
-        when(orderMapper.toPaymentOrderResponseFromReturnDTO(order)).thenReturn(dto);
+        when(orderMapper.toPaymentOrderResponseFromReturnDTO(order)).thenReturn(orderDto);
         when(paymentSystemFactory.getPaymentSystem("vnpay")).thenReturn(paymentSystem);
-        when(paymentSystem.getTransactionInfo(params, dto)).thenReturn(transaction);
+        when(paymentSystem.getTransactionInfo(params, orderDto)).thenReturn(transaction);
         when(paymentTransactionRepository.save(transaction)).thenReturn(transaction);
         when(orderRepository.save(order)).thenReturn(order);
 
         String result = payOrderService.processPayment(params, "vnpay");
+
         assertTrue(result.contains("payment-success"));
         verify(emailService).sendPaymentConfirmationEmail("TXN001");
     }
@@ -134,7 +138,7 @@ class PayOrderServiceTest {
 
         IPaymentErrorMapper errorMapper = mock(IPaymentErrorMapper.class);
         when(errorMapperFactory.getMapper("vnpay")).thenReturn(errorMapper);
-        doThrow(new PaymentException("Fail")).when(errorMapper).responseCodeError("99");
+        doThrow(new PaymentException("Error")).when(errorMapper).responseCodeError("99");
 
         String result = payOrderService.processPayment(params, "vnpay");
         assertTrue(result.contains("payment-error"));
@@ -176,10 +180,11 @@ class PayOrderServiceTest {
     void testGetOrderInfo_Success() {
         Order order = new Order();
         order.setOrderID("ORD001");
-        when(orderRepository.findByOrderID("ORD001")).thenReturn(Optional.of(order));
 
         OrderInfoDTO dto = new OrderInfoDTO();
         dto.setOrderID("ORD001");
+
+        when(orderRepository.findByOrderID("ORD001")).thenReturn(Optional.of(order));
         when(orderMapper.toOrderInfoDTO(order)).thenReturn(dto);
 
         OrderInfoDTO result = payOrderService.getOrderInfo("ORD001");

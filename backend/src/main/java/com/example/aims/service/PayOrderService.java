@@ -56,9 +56,7 @@ public class PayOrderService {
     private final PaymentErrorMapperFactory errorMapperFactory;
     private final EmailService emailService;
     private final PaymentSystemFactory paymentSystemFactory;
-
-    @Autowired
-    private OrderMapper orderMapper; // 🔧 Inject thủ công mapper dạng component
+    private final OrderMapper orderMapper; // 🔧 Inject thủ công mapper dạng component
 
     @Autowired
     public PayOrderService(
@@ -67,14 +65,15 @@ public class PayOrderService {
             OrderItemRepository orderItemRepository,
             PaymentErrorMapperFactory errorMapperFactory,
             EmailService emailService,
-            PaymentSystemFactory paymentSystemFactory
-    ) {
+            PaymentSystemFactory paymentSystemFactory,
+            OrderMapper orderMapper) {
         this.currentOrder = currentOrder;
         this.currentPaymentTransaction = currentPaymentTransaction;
         this.orderItemRepository = orderItemRepository;
         this.errorMapperFactory = errorMapperFactory;
         this.emailService = emailService;
         this.paymentSystemFactory = paymentSystemFactory;
+        this.orderMapper = orderMapper;
     }
 
     /**

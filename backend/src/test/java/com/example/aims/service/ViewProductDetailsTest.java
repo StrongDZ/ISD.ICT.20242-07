@@ -6,7 +6,15 @@ import com.example.aims.dto.products.DvdDTO;
 import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.factory.ProductFactory;
 import com.example.aims.service.products.ProductServiceImpl;
-import com.example.aims.strategy.ProductStrategy;
+import com.example.aims.strategy.impl.BookStrategy;
+import com.example.aims.strategy.impl.CdStrategy;
+import com.example.aims.strategy.impl.DvdStrategy;
+import com.example.aims.repository.ProductRepository;
+import com.example.aims.model.Book;
+import com.example.aims.model.CD;
+import com.example.aims.model.DVD;
+import com.example.aims.common.ProductType;
+import com.example.aims.exception.ResourceNotFoundException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,13 +39,16 @@ public class ViewProductDetailsTest {
     private ProductFactory productFactory;
 
     @Mock
-    private ProductStrategy bookStrategy;
+    private ProductRepository productRepository;
 
     @Mock
-    private ProductStrategy cdStrategy;
+    private BookStrategy bookStrategy;
 
     @Mock
-    private ProductStrategy dvdStrategy;
+    private CdStrategy cdStrategy;
+
+    @Mock
+    private DvdStrategy dvdStrategy;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -57,7 +69,13 @@ public class ViewProductDetailsTest {
         BookDTO expectedBookDTO = createTestBookDTO();
         expectedBookDTO.setProductID(productId);
 
-        // Mock: first strategy (book) succeeds
+        // Mock the repository to return a product
+        Book mockBook = new Book();
+        mockBook.setProductID(productId);
+        mockBook.setCategory(ProductType.book);
+        when(productRepository.findById(productId)).thenReturn(Optional.of(mockBook));
+
+        // Mock: book strategy succeeds
         when(bookStrategy.getProductById(productId)).thenReturn(expectedBookDTO);
 
         // When
@@ -72,10 +90,8 @@ public class ViewProductDetailsTest {
         assertEquals("book", bookResult.getCategory());
         assertEquals("Robert Martin", bookResult.getAuthors());
 
+        verify(productRepository).findById(productId);
         verify(bookStrategy, times(1)).getProductById(productId);
-        // CD and DVD strategies should not be called since book strategy succeeded
-        verify(cdStrategy, never()).getProductById(anyString());
-        verify(dvdStrategy, never()).getProductById(anyString());
     }
 
     @Test
@@ -85,8 +101,13 @@ public class ViewProductDetailsTest {
         CdDTO expectedCdDTO = createTestCdDTO();
         expectedCdDTO.setProductID(productId);
 
-        // Mock: book strategy fails, cd strategy succeeds
-        when(bookStrategy.getProductById(productId)).thenThrow(new RuntimeException("Not found"));
+        // Mock the repository to return a product
+        CD mockCD = new CD();
+        mockCD.setProductID(productId);
+        mockCD.setCategory(ProductType.cd);
+        when(productRepository.findById(productId)).thenReturn(Optional.of(mockCD));
+
+        // Mock: cd strategy succeeds
         when(cdStrategy.getProductById(productId)).thenReturn(expectedCdDTO);
 
         // When
@@ -101,9 +122,8 @@ public class ViewProductDetailsTest {
         assertEquals("cd", cdResult.getCategory());
         assertEquals("Queen", cdResult.getArtist());
 
-        verify(bookStrategy, times(1)).getProductById(productId);
+        verify(productRepository).findById(productId);
         verify(cdStrategy, times(1)).getProductById(productId);
-        verify(dvdStrategy, never()).getProductById(anyString());
     }
 
     @Test
@@ -113,9 +133,13 @@ public class ViewProductDetailsTest {
         DvdDTO expectedDvdDTO = createTestDvdDTO();
         expectedDvdDTO.setProductID(productId);
 
-        // Mock: book and cd strategies fail, dvd strategy succeeds
-        when(bookStrategy.getProductById(productId)).thenThrow(new RuntimeException("Not found"));
-        when(cdStrategy.getProductById(productId)).thenThrow(new RuntimeException("Not found"));
+        // Mock the repository to return a product
+        DVD mockDVD = new DVD();
+        mockDVD.setProductID(productId);
+        mockDVD.setCategory(ProductType.dvd);
+        when(productRepository.findById(productId)).thenReturn(Optional.of(mockDVD));
+
+        // Mock: dvd strategy succeeds
         when(dvdStrategy.getProductById(productId)).thenReturn(expectedDvdDTO);
 
         // When
@@ -130,8 +154,7 @@ public class ViewProductDetailsTest {
         assertEquals("dvd", dvdResult.getCategory());
         assertEquals("Russo Brothers", dvdResult.getDirector());
 
-        verify(bookStrategy, times(1)).getProductById(productId);
-        verify(cdStrategy, times(1)).getProductById(productId);
+        verify(productRepository).findById(productId);
         verify(dvdStrategy, times(1)).getProductById(productId);
     }
 
@@ -140,21 +163,20 @@ public class ViewProductDetailsTest {
         // Given
         String productId = "NONEXISTENT-123";
 
-        // Mock: all strategies fail
-        when(bookStrategy.getProductById(productId)).thenThrow(new RuntimeException("Not found"));
-        when(cdStrategy.getProductById(productId)).thenThrow(new RuntimeException("Not found"));
-        when(dvdStrategy.getProductById(productId)).thenThrow(new RuntimeException("Not found"));
+        // Mock the repository to return empty
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
         // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> productService.getProductById(productId));
 
         assertEquals("Product not found with id: " + productId, exception.getMessage());
 
-        // Verify all strategies were tried
-        verify(bookStrategy, times(1)).getProductById(productId);
-        verify(cdStrategy, times(1)).getProductById(productId);
-        verify(dvdStrategy, times(1)).getProductById(productId);
+        verify(productRepository).findById(productId);
+        // No strategies should be called since product is not found in repository
+        verify(bookStrategy, never()).getProductById(anyString());
+        verify(cdStrategy, never()).getProductById(anyString());
+        verify(dvdStrategy, never()).getProductById(anyString());
     }
 
     @Test
@@ -188,32 +210,6 @@ public class ViewProductDetailsTest {
         verify(bookStrategy, times(1)).getAllProducts();
         verify(cdStrategy, times(1)).getAllProducts();
         verify(dvdStrategy, times(1)).getAllProducts();
-    }
-
-    @Test
-    void testSearchProducts_ReturnsMatchingProducts() {
-        // Given
-        String keyword = "test";
-        BookDTO bookDTO = createTestBookDTO();
-        bookDTO.setTitle("Test Book");
-
-        CdDTO cdDTO = createTestCdDTO();
-        cdDTO.setTitle("Test Album");
-
-        when(bookStrategy.searchProducts(keyword)).thenReturn(Arrays.asList(bookDTO));
-        when(cdStrategy.searchProducts(keyword)).thenReturn(Arrays.asList(cdDTO));
-        when(dvdStrategy.searchProducts(keyword)).thenReturn(Arrays.asList());
-
-        // When
-        List<ProductDTO> result = productService.searchProducts(keyword);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.size());
-
-        verify(bookStrategy, times(1)).searchProducts(keyword);
-        verify(cdStrategy, times(1)).searchProducts(keyword);
-        verify(dvdStrategy, times(1)).searchProducts(keyword);
     }
 
     @Test

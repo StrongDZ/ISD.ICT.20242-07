@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.util.List;
 import com.example.aims.dto.CartItemDTO;
+import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.service.CartService;
 import com.example.aims.security.UserDetailsImpl;
 
@@ -54,10 +55,10 @@ public class CartController {
 
     // Remove product from cart
     @DeleteMapping
-    public ResponseEntity<Void> removeFromCart(@RequestBody CartItemDTO cartItemDTO,
+    public ResponseEntity<Void> removeFromCart(@RequestBody ProductDTO productDTO,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Integer customerId = userDetails.getId();
-        String productId = cartItemDTO.getProductDTO().getProductID();
+        String productId = productDTO.getProductID();
 
         cartService.removeFromCart(customerId, productId);
         return ResponseEntity.ok().build();

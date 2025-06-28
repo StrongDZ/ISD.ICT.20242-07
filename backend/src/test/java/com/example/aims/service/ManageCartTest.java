@@ -25,6 +25,7 @@ import com.example.aims.repository.ProductRepository;
 import com.example.aims.repository.UsersRepository;
 import com.example.aims.exception.BadRequestException;
 import com.example.aims.exception.ResourceNotFoundException;
+import com.example.aims.common.ProductType;
 
 import java.util.Date;
 import java.util.Optional;
@@ -43,9 +44,6 @@ public class ManageCartTest {
 
     @Mock
     private CartItemMapper cartItemMapper;
-
-    @Mock
-    private ProductMapper productMapper;
 
     @InjectMocks
     private CartService cartService;
@@ -214,7 +212,7 @@ public class ManageCartTest {
         book.setPrice(19.99);
         book.setQuantity(10);
         book.setImageURL("http://example.com/image.jpg");
-        book.setCategory("book");
+        book.setCategory(ProductType.book);
         book.setEligible(true);
         book.setWarehouseEntryDate(new Date());
         book.setDimensions("10x10x10");
@@ -230,12 +228,14 @@ public class ManageCartTest {
         bookDTO.setTitle(product.getTitle());
         bookDTO.setPrice(product.getPrice());
         bookDTO.setImageURL(product.getImageURL());
-        bookDTO.setCategory(product.getCategory());
+        bookDTO.setCategory(product.getCategory().name());
 
+        
         CartItemDTO dto = new CartItemDTO();
-        dto.setProductDTO(productMapper.toDTO(product));
+        dto.setProductDTO(bookDTO);
         dto.setQuantity(quantity);
+
         return dto;
     }
-    
+
 }

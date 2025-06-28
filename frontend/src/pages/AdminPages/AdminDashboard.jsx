@@ -37,9 +37,6 @@ import {
     Info,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../services/authService";
-import { cartService } from "../../services/cartService";
-import { productService } from "../../services/productService";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();

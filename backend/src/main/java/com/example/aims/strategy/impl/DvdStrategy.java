@@ -7,7 +7,7 @@ import com.example.aims.mapper.DvdMapper;
 import com.example.aims.model.DVD;
 import com.example.aims.repository.DVDRepository;
 import com.example.aims.strategy.ProductStrategy;
-import com.example.aims.util.IdGenerator;
+import com.example.aims.common.ProductType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,10 +29,7 @@ public class DvdStrategy implements ProductStrategy {
 
         // Create DVD entity (includes Product fields)
         DVD dvd = dvdMapper.toEntity(dvdDTO);
-        if (dvd.getProductID() == null) {
-            dvd.setProductID(IdGenerator.generateProductId("dvd"));
-        }
-        dvd.setCategory("dvd");
+        dvd.setCategory(ProductType.dvd);
         DVD savedDvd = dvdRepository.save(dvd);
 
         // Return DTO
@@ -51,7 +48,7 @@ public class DvdStrategy implements ProductStrategy {
         // Update DVD
         DVD dvd = dvdMapper.toEntity(dvdDTO);
         dvd.setProductID(id);
-        dvd.setCategory("dvd");
+        dvd.setCategory(ProductType.dvd);
         DVD savedDvd = dvdRepository.save(dvd);
 
         // Return DTO
@@ -92,6 +89,6 @@ public class DvdStrategy implements ProductStrategy {
 
     @Override
     public String getProductType() {
-        return "dvd";
+        return ProductType.dvd.name();
     }
 }

@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { cartService } from "../services/cartService";
 import { useAuth } from "./AuthContext";
-import { orderService } from "../services/orderService";
 
 const CartContext = createContext();
 
@@ -15,15 +14,6 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
-    const [deliveryInfo, setDeliveryInfo] = useState({
-        recipientName: "",
-        phoneNumber: "",
-        mail: "",
-        city: "",
-        district: "",
-        addressDetail: "",
-        isRushOrder: false,
-    });
     const [loading, setLoading] = useState(false);
     const { isAuthenticated } = useAuth();
 
@@ -68,25 +58,16 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const updateCartItem = async (productID, quantity) => {
+    const updateCartItem = async (product, quantity) => {
         try {
             if (quantity <= 0) {
-                await removeFromCart(productID);
+                await removeFromCart(product);
                 return;
             }
 
-            // Optimistic update - consistent format {product, quantity}
-            setCartItems((prevItems) =>
-                prevItems.map((item) => {
-                    if (item.product.productID === productID) {
-                        return { ...item, quantity };
-                    }
-                    return item;
-                })
-            );
-
-            // Update in backend/localStorage
-            await cartService.updateCartItem(productID, quantity);
+            // Update in backend/localStorage with full product
+            await cartService.updateCartItem(product, quantity);
+            await loadCartItems();
         } catch (error) {
             console.error("Error updating cart item:", error);
             // Reload cart on error to ensure consistency
@@ -94,17 +75,11 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const removeFromCart = async (productID) => {
+    const removeFromCart = async (product) => {
         try {
-            // Optimistic update - consistent format
-            setCartItems((prevItems) =>
-                prevItems.filter((item) => {
-                    return item.product.productID !== productID;
-                })
-            );
-
-            // Remove from backend/localStorage
-            await cartService.removeFromCart(productID);
+            // Remove from backend/localStorage with full product
+            await cartService.removeFromCart(product);
+            await loadCartItems();
         } catch (error) {
             console.error("Error removing from cart:", error);
             // Reload cart on error to ensure consistency
@@ -114,8 +89,8 @@ export const CartProvider = ({ children }) => {
 
     const clearCart = async () => {
         try {
-            setCartItems([]);
             await cartService.clearCart();
+            await loadCartItems();
         } catch (error) {
             console.error("Error clearing cart:", error);
             // Reload cart on error to ensure consistency
@@ -155,145 +130,6 @@ export const CartProvider = ({ children }) => {
         return item ? item.quantity : 0;
     };
 
-    const isRushOrderEligible = async () => {
-        try {
-            // Gọi API để kiểm tra tính đủ điều kiện rush order
-            const response = await orderService.checkRushOrderEligibility(
-                deliveryInfo,
-                cartItems.map(item => item.product)
-            );
-            return response.supported;
-        } catch (error) {
-            console.error("Error checking rush order eligibility:", error);
-            // Fallback to local logic if API fails
-            return isRushOrderEligibleLocal();
-        }
-    };
-
-    // Local fallback logic
-    const isRushOrderEligibleLocal = () => {
-        // Check if delivery address supports rush order
-        const isEligibleAddress =
-            deliveryInfo.city === "Hà Nội" &&
-            [
-                "Ba Đình",
-                "Hoàn Kiếm",
-                "Tây Hồ",
-                "Long Biên",
-                "Cầu Giấy",
-                "Đống Đa",
-                "Hai Bà Trưng",
-                "Hoàng Mai",
-                "Thanh Xuân",
-                "Nam Từ Liêm",
-                "Bắc Từ Liêm",
-            ].includes(deliveryInfo.district);
-
-        // Check if all products support rush order
-        const allProductsEligible = cartItems.every((item) => {
-            const product = item.product;
-
-            // For localStorage items, we might not have eligible info
-            if (product.eligible !== undefined) {
-                return product.eligible;
-            }
-            // Default to false if no information available
-            return false;
-        });
-
-        return isEligibleAddress && allProductsEligible && cartItems.length > 0;
-    };
-
-    const getDeliveryDetails = () => {
-        const subtotal = getTotalExcludingVAT();
-        const isRushEligible = isRushOrderEligible();
-
-        return {
-            isEligible: isRushEligible,
-            fee: 0, // No rush fee
-            estimatedTime: deliveryInfo.isRushOrder && isRushEligible ? "Same day" : "3-5 days",
-            restrictions: !isRushEligible ? "Rush delivery only available in Hanoi inner districts" : null,
-        };
-    };
-
-    const getTotalWeight = () => {
-        return cartItems.reduce((weight, item) => {
-            const product = item.product;
-            const itemWeight = product.weight || 0.5; // Default weight if not specified
-            return weight + itemWeight * item.quantity;
-        }, 0);
-    };
-
-    const calculateDeliveryFee = (useRushOrder = deliveryInfo.isRushOrder) => {
-        const subtotal = getTotalExcludingVAT();
-        const weight = getTotalWeight();
-
-        let baseFee = 25000; // Base delivery fee
-
-        // Weight-based calculation
-        if (weight > 2) {
-            baseFee += Math.ceil((weight - 2) / 0.5) * 5000;
-        }
-
-        // Distance-based calculation (simplified)
-        if (deliveryInfo.city !== "Hà Nội") {
-            baseFee += 15000; // Inter-city fee
-        }
-
-        // No rush order fee - removed
-
-        // Free shipping threshold
-        if (subtotal >= 500000) {
-            baseFee = Math.max(0, baseFee - 25000); // Free standard shipping
-        }
-
-        return Math.min(baseFee, 100000); // Cap at 100,000 VND
-    };
-
-    const calculateDeliveryFeeWithoutDiscount = () => {
-        const weight = getTotalWeight();
-        let baseFee = 25000;
-
-        if (weight > 2) {
-            baseFee += Math.ceil((weight - 2) / 0.5) * 5000;
-        }
-
-        if (deliveryInfo.city !== "Hà Nội") {
-            baseFee += 15000;
-        }
-
-        // No rush order fee - removed
-
-        return Math.min(baseFee, 100000);
-    };
-
-    const updateDeliveryInfo = (newDeliveryInfo) => {
-        setDeliveryInfo((prev) => ({
-            ...prev,
-            ...newDeliveryInfo,
-        }));
-    };
-
-    const getOrderSummary = () => {
-        const subtotal = getTotalExcludingVAT();
-        const vat = getVATAmount();
-        const deliveryFee = calculateDeliveryFee();
-        const total = subtotal + vat + deliveryFee;
-        const savings = calculateDeliveryFeeWithoutDiscount() - deliveryFee;
-
-        return {
-            items: cartItems,
-            itemCount: getCartCount(),
-            subtotal,
-            vat,
-            deliveryFee,
-            savings,
-            total,
-            deliveryInfo,
-            weight: getTotalWeight(),
-        };
-    };
-
     const validateCart = () => {
         const errors = [];
 
@@ -320,7 +156,6 @@ export const CartProvider = ({ children }) => {
 
     const value = {
         cartItems,
-        deliveryInfo,
         loading,
         addToCart,
         updateCartItem,
@@ -333,12 +168,6 @@ export const CartProvider = ({ children }) => {
         getVATAmount,
         isInCart,
         getItemQuantity,
-        isRushOrderEligible,
-        getDeliveryDetails,
-        getTotalWeight,
-        calculateDeliveryFee,
-        updateDeliveryInfo,
-        getOrderSummary,
         validateCart,
     };
 

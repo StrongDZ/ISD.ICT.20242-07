@@ -21,6 +21,7 @@ public abstract class CartItemMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "customer", ignore = true)
+    @Mapping(source = "productDTO", target = "product", qualifiedByName = "mapDTOToProduct")
     public abstract CartItem toEntity(CartItemDTO cartItemDTO);
 
     @Named("mapProductToDTO")
@@ -30,7 +31,7 @@ public abstract class CartItemMapper {
             return null;
         }
 
-        ProductMapper<?, ?> mapper = mapperFactory.getMapper(product.getCategory());
+        ProductMapper<?, ?> mapper = mapperFactory.getMapper(product.getCategory().name());
         return ((ProductMapper<Product, ProductDTO>) mapper).toDTO(product);
     }
 

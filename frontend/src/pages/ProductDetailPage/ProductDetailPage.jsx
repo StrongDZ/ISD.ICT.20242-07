@@ -417,7 +417,7 @@ const ProductDetailPage = () => {
                             alt={product.title}
                             style={{
                                 width: "100%",
-                                height: "400px",
+                                maxHeight: "100%",
                                 objectFit: "cover",
                                 borderRadius: "8px",
                             }}

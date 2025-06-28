@@ -7,7 +7,7 @@ import com.example.aims.mapper.CdMapper;
 import com.example.aims.model.CD;
 import com.example.aims.repository.CDRepository;
 import com.example.aims.strategy.ProductStrategy;
-import com.example.aims.util.IdGenerator;
+import com.example.aims.common.ProductType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,10 +29,7 @@ public class CdStrategy implements ProductStrategy {
 
         // Create CD entity (includes Product fields)
         CD cd = cdMapper.toEntity(cdDTO);
-        if (cd.getProductID() == null) {
-            cd.setProductID(IdGenerator.generateProductId("cd"));
-        }
-        cd.setCategory("cd");
+        cd.setCategory(ProductType.cd);
         CD savedCd = cdRepository.save(cd);
 
         // Return DTO
@@ -51,7 +48,7 @@ public class CdStrategy implements ProductStrategy {
         // Update CD
         CD cd = cdMapper.toEntity(cdDTO);
         cd.setProductID(id);
-        cd.setCategory("cd");
+        cd.setCategory(ProductType.cd);
         CD savedCd = cdRepository.save(cd);
 
         // Return DTO
@@ -92,6 +89,6 @@ public class CdStrategy implements ProductStrategy {
 
     @Override
     public String getProductType() {
-        return "cd";
+        return ProductType.cd.name();
     }
 }

@@ -176,10 +176,15 @@ public class PlaceOrderService {
 
     private void updateProductStocks(List<CartItemDTO> cartItems) {
         for (CartItemDTO cartItem : cartItems) {
-            ProductDTO productDTO = cartItem.getProductDTO();
-            productDTO.setQuantity(productDTO.getQuantity() - cartItem.getQuantity());
-            productRepository.save(productRepository.findById(cartItem.getProductDTO().getProductID())
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + cartItem.getProductDTO().getProductID())));
+            Product product = productRepository.findById(cartItem.getProductDTO().getProductID())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + cartItem.getProductDTO().getProductID()));
+            
+            // Cập nhật số lượng tồn kho
+            int newQuantity = product.getQuantity() - cartItem.getQuantity();
+            product.setQuantity(newQuantity);
+            
+            // Lưu lại vào database
+            productRepository.save(product);
         }
     }
 

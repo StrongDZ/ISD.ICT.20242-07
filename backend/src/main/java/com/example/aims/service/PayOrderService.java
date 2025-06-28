@@ -144,6 +144,37 @@ public class PayOrderService {
     }
 
     /**
+     * Processes the payment return from payment gateway by looking up paymentType
+     * from database.
+     * This method is used when paymentType is not available in the callback
+     * parameters.
+     * 
+     * @param allRequestParams The parameters received from the payment gateway.
+     * @param orderId          The order ID to look up paymentType from database.
+     * @return A redirect URL based on the payment response.
+     */
+    public String processPaymentReturn(Map<String, String> allRequestParams, String orderId) {
+        // Try to find existing payment transaction to get paymentType
+        PaymentTransaction existingTransaction = currentPaymentTransaction.findByTransactionId(orderId).orElse(null);
+        String paymentType;
+
+        if (existingTransaction != null && existingTransaction.getPaymentType() != null) {
+            // Use paymentType from existing transaction
+            paymentType = existingTransaction.getPaymentType().toLowerCase();
+        } else {
+            // Fallback: try to determine paymentType from response parameters
+            // This is a fallback mechanism in case transaction doesn't exist yet
+            if (allRequestParams.containsKey("vnp_ResponseCode")) {
+                paymentType = "vnpay"; // Default to VNPay if VNPay parameters are present
+            } else {
+                paymentType = "momo"; // Default to MoMo otherwise
+            }
+        }
+
+        return processPayment(allRequestParams, paymentType);
+    }
+
+    /**
      * Gets the response code from payment gateway parameters.
      */
     private String getResponseCode(Map<String, String> params, String paymentType) {

@@ -25,9 +25,6 @@ public class PayOrderController {
     @Autowired
     private PayOrderService payOrderService;
 
-    // Lưu paymentType hiện tại
-    private String currentPaymentType;
-
     // Test payment request
     // private final IPaymentSystem vnpay = new VNPaySubsystem();
 
@@ -44,8 +41,6 @@ public class PayOrderController {
     @GetMapping("/url")
     public String getPaymentURL(@RequestParam("orderId") String orderId,
             @RequestParam("paymentType") String paymentType) {
-        // Lưu paymentType để sử dụng sau này
-        this.currentPaymentType = paymentType;
         // Call the payment subsystem to get the payment URL
         return payOrderService.getPaymentURL(orderId, paymentType);
     }
@@ -68,8 +63,9 @@ public class PayOrderController {
     // Giữ lại endpoint cũ cho backward compatibility
     @GetMapping("/vnpay-return")
     public RedirectView vnpayReturn(@RequestParam Map<String, String> vnpayResponse) {
-        // Tự động set paymentType cho VNPay
-        String redirectUrl = payOrderService.processPayment(vnpayResponse, currentPaymentType);
+        // Lấy orderId từ response để tìm paymentType từ database
+        String orderId = vnpayResponse.get("vnp_TxnRef");
+        String redirectUrl = payOrderService.processPaymentReturn(vnpayResponse, orderId);
         return new RedirectView(redirectUrl);
     }
 

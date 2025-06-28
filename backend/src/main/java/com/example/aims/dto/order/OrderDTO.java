@@ -13,7 +13,6 @@ import com.example.aims.dto.DeliveryInfoDTO;
 public class OrderDTO {
     private String id;
     private OrderStatus status;
-    // private List<OrderItemDTO> items;
     private DeliveryInfoDTO deliveryInfo;
     private Double totalPrice;
 }

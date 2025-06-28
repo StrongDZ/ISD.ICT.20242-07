@@ -5,6 +5,10 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import com.example.aims.model.Order;
+import com.example.aims.model.PaymentTransaction;
+import com.example.aims.repository.PaymentTransactionRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "EMAIL_SERVICE")
 public class EmailService {
     private final JavaMailSender mailSender;
+    private final PaymentTransactionRepository paymentTransactionRepository;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
@@ -48,6 +53,29 @@ public class EmailService {
         String body = buildPaymentConfirmationBody(recipientName, orderId, transactionId, transactionLink);
 
         send(recipientEmail, subject, body);
+    }
+
+    /**
+     * Sends payment confirmation email by transaction ID
+     * 
+     * @param transactionId The ID of the payment transaction
+     * @throws Exception if email sending fails
+     */
+    public void sendPaymentConfirmationEmail(String transactionId) throws Exception {
+        PaymentTransaction paymentTransaction = paymentTransactionRepository
+                .findByTransactionId(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Payment transaction not found for transaction Id: " + transactionId));
+
+        Order order = paymentTransaction.getOrder();
+        String orderID = order.getOrderID();
+        String recipientName = order.getDeliveryInfo().getRecipientName();
+        String recipientEmail = order.getDeliveryInfo().getMail();
+        String transactionLink = "localhost:3001/payment-history?orderId=" + orderID +
+                "&transactionId=" + transactionId +
+                "&paymentType=" + paymentTransaction.getPaymentType();
+
+        sendPaymentConfirmation(recipientName, recipientEmail, orderID, transactionId, transactionLink);
     }
 
     /**

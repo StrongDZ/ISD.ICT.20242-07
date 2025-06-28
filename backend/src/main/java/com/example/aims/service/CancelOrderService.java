@@ -20,6 +20,8 @@ public class CancelOrderService {
     private OrderRepository orderRepository;
     @Autowired
     private TransactionMapper transactionMapper;
+    @Autowired
+    private PaymentSystemFactory paymentSystemFactory;
 
     public CancelOrderService(PaymentTransactionRepository paymentTransactionRepository,
             OrderRepository orderRepository) {
@@ -51,7 +53,7 @@ public class CancelOrderService {
                     .orElseThrow(() -> new RuntimeException("Payment transaction not found"));
             if (paymentTransaction != null) {
                 TransactionResponseDTO transaction = transactionMapper.toTransactionResponseDTO(paymentTransaction);
-                String refundInfo = PaymentSystemFactory.getPaymentSystem(paymentType).getRefundInfo(transaction);
+                String refundInfo = paymentSystemFactory.getPaymentSystem(paymentType).getRefundInfo(transaction);
                 if (refundInfo != null) {
                     return refundInfo;
                 } else {

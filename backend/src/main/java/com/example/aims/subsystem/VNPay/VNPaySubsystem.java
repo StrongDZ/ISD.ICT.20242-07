@@ -81,4 +81,14 @@ public class VNPaySubsystem implements IPaymentSystem {
         return refundResponse.parseResponse(response);
     }
 
+    /**
+     * Returns the payment type identifier for VNPay.
+     * 
+     * @return "vnpay"
+     */
+    @Override
+    public String getPaymentType() {
+        return "vnpay";
+    }
+
 }

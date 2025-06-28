@@ -12,5 +12,13 @@ public interface IPaymentSystem {
 
     public String getRefundInfo(TransactionResponseDTO dto);
 
-    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse, PaymentOrderResponseFromReturnDTO orderDto);
+    public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse,
+            PaymentOrderResponseFromReturnDTO orderDto);
+
+    /**
+     * Returns the payment type identifier for this payment system.
+     * 
+     * @return The payment type (e.g., "vnpay", "momo")
+     */
+    public String getPaymentType();
 }

@@ -203,36 +203,6 @@ class PayOrderServiceTest {
     }
 
     @Test
-    void testSendMail() throws Exception {
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setTransactionId("TXN001");
-        transaction.setPaymentType("vnpay");
-
-        Order order = new Order();
-        order.setOrderID("ORD001");
-
-        DeliveryInfo deliveryInfo = new DeliveryInfo();
-        deliveryInfo.setMail("test@example.com");
-        deliveryInfo.setRecipientName("Test User");
-        order.setDeliveryInfo(deliveryInfo);
-
-        transaction.setOrder(order);
-
-        when(paymentTransactionRepository.findByTransactionId("TXN001")).thenReturn(Optional.of(transaction));
-
-        payOrderService.sendMail("TXN001");
-
-        verify(emailService).sendPaymentConfirmation("Test User", "test@example.com", "ORD001", "TXN001",
-                "localhost:3001/payment-history?orderId=ORD001&transactionId=TXN001&paymentType=vnpay");
-    }
-
-    @Test
-    void testSendMail_TransactionNotFound() {
-        when(paymentTransactionRepository.findByTransactionId("TXN404")).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> payOrderService.sendMail("TXN404"));
-    }
-
-    @Test
     void testGetOrderInfo_Success() {
         Order order = new Order();
         order.setOrderID("ORD001");

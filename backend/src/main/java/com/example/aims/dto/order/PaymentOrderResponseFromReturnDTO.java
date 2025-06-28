@@ -15,5 +15,4 @@ public class PaymentOrderResponseFromReturnDTO {
     private OrderStatus status;
     private Double totalAmount;
     private DeliveryInfoDTO deliveryInfo;
-    private String paymentType;
 }

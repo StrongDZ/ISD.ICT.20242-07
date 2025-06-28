@@ -12,10 +12,8 @@ import com.example.aims.dto.DeliveryInfoDTO;
 @AllArgsConstructor
 public class OrderDTO {
     private String id;
-    // private Integer customerID;
     private OrderStatus status;
     // private List<OrderItemDTO> items;
     private DeliveryInfoDTO deliveryInfo;
     private Double totalPrice;
-    private String paymentType; // Loại cổng thanh toán (vnpay, momo, ...)
 }

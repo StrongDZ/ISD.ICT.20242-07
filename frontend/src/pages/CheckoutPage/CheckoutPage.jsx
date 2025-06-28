@@ -27,7 +27,7 @@ import { orderService } from "../../services/orderService";
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
-    const { cartItems, getSelectedItems, getSelectedCartTotal, clearCart, validateCartStock } = useCart();
+    const { cartItems, getSelectedItems, getSelectedCartTotal, clearCart, validatetock} = useCart();
 
     const [activeStep, setActiveStep] = useState(0);
     const [deliveryInfo, setDeliveryInfo] = useState({
@@ -76,7 +76,7 @@ const CheckoutPage = () => {
         // Validate stock for selected items when entering checkout
         const validateStockOnLoad = async () => {
             try {
-                const validation = await validateCartStock();
+                const validation = await validatetock(selectedItems);
                 if (!validation.isValid) {
                     setSnackbar({
                         open: true,
@@ -91,7 +91,7 @@ const CheckoutPage = () => {
         };
 
         validateStockOnLoad();
-    }, [cartItems, selectedItems, navigate, validateCartStock]);
+    }, [cartItems, selectedItems, navigate]);
 
     const validateDeliveryInfo = () => {
         const newErrors = {};

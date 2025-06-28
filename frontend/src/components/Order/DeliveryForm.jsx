@@ -313,7 +313,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                                     <Checkbox
                                         checked={deliveryInfo.isRushOrder}
                                         onChange={(e) => handleFieldChange("isRushOrder", e.target.checked)}
-                                        disabled={!isRushEligible}
+                                        disabled={!isRushEligible || !rushOrderDetails?.supported}
                                         icon={<Speed />}
                                         checkedIcon={<Speed color="success" />}
                                     />
@@ -322,7 +322,7 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                                     <Box>
                                         <Typography variant="body1">
                                             Rush Delivery (Same day)
-                                            {!isRushEligible && (
+                                            {(!isRushEligible || !rushOrderDetails?.supported) && (
                                                 <Typography component="span" color="text.secondary">
                                                     {" "}
                                                     - Not available

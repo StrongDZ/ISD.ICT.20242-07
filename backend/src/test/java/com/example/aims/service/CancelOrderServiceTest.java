@@ -1,250 +1,109 @@
-// package com.example.aims.service;
+package com.example.aims.service;
 
-// import com.example.aims.common.OrderStatus;
-// import com.example.aims.dto.transaction.TransactionResponseDTO;
-// import com.example.aims.factory.PaymentSystemFactory;
-// import com.example.aims.mapper.TransactionMapper;
-// import com.example.aims.model.Order;
-// import com.example.aims.model.PaymentTransaction;
-// import com.example.aims.repository.OrderRepository;
-// import com.example.aims.repository.PaymentTransactionRepository;
-// import com.example.aims.subsystem.IPaymentSystem;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.mockito.MockedStatic;
+import com.example.aims.common.OrderStatus;
+import com.example.aims.model.Order;
+import com.example.aims.repository.OrderRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-// import java.util.Date;
-// import java.util.Optional;
+import java.util.Optional;
 
-// import static org.junit.jupiter.api.Assertions.*;
-// import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-// class CancelOrderServiceTest {
+class CancelOrderServiceTest {
 
-//     private CancelOrderService cancelOrderService;
-//     private PaymentTransactionRepository paymentTransactionRepository;
-//     private OrderRepository orderRepository;
-//     private TransactionMapper transactionMapper;
+    private OrderRepository orderRepository;
+    private CancelOrderService cancelOrderService;
 
-//     @BeforeEach
-//     void setUp() {
-//         paymentTransactionRepository = mock(PaymentTransactionRepository.class);
-//         orderRepository = mock(OrderRepository.class);
-//         transactionMapper = mock(TransactionMapper.class);
+    @BeforeEach
+    void setUp() {
+        orderRepository = mock(OrderRepository.class);
+        cancelOrderService = new CancelOrderService(orderRepository);
+    }
 
-//         cancelOrderService = new CancelOrderService(paymentTransactionRepository, orderRepository);
+    @Test
+    void testCancelOrder_Success() {
+        // Arrange
+        Order order = new Order();
+        order.setOrderID("ORD001");
+        order.setStatus(OrderStatus.PENDING);
 
-//         // Sử dụng reflection để gán transactionMapper
-//         try {
-//             java.lang.reflect.Field field = CancelOrderService.class.getDeclaredField("transactionMapper");
-//             field.setAccessible(true);
-//             field.set(cancelOrderService, transactionMapper);
-//         } catch (Exception e) {
-//             fail("Failed to set transactionMapper field: " + e.getMessage());
-//         }
-//     }
+        when(orderRepository.findByOrderID("ORD001")).thenReturn(Optional.of(order));
 
-//     @Test
-//     void testCancelOrder_Success() {
-//         // Arrange
-//         String orderId = "ORD001";
-//         String transactionId = "TXN001";
-//         String paymentType = "vnpay";
+        // Act
+        OrderStatus result = cancelOrderService.cancelOrder("ORD001", "TXN001", "vnpay");
 
-//         Order order = new Order();
-//         order.setOrderID(orderId);
-//         order.setStatus(OrderStatus.PENDING);
+        // Assert
+        assertEquals(OrderStatus.CANCELLED, result);
+        assertEquals(OrderStatus.CANCELLED, order.getStatus());
+        verify(orderRepository).save(order);
+    }
 
-//         PaymentTransaction paymentTransaction = new PaymentTransaction();
-//         paymentTransaction.setTransactionId(transactionId);
-//         paymentTransaction.setAmount(100.0);
-//         paymentTransaction.setDatetime(new Date());
+    @Test
+    void testCancelOrder_AlreadyCancelled() {
+        Order order = new Order();
+        order.setOrderID("ORD002");
+        order.setStatus(OrderStatus.CANCELLED);
 
-//         TransactionResponseDTO transactionDTO = new TransactionResponseDTO();
-//         transactionDTO.setTransactionId(transactionId);
-//         transactionDTO.setAmount(100.0);
+        when(orderRepository.findByOrderID("ORD002")).thenReturn(Optional.of(order));
 
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.of(order));
-//         when(paymentTransactionRepository.findByTransactionId(transactionId))
-//                 .thenReturn(Optional.of(paymentTransaction));
-//         when(transactionMapper.toTransactionResponseDTO(paymentTransaction)).thenReturn(transactionDTO);
+        OrderStatus result = cancelOrderService.cancelOrder("ORD002", "TXN001", "vnpay");
 
-//         IPaymentSystem paymentSystem = mock(IPaymentSystem.class);
-//         when(paymentSystem.getRefundInfo(transactionDTO)).thenReturn("Refund processed successfully");
+        assertEquals(OrderStatus.CANCELLED, result);
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 
-//         try (MockedStatic<PaymentSystemFactory> factoryMock = mockStatic(PaymentSystemFactory.class)) {
-//             factoryMock.when(() -> PaymentSystemFactory.getPaymentSystem(paymentType)).thenReturn(paymentSystem);
+    @Test
+    void testCancelOrder_Approved() {
+        Order order = new Order();
+        order.setOrderID("ORD003");
+        order.setStatus(OrderStatus.APPROVED);
 
-//             // Act
-//             String result = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
+        when(orderRepository.findByOrderID("ORD003")).thenReturn(Optional.of(order));
 
-//             // Assert
-//             assertEquals("Refund processed successfully", result);
-//             assertEquals(OrderStatus.CANCELLED, order.getStatus());
-//             verify(orderRepository).save(order);
-//             verify(paymentTransactionRepository).findByTransactionId(transactionId);
-//             verify(transactionMapper).toTransactionResponseDTO(paymentTransaction);
-//         }
-//     }
+        OrderStatus result = cancelOrderService.cancelOrder("ORD003", "TXN001", "vnpay");
 
-//     @Test
-//     void testCancelOrder_OrderNotFound() {
-//         // Arrange
-//         String orderId = "ORD404";
-//         String transactionId = "TXN001";
-//         String paymentType = "vnpay";
+        assertEquals(OrderStatus.APPROVED, result);
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.empty());
+    @Test
+    void testCancelOrder_Rejected() {
+        Order order = new Order();
+        order.setOrderID("ORD004");
+        order.setStatus(OrderStatus.REJECTED);
 
-//         // Act & Assert
-//         RuntimeException exception = assertThrows(RuntimeException.class,
-//                 () -> cancelOrderService.cancelOrder(orderId, transactionId, paymentType));
-//         assertEquals("Order not found", exception.getMessage());
-//     }
+        when(orderRepository.findByOrderID("ORD004")).thenReturn(Optional.of(order));
 
-//     @Test
-//     void testCancelOrder_OrderAlreadyCancelled() {
-//         // Arrange
-//         String orderId = "ORD001";
-//         String transactionId = "TXN001";
-//         String paymentType = "vnpay";
+        OrderStatus result = cancelOrderService.cancelOrder("ORD004", "TXN001", "vnpay");
 
-//         Order order = new Order();
-//         order.setOrderID(orderId);
-//         order.setStatus(OrderStatus.CANCELLED);
+        assertEquals(OrderStatus.REJECTED, result);
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.of(order));
+    @Test
+    void testCancelOrder_OrderNotFound() {
+        when(orderRepository.findByOrderID("ORD404")).thenReturn(Optional.empty());
 
-//         // Act
-//         String result = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> cancelOrderService.cancelOrder("ORD404", "TXN001", "vnpay"));
 
-//         // Assert
-//         assertEquals("Order is already cancelled", result);
-//         verify(orderRepository, never()).save(any(Order.class));
-//     }
+        assertEquals("Order not found", ex.getMessage());
+    }
 
-//     @Test
-//     void testCancelOrder_OrderApproved() {
-//         // Arrange
-//         String orderId = "ORD001";
-//         String transactionId = "TXN001";
-//         String paymentType = "vnpay";
+    @Test
+    void testCancelOrder_InvalidStatus() {
+        Order order = new Order();
+        order.setOrderID("ORD005");
+        order.setStatus(null); // Invalid status
 
-//         Order order = new Order();
-//         order.setOrderID(orderId);
-//         order.setStatus(OrderStatus.APPROVED);
+        when(orderRepository.findByOrderID("ORD005")).thenReturn(Optional.of(order));
 
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.of(order));
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> cancelOrderService.cancelOrder("ORD005", "TXN001", "vnpay"));
 
-//         // Act
-//         String result = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
-
-//         // Assert
-//         assertEquals("Order cannot be cancelled after approval or rejection", result);
-//         verify(orderRepository, never()).save(any(Order.class));
-//     }
-
-//     @Test
-//     void testCancelOrder_OrderRejected() {
-//         // Arrange
-//         String orderId = "ORD001";
-//         String transactionId = "TXN001";
-//         String paymentType = "vnpay";
-
-//         Order order = new Order();
-//         order.setOrderID(orderId);
-//         order.setStatus(OrderStatus.REJECTED);
-
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.of(order));
-
-//         // Act
-//         String result = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
-
-//         // Assert
-//         assertEquals("Order cannot be cancelled after approval or rejection", result);
-//         verify(orderRepository, never()).save(any(Order.class));
-//     }
-
-//     @Test
-//     void testCancelOrder_PaymentTransactionNotFound() {
-//         // Arrange
-//         String orderId = "ORD001";
-//         String transactionId = "TXN404";
-//         String paymentType = "vnpay";
-
-//         Order order = new Order();
-//         order.setOrderID(orderId);
-//         order.setStatus(OrderStatus.PENDING);
-
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.of(order));
-//         when(paymentTransactionRepository.findByTransactionId(transactionId)).thenReturn(Optional.empty());
-
-//         // Act & Assert
-//         RuntimeException exception = assertThrows(RuntimeException.class,
-//                 () -> cancelOrderService.cancelOrder(orderId, transactionId, paymentType));
-//         assertEquals("Payment transaction not found", exception.getMessage());
-//     }
-
-//     @Test
-//     void testCancelOrder_RefundFailed() {
-//         // Arrange
-//         String orderId = "ORD001";
-//         String transactionId = "TXN001";
-//         String paymentType = "vnpay";
-
-//         Order order = new Order();
-//         order.setOrderID(orderId);
-//         order.setStatus(OrderStatus.PENDING);
-
-//         PaymentTransaction paymentTransaction = new PaymentTransaction();
-//         paymentTransaction.setTransactionId(transactionId);
-//         paymentTransaction.setAmount(100.0);
-//         paymentTransaction.setDatetime(new Date());
-
-//         TransactionResponseDTO transactionDTO = new TransactionResponseDTO();
-//         transactionDTO.setTransactionId(transactionId);
-//         transactionDTO.setAmount(100.0);
-
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.of(order));
-//         when(paymentTransactionRepository.findByTransactionId(transactionId))
-//                 .thenReturn(Optional.of(paymentTransaction));
-//         when(transactionMapper.toTransactionResponseDTO(paymentTransaction)).thenReturn(transactionDTO);
-
-//         IPaymentSystem paymentSystem = mock(IPaymentSystem.class);
-//         when(paymentSystem.getRefundInfo(transactionDTO)).thenReturn(null);
-
-//         try (MockedStatic<PaymentSystemFactory> factoryMock = mockStatic(PaymentSystemFactory.class)) {
-//             factoryMock.when(() -> PaymentSystemFactory.getPaymentSystem(paymentType)).thenReturn(paymentSystem);
-
-//             // Act
-//             String result = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
-
-//             // Assert
-//             assertEquals("Failed to process refund", result);
-//             assertEquals(OrderStatus.CANCELLED, order.getStatus());
-//             verify(orderRepository).save(order);
-//         }
-//     }
-
-//     @Test
-//     void testCancelOrder_InvalidOrderStatus() {
-//         // Arrange
-//         String orderId = "ORD001";
-//         String transactionId = "TXN001";
-//         String paymentType = "vnpay";
-
-//         Order order = new Order();
-//         order.setOrderID(orderId);
-//         // Sử dụng null status để test trường hợp không xác định
-//         order.setStatus(null);
-
-//         when(orderRepository.findByOrderID(orderId)).thenReturn(Optional.of(order));
-
-//         // Act
-//         String result = cancelOrderService.cancelOrder(orderId, transactionId, paymentType);
-
-//         // Assert
-//         assertEquals("Order cannot be cancelled at this stage", result);
-//         verify(orderRepository, never()).save(any(Order.class));
-//     }
-// }
+        assertEquals("Order cannot be cancelled at this stage", ex.getMessage());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+}

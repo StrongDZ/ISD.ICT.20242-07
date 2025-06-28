@@ -1,6 +1,5 @@
 package com.example.aims.dto;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 /**
  * ✅ This class represents delivery address information used in placing a rush order.
@@ -29,12 +28,9 @@ public class DeliveryInfoDTO {
     // ✅ Additional rush delivery information
     private String deliveryTime;           // Preferred delivery time for rush orders
     private String specialInstructions;    // Special delivery instructions
-    private String contactPerson;          // Contact person if different from recipient
-    private String contactPhone;           // Contact phone if different from recipient
-    private String buildingAccess;         // Building/apartment access information
 
-    // ✅ Default constructor — required for serialization frameworks like Jackson
-    public DeliveryInfoDTO() {}
+    
+   public DeliveryInfoDTO() {}
 
     // ✅ Parameterized constructor for convenience
     public DeliveryInfoDTO(String city, String district, String addressDetail) {
@@ -43,39 +39,42 @@ public class DeliveryInfoDTO {
         this.addressDetail = addressDetail;
     }
 
-    // // ⚠️ Ambiguous constructor: seems unused and includes hardcoded-looking values.
-    // // ❌ Consider removing or renaming for clarity, as it reduces cohesion.
-    // public DeliveryInfoDTO(String haNoi, String baDinh, String s, String number) {
-    //     // Missing implementation — this appears to be a stub or mistake
-    // }
+//     // ✅ Getter for city
+//     public String getCity() {
+//         return city;
+//     }
 
-    // ✅ Getter for city
-    public String getCity() {
-        return city;
-    }
+//     // ✅ Getter for district
+//     public String getDistrict() {
+//         return district;
+//     }
 
-    // ✅ Getter for district
-    public String getDistrict() {
-        return district;
-    }
+//     // ✅ Getter for addressDetail
+//     public String getAddressDetail() {
+//         return addressDetail;
+//     }
 
-    // ✅ Getter for addressDetail
-    public String getAddressDetail() {
-        return addressDetail;
-    }
+//     // ✅ Setter for city
+//     public void setCity(String city) {
+//         this.city = city;
+//     }
 
-    // ✅ Setter for city
-    public void setCity(String city) {
-        this.city = city;
-    }
+//     // ✅ Setter for district
+//     public void setDistrict(String district) {
+//         this.district = district;
+//     }
 
-    // ✅ Setter for district
-    public void setDistrict(String district) {
-        this.district = district;
-    }
+//     // ✅ Setter for addressDetail
+//     public void setAddressDetail(String addressDetail) {
+//         this.addressDetail = addressDetail;
+//     }
 
-    // ✅ Setter for addressDetail
-    public void setAddressDetail(String addressDetail) {
-        this.addressDetail = addressDetail;
-    }
+//     public Boolean getIsRushOrder() {
+//         return isRushOrder;
+//     }
+
+//     public void setIsRushOrder(Boolean isRushOrder) {
+//         this.isRushOrder = isRushOrder;
+//     }
+// }
 }

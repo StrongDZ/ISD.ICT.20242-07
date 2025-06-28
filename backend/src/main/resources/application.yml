@@ -14,3 +14,26 @@ rush:
       - Nam Từ Liêm
       - Bắc Từ Liêm
       - Hà Đông
+# Cấu hình phí giao hàng
+delivery:
+  fee:
+    # Khu vực thường
+    regular:
+      initial-fee: 3000.0 # 30,000 VND cho 0.5kg đầu tiên
+      extra-fee-per-unit: 2500.0 # 2,500 VND cho mỗi 0.5kg tiếp theo
+      weight-unit: 0.5 # Đơn vị trọng lượng (kg)
+
+    # Nội thành Hà Nội và TP.HCM
+    inner-city:
+      initial-fee: 22000.0 # 22,000 VND cho 3kg đầu tiên
+      weight-unit: 3.0 # Đơn vị trọng lượng cho nội thành (kg)
+      extra-fee-per-unit: 2500.0 # 2,500 VND cho mỗi 0.5kg tiếp theo
+
+    # Cấu hình miễn phí giao hàng
+    free-shipping:
+      threshold: 100000.0 # Ngưỡng miễn phí giao hàng
+      max-amount: 25000.0 # Số tiền miễn phí tối đa
+
+    # Phí rush order
+    rush-order:
+      fee-per-item: 10000.0 # Phí rush order cho mỗi item

@@ -11,18 +11,22 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.example.aims.dto.CartItemDTO;
+import com.example.aims.dto.DeliveryFeeResponseDTO;
 import com.example.aims.dto.order.OrderDTO;
 import com.example.aims.dto.order.OrderRequestDTO;
 import com.example.aims.service.PlaceOrderService;
+import com.example.aims.service.CalculateFeeService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/place-order")
 public class PlaceOrderController {
 
     private PlaceOrderService placeOrderService;
+    private CalculateFeeService calculateFeeService;
 
-    public PlaceOrderController(PlaceOrderService placeOrderService) {
+    public PlaceOrderController(PlaceOrderService placeOrderService, CalculateFeeService calculateFeeService) {
         this.placeOrderService = placeOrderService;
+        this.calculateFeeService = calculateFeeService;
     }
 
     @PostMapping("/check-inventory")
@@ -48,6 +52,17 @@ public class PlaceOrderController {
     public ResponseEntity<OrderDTO> placeOrder(@RequestBody OrderRequestDTO request) {
         OrderDTO order = placeOrderService.placeOrder(request);
         return ResponseEntity.ok(order);
+    }
+    
+    @PostMapping("/calculate-shipping-fees")
+    public ResponseEntity<DeliveryFeeResponseDTO> calculateShippingFees(@RequestBody OrderRequestDTO request) {
+        
+        DeliveryFeeResponseDTO fees = calculateFeeService.calculateAllShippingFees(
+            request.getCartItems(),
+            request.getDeliveryInfo()
+        );
+        
+        return ResponseEntity.ok(fees);
     }
 
 }

@@ -4,7 +4,7 @@ export const orderService = {
   // Tạo đơn hàng không cần đăng nhập
   createOrder: async (orderData) => {
     try {
-      const response = await api.post("/create-order", orderData);
+      const response = await api.post("/place-order/create-order", orderData);
       return response.data;
     } catch (error) {
       throw new Error(
@@ -16,7 +16,10 @@ export const orderService = {
   // Kiểm tra tồn kho trước khi đặt hàng
   checkInventory: async (cartItems) => {
     try {
-      const response = await api.post("/check-inventory", cartItems);
+      const response = await api.post(
+        "/place-order/check-inventory",
+        cartItems
+      );
       return response.data;
     } catch (error) {
       // Nếu có response data từ server (trường hợp tồn kho không đủ)
@@ -50,43 +53,43 @@ export const orderService = {
     return response.data;
   },
 
-    // Approve order
-    async approveOrder(orderId, approvedBy = "system") {
-        try {
-            const response = await api.post(`/orders/${orderId}/approve`, {
-                approvedBy: approvedBy,
-                notes: "Order approved by manager"
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || "Cannot approve order");
-        }
-    },
+  // Approve order
+  async approveOrder(orderId, approvedBy = "system") {
+    try {
+      const response = await api.post(`/orders/${orderId}/approve`, {
+        approvedBy: approvedBy,
+        notes: "Order approved by manager",
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Cannot approve order");
+    }
+  },
 
-    // Reject order
-    async rejectOrder(orderId, reason, rejectedBy = "system") {
-        try {
-            const response = await api.post(`/orders/${orderId}/reject`, {
-                reason: reason,
-                rejectedBy: rejectedBy,
-                notes: "Order rejected by manager"
-            });
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || "Cannot reject order");
-        }
-    },
+  // Reject order
+  async rejectOrder(orderId, reason, rejectedBy = "system") {
+    try {
+      const response = await api.post(`/orders/${orderId}/reject`, {
+        reason: reason,
+        rejectedBy: rejectedBy,
+        notes: "Order rejected by manager",
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Cannot reject order");
+    }
+  },
 
-    // Check if order is eligible for management
-    async isOrderEligible(orderId) {
-        try {
-            const response = await api.get(`/orders/${orderId}/eligible`);
-            return response.data;
-        } catch (error) {
-            console.error("Error checking order eligibility:", error);
-            return false;
-        }
-    },
+  // Check if order is eligible for management
+  async isOrderEligible(orderId) {
+    try {
+      const response = await api.get(`/orders/${orderId}/eligible`);
+      return response.data;
+    } catch (error) {
+      console.error("Error checking order eligibility:", error);
+      return false;
+    }
+  },
 
   // Mock orders for development/testing
   getMockOrders: () => {
@@ -172,5 +175,22 @@ export const orderService = {
         ],
       },
     ];
+  },
+
+  // Tính phí giao hàng
+  calculateShippingFees: async (orderData) => {
+    try {
+      // Endpoint này khớp với API đã thiết kế ở backend
+      const response = await api.post(
+        "/place-order/calculate-shipping-fees",
+        orderData
+      );
+      // API sẽ trả về đối tượng { regularShippingFee, rushShippingFee }
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Không thể tính phí giao hàng"
+      );
+    }
   },
 };

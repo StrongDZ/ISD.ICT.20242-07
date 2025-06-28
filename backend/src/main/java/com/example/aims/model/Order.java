@@ -17,10 +17,6 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String orderID;
 
-    // @ManyToOne
-    // @JoinColumn(name = "customerID")
-    // private Users customer;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private OrderStatus status;

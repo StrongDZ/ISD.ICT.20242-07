@@ -538,73 +538,7 @@ export const productService = {
         ];
     },
 
-    // Get products with filtering and pagination
-    getFilteredProducts: (filters = {}, page = 1, limit = 20) => {
-        let products = productService.getMockProducts();
 
-        // Apply category filter
-        if (filters.category) {
-            products = products.filter((product) => product.category === filters.category);
-        }
-
-        // Apply search filter
-        if (filters.search) {
-            const searchTerm = filters.search.toLowerCase();
-            products = products.filter(
-                (product) =>
-                    product.title.toLowerCase().includes(searchTerm) ||
-                    product.description.toLowerCase().includes(searchTerm) ||
-                    (product.authors && product.authors.toLowerCase().includes(searchTerm)) ||
-                    (product.artist && product.artist.toLowerCase().includes(searchTerm)) ||
-                    (product.director && product.director.toLowerCase().includes(searchTerm))
-            );
-        }
-
-        // Apply price range filter
-        if (filters.minPrice) {
-            products = products.filter((product) => product.price >= filters.minPrice);
-        }
-        if (filters.maxPrice) {
-            products = products.filter((product) => product.price <= filters.maxPrice);
-        }
-
-        // Apply sorting
-        if (filters.sortBy) {
-            switch (filters.sortBy) {
-                case "title_asc":
-                    products.sort((a, b) => a.title.localeCompare(b.title));
-                    break;
-                case "title_desc":
-                    products.sort((a, b) => b.title.localeCompare(a.title));
-                    break;
-                case "price_asc":
-                    products.sort((a, b) => a.price - b.price);
-                    break;
-                case "price_desc":
-                    products.sort((a, b) => b.price - a.price);
-                    break;
-                case "newest":
-                    products.sort((a, b) => new Date(b.releaseDate || b.pubDate) - new Date(a.releaseDate || a.pubDate));
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedProducts = products.slice(startIndex, endIndex);
-
-        return {
-            products: paginatedProducts,
-            totalProducts: products.length,
-            totalPages: Math.ceil(products.length / limit),
-            currentPage: page,
-            hasNext: endIndex < products.length,
-            hasPrevious: page > 1,
-        };
-    },
 
     // Unified fetch with filters & pagination
     fetchProducts: async (filters = {}, page = 0, size = 20) => {

@@ -10,14 +10,6 @@ import com.example.aims.dto.transaction.TransactionResponseDTO;
 import com.example.aims.model.PaymentTransaction;
 import com.example.aims.subsystem.IPaymentSystem;
 
-// Functional Cohesion – All fields and methods support the single purpose of integrating with VNPay payment system
-// ✅ SRP respected – Class handles only VNPay-specific operations
-// 🔧 Suggestion: Implement actual payment URL logic; split refund logic if needed in future
-
-// 🔧 Improvement suggestions:
-// - Extract URL generation or formatting logic to a helper class if it grows complex.
-// - Consider separating refund functionality (if added later) into a distinct service if logic becomes too heavy.
-
 @Component
 public class VNPaySubsystem implements IPaymentSystem {
 

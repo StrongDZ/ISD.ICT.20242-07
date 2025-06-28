@@ -15,6 +15,9 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import com.example.aims.factory.PaymentErrorMapperFactory;
 import com.example.aims.factory.PaymentSystemFactory;
 
@@ -26,55 +29,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-// Communicational Cohesion – Methods share common data and purpose (processing payments), 
-// but test logic reduces clarity of single-purpose design
-// ❌ SRP violated – Class handles both business logic and testing setup
-// 🔧 Improvement: move test-related code (currentOrder, currentPaymentTransaction) to a separate test/mock class 
-// to make PayOrderService responsible only for real payment processing
-
-// 🔧 Improvement suggestions:
-// - Extract test logic (e.g. currentOrder, setCurrentOrderForTest) into a separate mock or test utility class
-// - Use proper dependency injection (e.g. repository) to get Order and PaymentTransaction
-//   instead of using instance-level test data
-// - Keep PayOrderService focused only on real payment logic → move test-specific state out
-
-// ✅ SOLID Evaluation Summary:
-// - ✅ SRP violated: test-related logic should be extracted
-// - ❌ OCP violated: payment logic is hardcoded, not extendable (suggest strategy pattern)
-// - ✅ LSP respected: no inheritance misuse
-// - ✅ ISP acceptable now, but keep in mind if adding interfaces later
-// - ❌ DIP violated: depends directly on concrete classes; should rely on interfaces
-
 @Service
 public class PayOrderService {
 
-    // 🔗 Coupling:
-    // Stamp Coupling – This class depends on whole Order and PaymentTransaction
-    // objects,
-    // even though only specific fields (e.g., order.getId(), order.getStatus()) are
-    // used.
-    // → Suggestion: In future, pass only necessary fields (e.g., orderId,
-    // totalAmount) to reduce coupling to Data level.
-    @Autowired
     private final OrderRepository currentOrder;
-    @Autowired
     private final PaymentTransactionRepository currentPaymentTransaction;
-    @Autowired
     private final OrderItemRepository orderItemRepository;
-    @Autowired
-    private PaymentErrorMapperFactory errorMapperFactory;
-    @Autowired
-    private OrderMapper orderMapper;
-    @Autowired
-    private EmailService emailService;
-    @Autowired
-    private PaymentSystemFactory paymentSystemFactory;
+    private final PaymentErrorMapperFactory errorMapperFactory;
+    private final EmailService emailService;
+    private final PaymentSystemFactory paymentSystemFactory;
+    private final OrderMapper orderMapper; // 🔧 Inject thủ công mapper dạng component
 
-    public PayOrderService(OrderRepository orderRepository, PaymentTransactionRepository paymentTransactionRepository,
-            OrderItemRepository orderItemRepository) {
-        this.currentOrder = orderRepository;
-        this.currentPaymentTransaction = paymentTransactionRepository;
+    @Autowired
+    public PayOrderService(
+            OrderRepository currentOrder,
+            PaymentTransactionRepository currentPaymentTransaction,
+            OrderItemRepository orderItemRepository,
+            PaymentErrorMapperFactory errorMapperFactory,
+            EmailService emailService,
+            PaymentSystemFactory paymentSystemFactory,
+            OrderMapper orderMapper) {
+        this.currentOrder = currentOrder;
+        this.currentPaymentTransaction = currentPaymentTransaction;
         this.orderItemRepository = orderItemRepository;
+        this.errorMapperFactory = errorMapperFactory;
+        this.emailService = emailService;
+        this.paymentSystemFactory = paymentSystemFactory;
+        this.orderMapper = orderMapper;
     }
 
     /**

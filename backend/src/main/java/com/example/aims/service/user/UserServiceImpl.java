@@ -113,7 +113,8 @@ public class UserServiceImpl implements UserService {
             String body = "Dear " + req.getUsername() + ",\n\nYour account information has been updated by the administrator.\n\nIf you did not request this change, please contact support.";
             emailService.send(req.getGmail(), subject, body);
         } catch (Exception e) {
-            // Ignore email sending failure
+            // Log email sending failure but don't stop the update process
+            System.err.println("Failed to send email notification to " + req.getGmail() + ": " + e.getMessage());
         }
     }
 
@@ -130,7 +131,8 @@ public class UserServiceImpl implements UserService {
                 String body = "Dear " + user.getUsername() + ",\n\nYour account password has been changed by the administrator.\n\nIf you did not request this change, please contact support.";
                 emailService.send(user.getGmail(), subject, body);
             } catch (Exception e) {
-                // Ignore email sending failure
+                // Log email sending failure but don't stop the password change process
+                System.err.println("Failed to send password change email to " + user.getGmail() + ": " + e.getMessage());
             }
         } else {
             throw new RuntimeException("Password not match");
@@ -164,7 +166,8 @@ public class UserServiceImpl implements UserService {
             String body = "Dear " + userName + ",\n\nYour account has been deleted by the administrator.\n\nIf you have any questions, please contact support.";
             emailService.send(userEmail, subject, body);
         } catch (Exception e) {
-            // Ignore email sending failure
+            // Log email sending failure but don't stop the deletion process
+            System.err.println("Failed to send account deletion email to " + userEmail + ": " + e.getMessage());
         }
     }
 }

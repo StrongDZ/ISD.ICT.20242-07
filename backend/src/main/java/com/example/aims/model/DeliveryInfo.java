@@ -14,6 +14,11 @@ public class DeliveryInfo {
     @Id
     private String orderID;
     
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "orderID")
+    private Order order;
+    
     private String city;
     private String district;
     private String addressDetail;
@@ -25,8 +30,5 @@ public class DeliveryInfo {
     // Additional rush delivery information
     private String deliveryTime;
     private String specialInstructions;
-    private String contactPerson;
-    private String contactPhone;
-    private String buildingAccess;
-    
+
 }

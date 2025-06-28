@@ -90,6 +90,7 @@ const CartPage = () => {
       const inventoryCheck = await orderService.checkInventory(
         cartItemsForCheck
       );
+      console.log("Inventory check result:", inventoryCheck);
 
       if (!inventoryCheck.success) {
         // Hiển thị dialog với danh sách sản phẩm không đủ tồn kho
@@ -394,27 +395,30 @@ const CartPage = () => {
             số lượng hoặc xóa sản phẩm:
           </Typography>
           <Box sx={{ mt: 2 }}>
-            {inventoryErrorDialog.insufficientItems.map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  p: 2,
-                  mb: 1,
-                  border: 1,
-                  borderColor: "error.light",
-                  borderRadius: 1,
-                  bgcolor: "error.50",
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
-                  {item.productDTO.title}
-                </Typography>
-                <Typography variant="body2" color="error.main">
-                  Yêu cầu: {item.quantity} | Có sẵn: {item.productDTO.quantity}{" "}
-                  | Thiếu: {item.quantity - item.productDTO.quantity}
-                </Typography>
-              </Box>
-            ))}
+            {(inventoryErrorDialog.insufficientItems || []).map(
+              (item, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    p: 2,
+                    mb: 1,
+                    border: 1,
+                    borderColor: "error.light",
+                    borderRadius: 1,
+                    bgcolor: "error.50",
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
+                    {item.productDTO.title}
+                  </Typography>
+                  <Typography variant="body2" color="error.main">
+                    Yêu cầu: {item.quantity} | Có sẵn:{" "}
+                    {item.productDTO.quantity} | Thiếu:{" "}
+                    {item.quantity - item.productDTO.quantity}
+                  </Typography>
+                </Box>
+              )
+            )}
           </Box>
           <Alert severity="warning" sx={{ mt: 2 }}>
             <Typography variant="body2">

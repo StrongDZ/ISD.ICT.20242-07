@@ -45,8 +45,8 @@ public class PlaceOrderController {
     }
 
     @PostMapping("/create-order")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderRequestDTO request) {
-        OrderDTO order = placeOrderService.createOrder(request);
+    public ResponseEntity<OrderDTO> placeOrder(@RequestBody OrderRequestDTO request) {
+        OrderDTO order = placeOrderService.placeOrder(request);
         return ResponseEntity.ok(order);
     }
 

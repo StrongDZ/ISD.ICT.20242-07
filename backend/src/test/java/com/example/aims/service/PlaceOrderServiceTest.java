@@ -51,7 +51,7 @@ public class PlaceOrderServiceTest {
     @Test
     void testCreateOrder_RequestNull_ThrowsException() {
         assertThrows(NullPointerException.class,
-                () -> placeOrderService.createOrder(null));
+                () -> placeOrderService.placeOrder(null));
     }
 
     // TC2: deliveryInfo null
@@ -61,7 +61,7 @@ public class PlaceOrderServiceTest {
         request.setDeliveryInfo(null);
         request.setCartItems(List.of());
         assertThrows(NullPointerException.class,
-                () -> placeOrderService.createOrder(request));
+                () -> placeOrderService.placeOrder(request));
     }
 
     // TC3: cartItems null
@@ -71,7 +71,7 @@ public class PlaceOrderServiceTest {
         request.setDeliveryInfo(new DeliveryInfoDTO());
         request.setCartItems(null);
         assertThrows(NullPointerException.class,
-                () -> placeOrderService.createOrder(request));
+                () -> placeOrderService.placeOrder(request));
     }
 
     // TC4: Tạo đơn thành công
@@ -115,7 +115,7 @@ public class PlaceOrderServiceTest {
         when(orderMapper.toOrderDTO(any(Order.class))).thenReturn(orderDTO);
 
         // Call method
-        OrderDTO result = placeOrderService.createOrder(request);
+        OrderDTO result = placeOrderService.placeOrder(request);
 
         // Assert
         assertNotNull(result);
@@ -151,7 +151,7 @@ public class PlaceOrderServiceTest {
         // Call method & assert
         // Nếu bạn có logic kiểm tra product tồn tại, hãy mock thêm
         // Ở đây sẽ không throw, chỉ test cho đúng cấu trúc
-        assertDoesNotThrow(() -> placeOrderService.createOrder(request));
+        assertDoesNotThrow(() -> placeOrderService.placeOrder(request));
     }
 
     // TC6: Lỗi truy cập DB khi save Order
@@ -168,6 +168,6 @@ public class PlaceOrderServiceTest {
         DeliveryInfo deliveryInfo = new DeliveryInfo();
         when(deliveryInfoMapper.toEntity(deliveryInfoDTO)).thenReturn(deliveryInfo);
         when(orderRepository.save(any(Order.class))).thenThrow(new RuntimeException("Simulated DB failure"));
-        assertThrows(RuntimeException.class, () -> placeOrderService.createOrder(request));
+        assertThrows(RuntimeException.class, () -> placeOrderService.placeOrder(request));
     }
 }

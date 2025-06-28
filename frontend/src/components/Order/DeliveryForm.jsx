@@ -24,9 +24,10 @@ import { orderService } from "../../services/orderService";
 import { useCart } from "../../contexts/CartContext";
 
 const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
-    const { selectedItems } = useCart();
+    const { getSelectedItems } = useCart();
     const [rushOrderDetails, setRushOrderDetails] = useState(null);
     const [loadingRushCheck, setLoadingRushCheck] = useState(false);
+    const [selectedItems, setSelectedItems] = useState(getSelectedItems());
 
     const vietnamCities = [
         "Hà Nội",

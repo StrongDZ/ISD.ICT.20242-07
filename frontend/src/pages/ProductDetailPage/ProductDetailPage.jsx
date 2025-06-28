@@ -90,7 +90,7 @@ const ProductDetailPage = () => {
     };
 
     const handleQuantityChange = (change) => {
-        const newQuantity = quantity + change;
+        const newQuantity = Math.max(1, Math.min(quantity + change, product?.quantity || 0));
         if (newQuantity >= 1 && newQuantity <= (product?.quantity || 0)) {
             setQuantity(newQuantity);
         }
@@ -108,7 +108,8 @@ const ProductDetailPage = () => {
             setQuantity(1);
         } catch (err) {
             console.error("Error adding to cart:", err);
-            setCartMessage("Failed to add product to cart");
+            setCartMessage("Failed to add product to cart: " + err.response.data.message);
+            loadProductDetails();
         } finally {
             setAddingToCart(false);
         }

@@ -12,6 +12,7 @@ import com.example.aims.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -144,57 +145,40 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public PagedResponse<ProductDTO> getFilteredProducts(String keyword, String category, Double minPrice,
             Double maxPrice, String sortBy, int page, int size) {
-        // Fetch all products first (could be optimized later with DB queries)
-        List<ProductDTO> allProducts = getAllProducts();
-
-        // Filtering
-        List<ProductDTO> filtered = allProducts.stream()
-                .filter(p -> {
-                    boolean ok = true;
-                    if (keyword != null && !keyword.isBlank()) {
-                        String kw = keyword.toLowerCase();
-                        ok &= p.getTitle() != null && p.getTitle().toLowerCase().contains(kw);
-                    }
-                    if (category != null && !category.equalsIgnoreCase("all") && !category.isBlank()) {
-                        ok &= p.getCategory() != null && p.getCategory().equalsIgnoreCase(category);
-                    }
-                    if (minPrice != null) {
-                        ok &= p.getPrice() != null && p.getPrice() >= minPrice;
-                    }
-                    if (maxPrice != null) {
-                        ok &= p.getPrice() != null && p.getPrice() <= maxPrice;
-                    }
-                    return ok;
+        Pageable pageable = PageRequest.of(page, size, getSort(sortBy));
+        ProductType categoryEnum = null;
+        if (category != null && !category.equalsIgnoreCase("all") && !category.isBlank()) {
+            categoryEnum = ProductType.valueOf(category.toLowerCase());
+        }
+        Page<Product> productPage = productRepository.searchProducts(
+                (keyword == null || keyword.isBlank()) ? null : keyword,
+                categoryEnum,
+                minPrice,
+                maxPrice,
+                pageable);
+        List<ProductDTO> dtos = productPage.getContent().stream()
+                .map(product -> {
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
+                    return strategy.getProductById(product.getProductID());
                 })
                 .collect(Collectors.toList());
+        return new PagedResponse<>(dtos, page, size, productPage.getTotalElements());
+    }
 
-        // Sorting
-        if (sortBy != null && !sortBy.isBlank()) {
-            switch (sortBy) {
-                case "title_asc":
-                    filtered.sort((a, b) -> a.getTitle().compareToIgnoreCase(b.getTitle()));
-                    break;
-                case "title_desc":
-                    filtered.sort((a, b) -> b.getTitle().compareToIgnoreCase(a.getTitle()));
-                    break;
-                case "price_asc":
-                    filtered.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
-                    break;
-                case "price_desc":
-                    filtered.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
-                    break;
-                default:
-                    break;
-            }
+    private Sort getSort(String sortBy) {
+        if (sortBy == null || sortBy.isBlank())
+            return Sort.unsorted();
+        switch (sortBy) {
+            case "title_asc":
+                return Sort.by("title").ascending();
+            case "title_desc":
+                return Sort.by("title").descending();
+            case "price_asc":
+                return Sort.by("price").ascending();
+            case "price_desc":
+                return Sort.by("price").descending();
+            default:
+                return Sort.unsorted();
         }
-
-        // Pagination (manual)
-        int totalElements = filtered.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, totalElements);
-        List<ProductDTO> pageContent = (fromIndex >= totalElements) ? List.of() : filtered.subList(fromIndex, toIndex);
-
-        return new PagedResponse<>(pageContent, page, size, totalElements);
     }
 }

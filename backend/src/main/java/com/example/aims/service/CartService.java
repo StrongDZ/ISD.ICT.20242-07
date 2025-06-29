@@ -76,8 +76,6 @@ public class CartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        product.validateStock(quantity);
-
         CartItem cartItem = new CartItem();
         cartItem.setId(new CartItem.CartItemId(customerId, productId));
         cartItem.setCustomer(customer);

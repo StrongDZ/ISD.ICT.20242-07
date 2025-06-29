@@ -12,6 +12,7 @@ import com.example.aims.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -139,5 +140,45 @@ public class ProductServiceImpl implements ProductService {
                 productPage.getNumber(),
                 productPage.getSize(),
                 productPage.getTotalElements());
+    }
+
+    @Override
+    public PagedResponse<ProductDTO> getFilteredProducts(String keyword, String category, Double minPrice,
+            Double maxPrice, String sortBy, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, getSort(sortBy));
+        ProductType categoryEnum = null;
+        if (category != null && !category.equalsIgnoreCase("all") && !category.isBlank()) {
+            categoryEnum = ProductType.valueOf(category.toLowerCase());
+        }
+        Page<Product> productPage = productRepository.searchProducts(
+                (keyword == null || keyword.isBlank()) ? null : keyword,
+                categoryEnum,
+                minPrice,
+                maxPrice,
+                pageable);
+        List<ProductDTO> dtos = productPage.getContent().stream()
+                .map(product -> {
+                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
+                    return strategy.getProductById(product.getProductID());
+                })
+                .collect(Collectors.toList());
+        return new PagedResponse<>(dtos, page, size, productPage.getTotalElements());
+    }
+
+    private Sort getSort(String sortBy) {
+        if (sortBy == null || sortBy.isBlank())
+            return Sort.unsorted();
+        switch (sortBy) {
+            case "title_asc":
+                return Sort.by("title").ascending();
+            case "title_desc":
+                return Sort.by("title").descending();
+            case "price_asc":
+                return Sort.by("price").ascending();
+            case "price_desc":
+                return Sort.by("price").descending();
+            default:
+                return Sort.unsorted();
+        }
     }
 }

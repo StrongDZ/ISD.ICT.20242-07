@@ -17,6 +17,18 @@ public interface ProductService {
 
     ProductDTO updateProduct(String productId, ProductDTO productDTO);
 
+    /*
+     * Unified filtering, searching and pagination
+     */
+    PagedResponse<ProductDTO> getFilteredProducts(
+            String keyword,
+            String category,
+            Double minPrice,
+            Double maxPrice,
+            String sortBy,
+            int page,
+            int size);
+
     void deleteProduct(String productId);
 
     List<ProductDTO> searchProducts(String query);

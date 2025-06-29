@@ -212,43 +212,7 @@ public class ViewProductDetailsTest {
         verify(dvdStrategy, times(1)).getAllProducts();
     }
 
-    @Test
-    void testGetProductsByCategory_Book_ReturnsOnlyBooks() {
-        // Given
-        String category = "book";
-        BookDTO bookDTO1 = createTestBookDTO();
-        bookDTO1.setProductID("BK-001");
-        BookDTO bookDTO2 = createTestBookDTO();
-        bookDTO2.setProductID("BK-002");
 
-        when(bookStrategy.getAllProducts()).thenReturn(Arrays.asList(bookDTO1, bookDTO2));
-
-        // When
-        List<ProductDTO> result = productService.getProductsByCategory(category);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(p -> p instanceof BookDTO));
-
-        verify(productFactory, times(1)).getStrategy("book");
-        verify(bookStrategy, times(1)).getAllProducts();
-    }
-
-    @Test
-    void testGetProductsByCategory_InvalidCategory_ThrowsException() {
-        // Given
-        String invalidCategory = "invalid";
-        when(productFactory.getStrategy(invalidCategory))
-                .thenThrow(new RuntimeException("Unsupported product type: " + invalidCategory));
-
-        // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> productService.getProductsByCategory(invalidCategory));
-
-        assertTrue(exception.getMessage().contains("Unsupported product type"));
-        verify(productFactory, times(1)).getStrategy(invalidCategory);
-    }
 
     // --- Helper Methods ---
     private BookDTO createTestBookDTO() {

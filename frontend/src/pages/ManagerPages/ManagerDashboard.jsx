@@ -18,6 +18,8 @@ import {
     IconButton,
     Snackbar,
     Alert,
+    CircularProgress,
+    Skeleton,
 } from "@mui/material";
 import { Inventory, ShoppingCart, TrendingUp, Add, Edit, Visibility, Assignment } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -30,11 +32,12 @@ const ManagerDashboard = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [stats, setStats] = useState({
         totalProducts: 0,
         lowStockProducts: 0,
         pendingOrders: 0,
-        totalRevenue: 0,
     });
 
     // Dialog states
@@ -46,47 +49,108 @@ const ManagerDashboard = () => {
         loadDashboardData();
     }, []);
 
-    const loadDashboardData = () => {
-        // Load products
-        const mockProducts = productService.getMockProducts();
-        setProducts(mockProducts.slice(0, 10)); // Show recent 10 products
+    const loadDashboardData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
 
-        // Load orders
-        const mockOrders = orderService.getMockOrders();
-        setOrders(mockOrders.slice(0, 5)); // Show recent 5 orders
+            // Load products and orders from API concurrently
+            const [productsResponse, ordersResponse] = await Promise.all([
+                productService.getAllProductsNoPagination(),
+                orderService.getAllOrders()
+            ]);
 
-        // Calculate stats
-        const lowStockCount = mockProducts.filter((p) => p.quantity <= 5).length;
-        const pendingOrdersCount = mockOrders.filter((o) => o.status === "PENDING_APPROVAL").length;
-        const totalRevenue = mockOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+            // Handle products data from API
+            const productsData = Array.isArray(productsResponse) ? productsResponse : productsResponse.content || [];
+            setProducts(productsData.slice(0, 10)); // Show recent 10 products
 
-        setStats({
-            totalProducts: mockProducts.length,
-            lowStockProducts: lowStockCount,
-            pendingOrders: pendingOrdersCount,
-            totalRevenue: totalRevenue,
-        });
+            // Handle orders data from API
+            const ordersData = Array.isArray(ordersResponse) ? ordersResponse : ordersResponse.content || [];
+            setOrders(ordersData.slice(0, 5)); // Show recent 5 orders
+
+            // Calculate statistics
+            const lowStockCount = productsData.filter((p) => (p.quantity || 0) <= 5).length;
+            const pendingOrdersCount = ordersData.filter((o) => 
+                o.status === "PENDING_APPROVAL" || o.status === "PENDING"
+            ).length;
+
+            setStats({
+                totalProducts: productsData.length,
+                lowStockProducts: lowStockCount,
+                pendingOrders: pendingOrdersCount,
+            });
+
+        } catch (error) {
+            console.error("Error loading dashboard data:", error);
+            setError("Failed to load dashboard data. Please try again.");
+            
+            // Fallback to mock data if API fails
+            const mockProducts = productService.getMockProducts();
+            const mockOrders = orderService.getMockOrders();
+            
+            setProducts(mockProducts.slice(0, 10));
+            setOrders(mockOrders.slice(0, 5));
+            
+            const lowStockCount = mockProducts.filter((p) => p.quantity <= 5).length;
+            const pendingOrdersCount = mockOrders.filter((o) => o.status === "PENDING_APPROVAL").length;
+
+            setStats({
+                totalProducts: mockProducts.length,
+                lowStockProducts: lowStockCount,
+                pendingOrders: pendingOrdersCount,
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND",
-        }).format(price);
+        }).format(price || 0);
     };
 
     const getStatusColor = (status) => {
         switch (status) {
             case "PENDING_APPROVAL":
+            case "PENDING":
                 return "warning";
             case "PROCESSING":
                 return "info";
             case "SHIPPING":
                 return "primary";
             case "DELIVERED":
+            case "COMPLETED":
                 return "success";
+            case "REJECTED":
+            case "CANCELLED":
+                return "error";
             default:
                 return "default";
+        }
+    };
+
+    const getStatusText = (status) => {
+        switch (status) {
+            case "PENDING_APPROVAL":
+                return "PENDING APPROVAL";
+            case "PENDING":
+                return "PENDING";
+            case "PROCESSING":
+                return "PROCESSING";
+            case "SHIPPING":
+                return "SHIPPING";
+            case "DELIVERED":
+                return "DELIVERED";
+            case "COMPLETED":
+                return "COMPLETED";
+            case "REJECTED":
+                return "REJECTED";
+            case "CANCELLED":
+                return "CANCELLED";
+            default:
+                return status || "UNKNOWN";
         }
     };
 
@@ -105,8 +169,11 @@ const ManagerDashboard = () => {
 
     const handleSaveProduct = async (productData, mode) => {
         try {
-            // In real app, this would call the API
-            console.log(`${mode === "add" ? "Adding" : "Updating"} product:`, productData);
+            if (mode === "add") {
+                await productService.createProduct(productData);
+            } else {
+                await productService.updateProduct(productData.productID, productData);
+            }
 
             setSnackbar({
                 open: true,
@@ -115,17 +182,23 @@ const ManagerDashboard = () => {
             });
 
             setEditDialog({ open: false, product: null, mode: "view" });
-            // In real app, reload dashboard data
+            // Reload dashboard data to reflect changes
+            loadDashboardData();
         } catch (error) {
+            console.error("Error saving product:", error);
             setSnackbar({
                 open: true,
-                message: "Failed to save product",
+                message: error.message || "Failed to save product",
                 severity: "error",
             });
         }
     };
 
-    const StatCard = ({ title, value, icon, color = "primary", action }) => (
+    const handleAddNewProduct = () => {
+        setEditDialog({ open: true, product: null, mode: "add" });
+    };
+
+    const StatCard = ({ title, value, icon, color = "primary", action, loading = false }) => (
         <Card sx={{ height: "100%" }}>
             <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -133,9 +206,13 @@ const ManagerDashboard = () => {
                         <Typography color="textSecondary" gutterBottom variant="h6">
                             {title}
                         </Typography>
-                        <Typography variant="h4" component="h2" color={color}>
-                            {value}
-                        </Typography>
+                        {loading ? (
+                            <Skeleton width={80} height={40} />
+                        ) : (
+                            <Typography variant="h4" component="h2" color={color}>
+                                {value}
+                            </Typography>
+                        )}
                     </Box>
                     <Box sx={{ color: `${color}.main` }}>{icon}</Box>
                 </Box>
@@ -143,6 +220,17 @@ const ManagerDashboard = () => {
             </CardContent>
         </Card>
     );
+
+    if (error) {
+        return (
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                    {error} Using fallback data.
+                </Alert>
+                {/* Continue rendering with fallback data */}
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -155,6 +243,14 @@ const ManagerDashboard = () => {
                 </Typography>
             </Box>
 
+            {error && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                    {error} Using fallback data.
+                </Alert>
+            )}
+
+
+
             {/* Statistics Cards */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12} sm={6} md={3}>
@@ -163,8 +259,15 @@ const ManagerDashboard = () => {
                         value={stats.totalProducts}
                         icon={<Inventory sx={{ fontSize: 40 }} />}
                         color="primary"
+                        loading={loading}
                         action={
-                            <Button variant="outlined" size="small" startIcon={<Add />} onClick={() => navigate("/manager/products")}>
+                            <Button 
+                                variant="outlined" 
+                                size="small" 
+                                startIcon={<Add />} 
+                                onClick={handleAddNewProduct}
+                                disabled={loading}
+                            >
                                 Add Product
                             </Button>
                         }
@@ -176,8 +279,14 @@ const ManagerDashboard = () => {
                         value={stats.lowStockProducts}
                         icon={<TrendingUp sx={{ fontSize: 40 }} />}
                         color="warning"
+                        loading={loading}
                         action={
-                            <Button variant="outlined" size="small" onClick={() => navigate("/manager/products")}>
+                            <Button 
+                                variant="outlined" 
+                                size="small" 
+                                onClick={() => navigate("/manager/products")}
+                                disabled={loading}
+                            >
                                 Manage Stock
                             </Button>
                         }
@@ -189,157 +298,209 @@ const ManagerDashboard = () => {
                         value={stats.pendingOrders}
                         icon={<ShoppingCart sx={{ fontSize: 40 }} />}
                         color="info"
+                        loading={loading}
                         action={
-                            <Button variant="outlined" size="small" onClick={() => navigate("/manager/orders")}>
+                            <Button 
+                                variant="outlined" 
+                                size="small" 
+                                onClick={() => navigate("/manager/orders")}
+                                disabled={loading}
+                            >
                                 Review Orders
                             </Button>
                         }
                     />
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <StatCard
-                        title="Total Revenue"
-                        value={formatPrice(stats.totalRevenue)}
-                        icon={<Assignment sx={{ fontSize: 40 }} />}
-                        color="success"
-                    />
-                </Grid>
             </Grid>
 
             {/* Quick Actions */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12}>
-                    <Card>
-                        <CardContent>
-                            <Typography variant="h6" gutterBottom>
-                                Quick Actions
-                            </Typography>
-                            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-                                <Button variant="contained" startIcon={<Add />} onClick={() => navigate("/manager/products")}>
-                                    Add New Product
-                                </Button>
-                                <Button variant="outlined" startIcon={<Assignment />} onClick={() => navigate("/manager/orders")}>
-                                    Manage Orders
-                                </Button>
-                                <Button variant="outlined" startIcon={<Inventory />} onClick={() => navigate("/manager/products")}>
-                                    Update Inventory
-                                </Button>
-                            </Box>
-                        </CardContent>
-                    </Card>
+            <Box sx={{ mb: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                    Quick Actions
+                </Typography>
+                <Grid container spacing={2}>
+                    <Grid item>
+                        <Button 
+                            variant="contained" 
+                            startIcon={<Add />} 
+                            onClick={handleAddNewProduct}
+                            disabled={loading}
+                        >
+                            Add New Product
+                        </Button>
+                    </Grid>
+                    <Grid item>
+                        <Button 
+                            variant="outlined" 
+                            startIcon={<Assignment />} 
+                            onClick={() => navigate("/manager/orders")}
+                            disabled={loading}
+                        >
+                            Manage Orders
+                        </Button>
+                    </Grid>
+                    <Grid item>
+                        <Button 
+                            variant="outlined" 
+                            startIcon={<Inventory />} 
+                            onClick={() => navigate("/manager/products")}
+                            disabled={loading}
+                        >
+                            Update Inventory
+                        </Button>
+                    </Grid>
                 </Grid>
-            </Grid>
+            </Box>
 
             {/* Recent Products and Orders */}
-            <Grid container spacing={3}>
+            <Grid container spacing={4}>
                 {/* Recent Products */}
-                <Grid item xs={12} md={7}>
+                <Grid item xs={12} lg={8}>
                     <Card>
                         <CardContent>
-                            <Typography variant="h6" gutterBottom>
-                                Recent Products
-                            </Typography>
-                            <TableContainer>
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Product</TableCell>
-                                            <TableCell>Category</TableCell>
-                                            <TableCell>Stock</TableCell>
-                                            <TableCell>Price</TableCell>
-                                            <TableCell>Actions</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {products.slice(0, 5).map((product) => (
-                                            <TableRow key={product.productID}>
-                                                <TableCell>
-                                                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                                        {product.title.length > 30 ? product.title.substring(0, 30) + "..." : product.title}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Chip label={product.category.toUpperCase()} size="small" color="primary" />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography
-                                                        color={product.quantity <= 5 ? "error" : "textPrimary"}
-                                                        sx={{ fontWeight: product.quantity <= 5 ? "bold" : "normal" }}
-                                                    >
-                                                        {product.quantity}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>{formatPrice(product.price)}</TableCell>
-                                                <TableCell>
-                                                    <IconButton size="small" onClick={() => handleViewProduct(product)}>
-                                                        <Visibility />
-                                                    </IconButton>
-                                                    <IconButton size="small" onClick={() => handleEditProduct(product)}>
-                                                        <Edit />
-                                                    </IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                            <Box sx={{ mt: 2, textAlign: "right" }}>
-                                <Button variant="outlined" onClick={() => navigate("/manager/products")}>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                                <Typography variant="h6">Recent Products</Typography>
+                                <Button 
+                                    size="small" 
+                                    onClick={() => navigate("/manager/products")}
+                                    disabled={loading}
+                                >
                                     View All Products
                                 </Button>
                             </Box>
+                            {loading ? (
+                                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <TableContainer>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Product</TableCell>
+                                                <TableCell>Category</TableCell>
+                                                <TableCell align="right">Stock</TableCell>
+                                                <TableCell align="right">Price</TableCell>
+                                                <TableCell align="center">Actions</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {products.map((product) => (
+                                                <TableRow key={product.productID}>
+                                                    <TableCell>
+                                                        <Typography variant="subtitle2" noWrap>
+                                                            {product.title}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Chip 
+                                                            label={product.category?.toUpperCase() || 'N/A'} 
+                                                            size="small" 
+                                                            variant="outlined"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Typography 
+                                                            color={(product.quantity || 0) <= 5 ? "error" : "textPrimary"}
+                                                            fontWeight={(product.quantity || 0) <= 5 ? "bold" : "normal"}
+                                                        >
+                                                            {product.quantity || 0}
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        {formatPrice(product.price)}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        <IconButton 
+                                                            size="small" 
+                                                            onClick={() => handleViewProduct(product)}
+                                                            title="View Details"
+                                                        >
+                                                            <Visibility />
+                                                        </IconButton>
+                                                        <IconButton 
+                                                            size="small" 
+                                                            onClick={() => handleEditProduct(product)}
+                                                            title="Edit Product"
+                                                        >
+                                                            <Edit />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {products.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell colSpan={5} align="center">
+                                                        <Typography color="textSecondary">
+                                                            No products found
+                                                        </Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
                         </CardContent>
                     </Card>
                 </Grid>
 
                 {/* Recent Orders */}
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} lg={4}>
                     <Card>
                         <CardContent>
-                            <Typography variant="h6" gutterBottom>
-                                Recent Orders
-                            </Typography>
-                            <Box sx={{ maxHeight: 400, overflow: "auto" }}>
-                                {orders.map((order) => (
-                                    <Box
-                                        key={order.orderID}
-                                        sx={{
-                                            p: 2,
-                                            border: "1px solid",
-                                            borderColor: "grey.200",
-                                            borderRadius: 1,
-                                            mb: 1,
-                                        }}
-                                    >
-                                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                                            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                                {order.orderID}
-                                            </Typography>
-                                            <Chip label={order.status} size="small" color={getStatusColor(order.status)} />
-                                        </Box>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Customer: {order.customerName}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Total: {formatPrice(order.totalAmount)}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Date: {new Date(order.orderDate).toLocaleDateString()}
-                                        </Typography>
-                                    </Box>
-                                ))}
-                            </Box>
-                            <Box sx={{ mt: 2, textAlign: "right" }}>
-                                <Button variant="outlined" onClick={() => navigate("/manager/orders")}>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                                <Typography variant="h6">Recent Orders</Typography>
+                                <Button 
+                                    size="small" 
+                                    onClick={() => navigate("/manager/orders")}
+                                    disabled={loading}
+                                >
                                     View All Orders
                                 </Button>
                             </Box>
+                            {loading ? (
+                                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <Box>
+                                    {orders.map((order) => (
+                                        <Box key={order.id || order.orderID} sx={{ mb: 2, p: 2, border: 1, borderColor: "divider", borderRadius: 1 }}>
+                                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                                                <Typography variant="subtitle2" fontWeight="bold">
+                                                    {order.id || order.orderID || 'N/A'}
+                                                </Typography>
+                                                <Chip 
+                                                    label={getStatusText(order.status)} 
+                                                    size="small" 
+                                                    color={getStatusColor(order.status)}
+                                                />
+                                            </Box>
+                                            <Typography variant="body2" color="textSecondary" gutterBottom>
+                                                Customer: {order.deliveryInfo?.recipientName || order.customerName || order.customer?.name || 'N/A'}
+                                            </Typography>
+                                            <Typography variant="body2" fontWeight="bold" color="primary">
+                                                Total: {formatPrice(order.totalPrice || order.totalAmount || order.total || order.amount || 0)}
+                                            </Typography>
+                                            <Typography variant="caption" color="textSecondary">
+                                                Status: {order.status || 'N/A'}
+                                            </Typography>
+                                        </Box>
+                                    ))}
+                                    {orders.length === 0 && (
+                                        <Typography color="textSecondary" align="center">
+                                            No recent orders
+                                        </Typography>
+                                    )}
+                                </Box>
+                            )}
                         </CardContent>
                     </Card>
                 </Grid>
             </Grid>
 
-            {/* Product Detail Dialog */}
+            {/* Dialogs */}
             <ProductDetailDialog
                 open={detailDialog.open}
                 onClose={() => setDetailDialog({ open: false, product: null })}
@@ -347,7 +508,6 @@ const ManagerDashboard = () => {
                 onEdit={handleEditFromDetail}
             />
 
-            {/* Product Edit Dialog */}
             <ProductEditDialog
                 open={editDialog.open}
                 onClose={() => setEditDialog({ open: false, product: null, mode: "view" })}
@@ -359,9 +519,8 @@ const ManagerDashboard = () => {
             {/* Snackbar */}
             <Snackbar
                 open={snackbar.open}
-                autoHideDuration={3000}
+                autoHideDuration={6000}
                 onClose={() => setSnackbar({ ...snackbar, open: false })}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             >
                 <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
                     {snackbar.message}

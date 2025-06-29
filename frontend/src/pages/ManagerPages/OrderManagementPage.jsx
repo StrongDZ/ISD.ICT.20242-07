@@ -3,7 +3,6 @@ import {
     Container,
     Typography,
     Box,
-    Button,
     Table,
     TableBody,
     TableCell,
@@ -15,54 +14,38 @@ import {
     Card,
     CardContent,
     Grid,
-    TextField,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Chip,
     Tooltip,
     Alert,
     Snackbar,
     Pagination,
-    InputAdornment,
     Tabs,
     Tab,
     Badge,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
 } from "@mui/material";
 import {
     Visibility,
-    Search,
-    FilterList,
     Receipt,
     LocalShipping,
     Warning,
     CheckCircle,
-    Download,
     ThumbUp,
     ThumbDown,
-    Cancel,
-    Save,
     Pending,
     Block,
     HourglassEmpty,
-    Refresh,
 } from "@mui/icons-material";
 import OrderDialog from "../../components/Manager/OrderDialog";
 import RejectOrderDialog from "../../components/Manager/RejectOrderDialog";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";
 import { orderService } from '../../services/orderService';
+import { transformOrdersArray, transformOrderData } from '../../utils/orderDataTransformer';
 
 const OrderManagementPage = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentTab, setCurrentTab] = useState(0);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [rushFilter, setRushFilter] = useState("");
+
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
 
@@ -78,9 +61,14 @@ const OrderManagementPage = () => {
     const loadOrders = async () => {
         try {
             setLoading(true);
-            const data = await orderService.getAllOrders();
-            console.log("data", data);
-            setOrders(data);
+            const rawData = await orderService.getAllOrders();
+            console.log("🔍 DEBUG - Raw API data:", rawData);
+            
+            // Transform data to match UI expectations
+            const transformedData = transformOrdersArray(rawData);
+            console.log("🔍 DEBUG - Transformed data:", transformedData);
+            
+            setOrders(transformedData);
         } catch (error) {
             console.error('Error loading orders:', error);
             setSnackbar({
@@ -160,32 +148,16 @@ const OrderManagementPage = () => {
         // Filter by tab
         switch (currentTab) {
             case 0: // Pending Orders
-                filtered = filtered.filter((order) => order.status === "PENDING_APPROVAL");
+                filtered = filtered.filter((order) => order.status === "PENDING" || order.status === "PENDING_APPROVAL");
                 break;
             case 1: // Processing Orders
-                filtered = filtered.filter((order) => ["PROCESSING", "SHIPPING", "DELIVERED"].includes(order.status));
+                filtered = filtered.filter((order) => ["PROCESSING", "SHIPPING", "DELIVERED", "APPROVED"].includes(order.status));
                 break;
             case 2: // Rejected Orders
-                filtered = filtered.filter((order) => order.status === "CANCELLED");
+                filtered = filtered.filter((order) => order.status === "CANCELLED" || order.status === "REJECTED");
                 break;
             default:
                 break;
-        }
-
-        // Apply search filter
-        if (searchQuery) {
-            filtered = filtered.filter(
-                (order) =>
-                    order.orderID.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    order.customerPhone.includes(searchQuery)
-            );
-        }
-
-        // Apply rush filter
-        if (rushFilter) {
-            const isRush = rushFilter === "rush";
-            filtered = filtered.filter((order) => order.isRushOrder === isRush);
         }
 
         return filtered;
@@ -194,15 +166,32 @@ const OrderManagementPage = () => {
     const filteredOrders = getFilteredOrders();
 
     const handleView = (order) => {
-        setOrderDialog({ open: true, order, mode: "view" });
+        // Ensure data is properly transformed
+        const transformedOrder = transformOrderData(order);
+        
+        console.log("🔍 DEBUG - Original order:", order);
+        console.log("🔍 DEBUG - Transformed order:", transformedOrder);
+        console.log("🔍 DEBUG - Order structure:", {
+            id: transformedOrder.id,
+            orderID: transformedOrder.orderID,
+            status: transformedOrder.status,
+            totalPrice: transformedOrder.totalPrice,
+            totalAmount: transformedOrder.totalAmount,
+            customerName: transformedOrder.customerName,
+            customerPhone: transformedOrder.customerPhone,
+            deliveryInfo: transformedOrder.deliveryInfo,
+            items: transformedOrder.items
+        });
+        
+        setOrderDialog({ open: true, order: transformedOrder, mode: "view" });
     };
 
     const handleApprove = async (orderId) => {
         try {
-            await orderService.approveOrder(orderId);
+            const result = await orderService.approveOrder(orderId, "manager");
             setSnackbar({
                 open: true,
-                message: 'Order approved successfully',
+                message: result.message || 'Order approved successfully',
                 severity: 'success'
             });
             loadOrders(); // Reload orders
@@ -210,7 +199,7 @@ const OrderManagementPage = () => {
             console.error('Error approving order:', error);
             setSnackbar({
                 open: true,
-                message: 'Error approving order',
+                message: error.message || 'Error approving order',
                 severity: 'error'
             });
         }
@@ -218,10 +207,10 @@ const OrderManagementPage = () => {
 
     const handleReject = async (orderId, reason) => {
         try {
-            await orderService.rejectOrder(orderId, reason);
+            const result = await orderService.rejectOrder(orderId, reason, "manager");
             setSnackbar({
                 open: true,
-                message: 'Order rejected successfully',
+                message: result.message || 'Order rejected successfully',
                 severity: 'success'
             });
             loadOrders(); // Reload orders
@@ -229,7 +218,7 @@ const OrderManagementPage = () => {
             console.error('Error rejecting order:', error);
             setSnackbar({
                 open: true,
-                message: 'Error rejecting order',
+                message: error.message || 'Error rejecting order',
                 severity: 'error'
             });
         }
@@ -263,15 +252,7 @@ const OrderManagementPage = () => {
         }
     };
 
-    const handleExport = () => {
-        // In real app, this would export orders to CSV/Excel
-        console.log("Exporting orders");
-        setSnackbar({
-            open: true,
-            message: "Export feature coming soon",
-            severity: "info",
-        });
-    };
+
 
     const handleTabChange = (event, newValue) => {
         setCurrentTab(newValue);
@@ -285,11 +266,10 @@ const OrderManagementPage = () => {
 
     // Statistics for each tab
     const orderStats = {
-        pending: orders.filter((o) => o.status === "PENDING_APPROVAL").length,
-        processing: orders.filter((o) => ["PROCESSING", "SHIPPING", "DELIVERED"].includes(o.status)).length,
-        rejected: orders.filter((o) => o.status === "CANCELLED").length,
+        pending: orders.filter((o) => o.status === "PENDING" || o.status === "PENDING_APPROVAL").length,
+        processing: orders.filter((o) => ["PROCESSING", "SHIPPING", "DELIVERED", "APPROVED"].includes(o.status)).length,
+        rejected: orders.filter((o) => o.status === "CANCELLED" || o.status === "REJECTED").length,
         total: orders.length,
-        totalRevenue: orders.reduce((sum, order) => sum + order.totalAmount, 0),
     };
 
     const renderOrderTable = () => {
@@ -302,38 +282,37 @@ const OrderManagementPage = () => {
                             <TableCell>Customer</TableCell>
                             <TableCell>Total</TableCell>
                             <TableCell>Status</TableCell>
-                            <TableCell>Date</TableCell>
                             <TableCell>Type</TableCell>
                             <TableCell>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {paginatedOrders.map((order) => (
-                            <TableRow key={order.orderID} hover>
+                            <TableRow key={order.id || order.orderID} hover>
                                 <TableCell>
                                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                         <Receipt color="primary" />
                                         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                            {order.orderID}
+                                            {order.id || order.orderID || 'N/A'}
                                         </Typography>
                                     </Box>
                                 </TableCell>
                                 <TableCell>
                                     <Box>
                                         <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                            {order.customerName}
+                                            {order.deliveryInfo?.recipientName || order.customerName || 'N/A'}
                                         </Typography>
                                         <Typography variant="caption" color="text.secondary">
-                                            {order.customerPhone}
+                                            {order.deliveryInfo?.phoneNumber || order.customerPhone || 'N/A'}
                                         </Typography>
                                     </Box>
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                                        {formatPrice(order.totalAmount)}
+                                        {formatPrice(order.totalPrice || order.totalAmount || 0)}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary">
-                                        {order.items?.length} item{order.items?.length !== 1 ? "s" : ""}
+                                        {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? "s" : ""}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
@@ -343,9 +322,6 @@ const OrderManagementPage = () => {
                                         color={getStatusColor(order.status)}
                                         size="small"
                                     />
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2">{formatDate(order.orderDate)}</Typography>
                                 </TableCell>
                                 <TableCell>
                                     <Chip
@@ -367,12 +343,12 @@ const OrderManagementPage = () => {
                                         {currentTab === 0 && ( // Pending Orders
                                             <>
                                                 <Tooltip title="Approve Order">
-                                                    <IconButton size="small" color="success" onClick={() => handleApprove(order.orderID)}>
+                                                    <IconButton size="small" color="success" onClick={() => handleApprove(order.id || order.orderID)}>
                                                         <ThumbUp />
                                                     </IconButton>
                                                 </Tooltip>
                                                 <Tooltip title="Reject Order">
-                                                    <IconButton size="small" color="error" onClick={() => openRejectDialog(order.orderID)}>
+                                                    <IconButton size="small" color="error" onClick={() => openRejectDialog(order.id || order.orderID)}>
                                                         <ThumbDown />
                                                     </IconButton>
                                                 </Tooltip>
@@ -490,46 +466,7 @@ const OrderManagementPage = () => {
                     </Tabs>
                 </Box>
 
-                {/* Controls */}
-                <CardContent>
-                    <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} sm={4}>
-                            <TextField
-                                fullWidth
-                                placeholder="Search orders..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <Search />
-                                        </InputAdornment>
-                                    ),
-                                }}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={3}>
-                            <FormControl fullWidth>
-                                <InputLabel>Delivery Type</InputLabel>
-                                <Select value={rushFilter} onChange={(e) => setRushFilter(e.target.value)} label="Delivery Type">
-                                    <MenuItem value="">All Types</MenuItem>
-                                    <MenuItem value="rush">Rush Orders</MenuItem>
-                                    <MenuItem value="standard">Standard Orders</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} sm={3}>
-                            <Button variant="outlined" startIcon={<Download />} onClick={handleExport} fullWidth>
-                                Export
-                            </Button>
-                        </Grid>
-                        <Grid item xs={12} sm={2}>
-                            <Typography variant="body1" align="center">
-                                {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}
-                            </Typography>
-                        </Grid>
-                    </Grid>
-                </CardContent>
+
             </Card>
 
             {/* Orders Table */}
@@ -542,20 +479,7 @@ const OrderManagementPage = () => {
                 </Box>
             )}
 
-            {/* Revenue Summary */}
-            <Card sx={{ mt: 4 }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Revenue Summary
-                    </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <Typography variant="body1">Total Revenue from {orders.length} orders:</Typography>
-                        <Typography variant="h5" color="success.main" sx={{ fontWeight: "bold" }}>
-                            {formatPrice(orderStats.totalRevenue)}
-                        </Typography>
-                    </Box>
-                </CardContent>
-            </Card>
+
 
             {/* Order Dialog */}
             <OrderDialog

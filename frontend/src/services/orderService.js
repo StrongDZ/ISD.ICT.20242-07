@@ -50,22 +50,43 @@ export const orderService = {
     return response.data;
   },
 
-  // Approve order
-  async approveOrder(orderId, managerId = "MAN001") {
-    const response = await api.post(
-      `/manager/orders/${orderId}/approve?managerId=${managerId}`
-    );
-    return response.data;
-  },
+    // Approve order
+    async approveOrder(orderId, approvedBy = "system") {
+        try {
+            const response = await api.post(`/orders/${orderId}/approve`, {
+                approvedBy: approvedBy,
+                notes: "Order approved by manager"
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Cannot approve order");
+        }
+    },
 
-  // Reject order
-  async rejectOrder(orderId, reason, managerId = "MAN001") {
-    const response = await api.post(
-      `/manager/orders/${orderId}/reject?managerId=${managerId}`,
-      { reason }
-    );
-    return response.data;
-  },
+    // Reject order
+    async rejectOrder(orderId, reason, rejectedBy = "system") {
+        try {
+            const response = await api.post(`/orders/${orderId}/reject`, {
+                reason: reason,
+                rejectedBy: rejectedBy,
+                notes: "Order rejected by manager"
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Cannot reject order");
+        }
+    },
+
+    // Check if order is eligible for management
+    async isOrderEligible(orderId) {
+        try {
+            const response = await api.get(`/orders/${orderId}/eligible`);
+            return response.data;
+        } catch (error) {
+            console.error("Error checking order eligibility:", error);
+            return false;
+        }
+    },
 
   // Mock orders for development/testing
   getMockOrders: () => {

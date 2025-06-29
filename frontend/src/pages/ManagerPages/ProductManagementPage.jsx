@@ -35,6 +35,7 @@ import {
 } from "@mui/material";
 import { Add, Edit, Delete, Visibility, Search, FilterList, Save, Cancel, Warning, Clear } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { productService } from "../../services/productService";
 import ProductEditDialog from "../../components/Product/ProductEditDialog";
 import ProductDetailDialog from "../../components/Product/ProductDetailDialog";
@@ -42,6 +43,7 @@ import { getCategoryColor } from "../../utils/getCategoryColor";
 
 const ProductManagementPage = () => {
     const navigate = useNavigate();
+    const { user, isAuthenticated, isManager } = useAuth();
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -117,18 +119,17 @@ const ProductManagementPage = () => {
             filterProducts(productList);
         } catch (err) {
             console.error("Error loading products:", err);
-            setError(err.message);
-
-            // Fallback to mock data
-            try {
-                const mockProducts = productService.getMockProducts();
-                setProducts(mockProducts);
-                setTotalPages(Math.ceil(mockProducts.length / pageSize));
-                setTotalElements(mockProducts.length);
-                filterProducts(mockProducts);
-            } catch (mockError) {
-                setProducts([]);
-            }
+            setError(`Failed to load products from database: ${err.message}`);
+            setProducts([]);
+            setTotalPages(0);
+            setTotalElements(0);
+            setFilteredProducts([]);
+            
+            setSnackbar({
+                open: true,
+                message: `❌ ${err.message}`,
+                severity: "error"
+            });
         } finally {
             setLoading(false);
         }
@@ -198,33 +199,94 @@ const ProductManagementPage = () => {
     };
 
     const handleAdd = () => {
+        // Check authentication status
+        const token = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
+        
+        console.log("🔍 Debug Authentication:", {
+            isAuthenticated: isAuthenticated(),
+            isManager: isManager(),
+            user: user,
+            storedUser: storedUser ? JSON.parse(storedUser) : null,
+            token: token ? "Token exists" : "No token",
+            tokenLength: token ? token.length : 0
+        });
+
+        if (!isAuthenticated()) {
+            setSnackbar({
+                open: true,
+                message: "❌ Please login to add products",
+                severity: "error"
+            });
+            navigate("/login");
+            return;
+        }
+
+        if (!isManager()) {
+            setSnackbar({
+                open: true,
+                message: "❌ Only managers can add products. Your role: " + (user?.role || "Unknown"),
+                severity: "error"
+            });
+            return;
+        }
+
         setEditDialog({ open: true, product: null, mode: "add" });
     };
 
+
+
     const handleSave = async (productData, mode) => {
         try {
+            let result;
             if (mode === "add") {
-                await productService.createProduct(productData);
+                result = await productService.createProduct(productData);
+                setSnackbar({ 
+                    open: true, 
+                    message: `✅ Product "${result.title || productData.title}" created successfully!`, 
+                    severity: "success" 
+                });
             } else {
-                await productService.updateProduct(productData.productID, productData);
+                result = await productService.updateProduct(productData.productID, productData);
+                setSnackbar({ 
+                    open: true, 
+                    message: `✅ Product "${result.title || productData.title}" updated successfully!`, 
+                    severity: "success" 
+                });
             }
 
             setEditDialog({ open: false, product: null, mode: "view" });
-            loadProducts(); // Reload products after save
+            await loadProducts(); // Reload products after save
         } catch (error) {
             console.error("Error saving product:", error);
-            throw new Error(error.response?.data?.message || "Failed to save product");
+            setSnackbar({ 
+                open: true, 
+                message: `❌ Failed to ${mode === "add" ? "create" : "update"} product: ${error.message}`, 
+                severity: "error" 
+            });
         }
     };
 
     const handleDelete = async () => {
         try {
+            const productTitle = deleteDialog.product.title;
             await productService.deleteProduct(deleteDialog.product.productID);
+            
+            setSnackbar({ 
+                open: true, 
+                message: `✅ Product "${productTitle}" deleted successfully!`, 
+                severity: "success" 
+            });
+            
             setDeleteDialog({ open: false, product: null });
-            loadProducts(); // Reload products after delete
+            await loadProducts(); // Reload products after delete
         } catch (error) {
             console.error("Error deleting product:", error);
-            setError("Failed to delete product");
+            setSnackbar({ 
+                open: true, 
+                message: `❌ Failed to delete product: ${error.message}`, 
+                severity: "error" 
+            });
         }
     };
 

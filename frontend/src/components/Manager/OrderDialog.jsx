@@ -71,10 +71,22 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
     };
 
     const calculateTotals = () => {
+        // Use totalPrice from API if available, otherwise calculate from items
+        const totalFromAPI = order?.totalPrice;
+        if (totalFromAPI && !order?.items) {
+            return { 
+                subtotal: totalFromAPI, 
+                deliveryFee: 0, 
+                vat: 0, 
+                total: totalFromAPI 
+            };
+        }
+
         if (!order?.items) return { subtotal: 0, total: 0 };
 
         const subtotal = order.items.reduce((sum, item) => {
-            return sum + item.price * item.quantity;
+            const price = item.productPrice || item.price || 0;
+            return sum + price * item.quantity;
         }, 0);
 
         const deliveryFee = order.deliveryFee || 50000;
@@ -94,7 +106,7 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <Typography variant="h6">{getDialogTitle()}</Typography>
                     <Box sx={{ display: "flex", gap: 1 }}>
-                        <Chip label={order.orderID} color="primary" size="small" icon={<Receipt />} />
+                        <Chip label={order.id || order.orderID || 'N/A'} color="primary" size="small" icon={<Receipt />} />
                         <Chip label={getStatusDisplayName(order.status)} color={getStatusColor(order.status)} size="small" />
                     </Box>
                 </Box>
@@ -112,19 +124,22 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
                                 </Typography>
                                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                     <Typography variant="body2">
-                                        <strong>Order ID:</strong> {order.orderID}
+                                        <strong>Order ID:</strong> {order.id || order.orderID || 'N/A'}
                                     </Typography>
                                     <Typography variant="body2">
-                                        <strong>Order Date:</strong> {formatDate(order.orderDate)}
+                                        <strong>Order Date:</strong> {order.orderDate ? formatDate(order.orderDate) : 'N/A'}
                                     </Typography>
                                     <Typography variant="body2">
-                                        <strong>Total Amount:</strong> {formatPrice(order.totalAmount)}
+                                        <strong>Total Amount:</strong> {formatPrice(order.totalPrice || order.totalAmount || 0)}
                                     </Typography>
                                     <Typography variant="body2">
                                         <strong>Payment Method:</strong> {order.paymentMethod || "Cash on Delivery"}
                                     </Typography>
                                     <Typography variant="body2">
-                                        <strong>Delivery Type:</strong> {order.isRushOrder ? "Rush Delivery" : "Standard Delivery"}
+                                        <strong>Delivery Type:</strong> {(order.deliveryInfo?.isRushOrder || order.isRushOrder) ? "Rush Delivery" : "Standard Delivery"}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                        <strong>Status:</strong> {order.status || 'N/A'}
                                     </Typography>
                                 </Box>
                             </CardContent>
@@ -141,21 +156,30 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
                                 </Typography>
                                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                     <Typography variant="body2">
-                                        <strong>Name:</strong> {order.customerName}
+                                        <strong>Name:</strong> {order.deliveryInfo?.recipientName || order.customerName || 'N/A'}
                                     </Typography>
                                     <Typography variant="body2">
                                         <Phone sx={{ mr: 1, fontSize: 16, verticalAlign: "middle" }} />
-                                        <strong>Phone:</strong> {order.customerPhone}
+                                        <strong>Phone:</strong> {order.deliveryInfo?.phoneNumber || order.customerPhone || 'N/A'}
                                     </Typography>
-                                    {order.customerEmail && (
+                                    {(order.deliveryInfo?.mail || order.customerEmail) && (
                                         <Typography variant="body2">
-                                            <strong>Email:</strong> {order.customerEmail}
+                                            <strong>Email:</strong> {order.deliveryInfo?.mail || order.customerEmail}
                                         </Typography>
                                     )}
                                     <Typography variant="body2">
                                         <LocationOn sx={{ mr: 1, fontSize: 16, verticalAlign: "middle" }} />
-                                        <strong>Address:</strong> {order.deliveryAddress}
+                                        <strong>Address:</strong> {
+                                            order.deliveryInfo?.addressDetail || 
+                                            `${order.deliveryInfo?.city || ''} ${order.deliveryInfo?.district || ''}`.trim() ||
+                                            'N/A'
+                                        }
                                     </Typography>
+                                    {order.deliveryInfo?.city && order.deliveryInfo?.district && (
+                                        <Typography variant="body2">
+                                            <strong>City/District:</strong> {order.deliveryInfo.city}, {order.deliveryInfo.district}
+                                        </Typography>
+                                    )}
                                 </Box>
                             </CardContent>
                         </Card>
@@ -174,35 +198,36 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
                                         {order.items.map((item, index) => (
                                             <ListItem key={index} sx={{ px: 0 }}>
                                                 <ListItemAvatar>
-                                                    <Avatar src={item.imageURL} alt={item.title} sx={{ width: 56, height: 56 }} />
+                                                    <Avatar sx={{ width: 56, height: 56, bgcolor: "primary.main" }}>
+                                                        {(item.productTitle || item.title || 'P').charAt(0).toUpperCase()}
+                                                    </Avatar>
                                                 </ListItemAvatar>
                                                 <ListItemText
-                                                    primary={<Typography variant="body1">{item.title}</Typography>}
+                                                    primary={
+                                                        <Typography variant="body1">
+                                                            {item.productTitle || item.title || 'Product'}
+                                                        </Typography>
+                                                    }
                                                     secondary={
                                                         <Box>
                                                             <Typography variant="body2" color="text.secondary">
-                                                                {formatPrice(item.price)} × {item.quantity}
+                                                                {formatPrice(item.productPrice || item.price || 0)} × {item.quantity}
                                                             </Typography>
-                                                            {item.category && (
-                                                                <Chip
-                                                                    label={item.category.toUpperCase()}
-                                                                    size="small"
-                                                                    variant="outlined"
-                                                                    sx={{ mt: 0.5 }}
-                                                                />
-                                                            )}
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                Product ID: {item.productID}
+                                                            </Typography>
                                                         </Box>
                                                     }
                                                 />
                                                 <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                                                    {formatPrice(item.price * item.quantity)}
+                                                    {formatPrice((item.productPrice || item.price || 0) * item.quantity)}
                                                 </Typography>
                                             </ListItem>
                                         ))}
                                     </List>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        No items found for this order.
+                                        Order items information not available. Total amount: {formatPrice(order.totalPrice || order.totalAmount || 0)}
                                     </Typography>
                                 )}
 
@@ -210,19 +235,23 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
 
                                 {/* Order Totals */}
                                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                        <Typography variant="body2">Subtotal:</Typography>
-                                        <Typography variant="body2">{formatPrice(totals.subtotal)}</Typography>
-                                    </Box>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                        <Typography variant="body2">Delivery Fee:</Typography>
-                                        <Typography variant="body2">{formatPrice(totals.deliveryFee)}</Typography>
-                                    </Box>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                        <Typography variant="body2">VAT (10%):</Typography>
-                                        <Typography variant="body2">{formatPrice(totals.vat)}</Typography>
-                                    </Box>
-                                    <Divider />
+                                    {order?.items && order.items.length > 0 ? (
+                                        <>
+                                            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                                <Typography variant="body2">Subtotal:</Typography>
+                                                <Typography variant="body2">{formatPrice(totals.subtotal)}</Typography>
+                                            </Box>
+                                            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                                <Typography variant="body2">Delivery Fee:</Typography>
+                                                <Typography variant="body2">{formatPrice(totals.deliveryFee)}</Typography>
+                                            </Box>
+                                            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                                <Typography variant="body2">VAT (10%):</Typography>
+                                                <Typography variant="body2">{formatPrice(totals.vat)}</Typography>
+                                            </Box>
+                                            <Divider />
+                                        </>
+                                    ) : null}
                                     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                                         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                                             Total:

@@ -13,6 +13,9 @@ import {
     Button,
     Typography,
     Alert,
+    Checkbox,
+    FormControlLabel,
+    Autocomplete,
 } from "@mui/material";
 import { Save, Cancel } from "@mui/icons-material";
 
@@ -23,39 +26,83 @@ const ProductEditDialog = ({
     mode = "view", // "add", "edit", "view"
     onSave,
 }) => {
+    // Smart dropdown options
+    const languageOptions = [
+        "English", "Vietnamese", "French", "Spanish", "German", "Italian", 
+        "Japanese", "Korean", "Chinese", "Russian", "Portuguese", "Arabic"
+    ];
+
+    const bookGenreOptions = [
+        "Fiction", "Non-Fiction", "Mystery", "Romance", "Sci-Fi", "Fantasy", 
+        "Biography", "History", "Self-Help", "Travel", "Poetry", "Drama", 
+        "Thriller", "Horror", "Children's", "Young Adult"
+    ];
+
+    const coverTypeOptions = [
+        "Hardcover", "Paperback", "Mass Market Paperback", "Board Book", "Spiral Bound"
+    ];
+
+    const musicTypeOptions = [
+        "Rock", "Pop", "Jazz", "Classical", "Electronic", "Hip-Hop", "R&B", 
+        "Country", "Folk", "Blues", "Reggae", "Metal", "Punk", "Alternative", 
+        "K-Pop", "Latin", "Instrumental"
+    ];
+
+    const discTypeOptions = [
+        "DVD", "Blu-ray", "4K Ultra HD", "Digital"
+    ];
+
+    const movieGenreOptions = [
+        "Action", "Adventure", "Comedy", "Drama", "Horror", "Thriller", 
+        "Sci-Fi", "Fantasy", "Romance", "Documentary", "Animation", "Musical", 
+        "War", "Western", "Crime", "Family"
+    ];
+
     const [product, setProduct] = useState({
-        productID: "",
+        productID: null,
         title: "",
         category: "book",
-        price: 0,
-        value: 0,
-        quantity: 0,
+        price: "",
+        value: "",
+        quantity: "",
         description: "",
         barcode: "",
         dimensions: "",
-        weight: 0,
+        weight: "",
         imageURL: "",
+        warehouseEntryDate: "",
+        eligible: false,
     });
 
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
         if (productData) {
-            setProduct({ ...productData });
+            setProduct({ 
+                ...productData,
+                // Convert numbers to strings for display, handle null/undefined
+                price: productData.price !== null && productData.price !== undefined ? productData.price.toString() : "",
+                value: productData.value !== null && productData.value !== undefined ? productData.value.toString() : "",
+                quantity: productData.quantity !== null && productData.quantity !== undefined ? productData.quantity.toString() : "",
+                weight: productData.weight !== null && productData.weight !== undefined ? productData.weight.toString() : "",
+                numberOfPages: productData.numberOfPages !== null && productData.numberOfPages !== undefined ? productData.numberOfPages.toString() : "",
+            });
         } else if (mode === "add") {
             // Reset form for new product
             setProduct({
-                productID: "",
+                productID: null,
                 title: "",
                 category: "book",
-                price: 0,
-                value: 0,
-                quantity: 0,
+                price: "",
+                value: "",
+                quantity: "",
                 description: "",
                 barcode: "",
                 dimensions: "",
-                weight: 0,
+                weight: "",
                 imageURL: "",
+                warehouseEntryDate: "",
+                eligible: false,
             });
         }
         setErrors({});
@@ -76,6 +123,13 @@ const ProductEditDialog = ({
         }
     };
 
+    const handleNumberChange = (field, value) => {
+        // Allow empty string or valid numbers (including 0)
+        if (value === "" || (!isNaN(value) && !isNaN(parseFloat(value)))) {
+            handleFieldChange(field, value);
+        }
+    };
+
     const validateForm = () => {
         const newErrors = {};
 
@@ -83,11 +137,13 @@ const ProductEditDialog = ({
             newErrors.title = "Product title is required";
         }
 
-        if (!product.price || product.price <= 0) {
+        const price = parseFloat(product.price);
+        if (!product.price || isNaN(price) || price <= 0) {
             newErrors.price = "Price must be greater than 0";
         }
 
-        if (!product.quantity || product.quantity < 0) {
+        const quantity = parseInt(product.quantity);
+        if (product.quantity === "" || isNaN(quantity) || quantity < 0) {
             newErrors.quantity = "Quantity must be 0 or greater";
         }
 
@@ -101,7 +157,18 @@ const ProductEditDialog = ({
 
     const handleSave = () => {
         if (validateForm()) {
-            onSave(product, mode);
+            // Convert string numbers back to numbers for saving
+            const productData = {
+                ...product,
+                productID: mode === "add" ? null : product.productID,
+                price: parseFloat(product.price) || 0,
+                value: parseFloat(product.value) || 0,
+                quantity: parseInt(product.quantity) || 0,
+                weight: parseFloat(product.weight) || 0,
+                numberOfPages: parseInt(product.numberOfPages) || 0,
+            };
+            
+            onSave(productData, mode);
         }
     };
 
@@ -117,6 +184,7 @@ const ProductEditDialog = ({
                                 value={product.authors || ""}
                                 onChange={(e) => handleFieldChange("authors", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., Jane Doe, John Smith"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -126,6 +194,7 @@ const ProductEditDialog = ({
                                 value={product.publisher || ""}
                                 onChange={(e) => handleFieldChange("publisher", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., Penguin Random House"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -134,44 +203,71 @@ const ProductEditDialog = ({
                                 label="Number of Pages"
                                 type="number"
                                 value={product.numberOfPages || ""}
-                                onChange={(e) => handleFieldChange("numberOfPages", parseInt(e.target.value) || 0)}
+                                onChange={(e) => handleNumberChange("numberOfPages", e.target.value)}
                                 disabled={mode === "view"}
+                                inputProps={{ min: 0 }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Language"
+                            <Autocomplete
+                                options={languageOptions}
                                 value={product.language || ""}
-                                onChange={(e) => handleFieldChange("language", e.target.value)}
+                                onChange={(event, newValue) => handleFieldChange("language", newValue || "")}
                                 disabled={mode === "view"}
+                                freeSolo
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        label="Language"
+                                        placeholder="Select or type language"
+                                    />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Genre"
+                            <Autocomplete
+                                options={bookGenreOptions}
                                 value={product.genre || ""}
-                                onChange={(e) => handleFieldChange("genre", e.target.value)}
+                                onChange={(event, newValue) => handleFieldChange("genre", newValue || "")}
                                 disabled={mode === "view"}
+                                freeSolo
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        label="Genre"
+                                        placeholder="Select or type genre"
+                                    />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Cover Type"
+                            <Autocomplete
+                                options={coverTypeOptions}
                                 value={product.coverType || ""}
-                                onChange={(e) => handleFieldChange("coverType", e.target.value)}
+                                onChange={(event, newValue) => handleFieldChange("coverType", newValue || "")}
                                 disabled={mode === "view"}
+                                freeSolo
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        label="Cover Type"
+                                        placeholder="Select or type cover type"
+                                    />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
                                 fullWidth
-                                label="ISBN"
-                                value={product.isbn || ""}
-                                onChange={(e) => handleFieldChange("isbn", e.target.value)}
+                                label="Publication Date"
+                                type="date"
+                                value={product.pubDate ? new Date(product.pubDate).toISOString().split("T")[0] : ""}
+                                onChange={(e) => handleFieldChange("pubDate", e.target.value)}
                                 disabled={mode === "view"}
+                                InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                     </>
@@ -187,6 +283,7 @@ const ProductEditDialog = ({
                                 value={product.artist || ""}
                                 onChange={(e) => handleFieldChange("artist", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., The Beatles"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -196,15 +293,24 @@ const ProductEditDialog = ({
                                 value={product.recordLabel || ""}
                                 onChange={(e) => handleFieldChange("recordLabel", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., Universal Music"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Music Type"
+                            <Autocomplete
+                                options={musicTypeOptions}
                                 value={product.musicType || ""}
-                                onChange={(e) => handleFieldChange("musicType", e.target.value)}
+                                onChange={(event, newValue) => handleFieldChange("musicType", newValue || "")}
                                 disabled={mode === "view"}
+                                freeSolo
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        label="Music Type"
+                                        placeholder="Select or type music type"
+                                    />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -227,6 +333,7 @@ const ProductEditDialog = ({
                                 value={product.tracklist || ""}
                                 onChange={(e) => handleFieldChange("tracklist", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., Track 1, Track 2, Track 3..."
                             />
                         </Grid>
                     </>
@@ -242,6 +349,7 @@ const ProductEditDialog = ({
                                 value={product.director || ""}
                                 onChange={(e) => handleFieldChange("director", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., Steven Spielberg"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -251,6 +359,7 @@ const ProductEditDialog = ({
                                 value={product.studio || ""}
                                 onChange={(e) => handleFieldChange("studio", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., Warner Bros"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -260,96 +369,71 @@ const ProductEditDialog = ({
                                 value={product.runtime || ""}
                                 onChange={(e) => handleFieldChange("runtime", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., 2h 30m"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Disc Type"
+                            <Autocomplete
+                                options={discTypeOptions}
                                 value={product.discType || ""}
-                                onChange={(e) => handleFieldChange("discType", e.target.value)}
+                                onChange={(event, newValue) => handleFieldChange("discType", newValue || "")}
                                 disabled={mode === "view"}
+                                freeSolo
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        label="Disc Type"
+                                        placeholder="Select or type disc type"
+                                    />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Genre"
+                            <Autocomplete
+                                options={movieGenreOptions}
                                 value={product.genre || ""}
-                                onChange={(e) => handleFieldChange("genre", e.target.value)}
+                                onChange={(event, newValue) => handleFieldChange("genre", newValue || "")}
                                 disabled={mode === "view"}
+                                freeSolo
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        label="Genre"
+                                        placeholder="Select or type genre"
+                                    />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Language"
+                            <Autocomplete
+                                options={languageOptions}
                                 value={product.language || ""}
-                                onChange={(e) => handleFieldChange("language", e.target.value)}
+                                onChange={(event, newValue) => handleFieldChange("language", newValue || "")}
                                 disabled={mode === "view"}
+                                freeSolo
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        fullWidth
+                                        label="Language"
+                                        placeholder="Select or type language"
+                                    />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
                                 fullWidth
-                                label="Subtitles"
+                                label="Subtitle"
                                 value={product.subtitle || ""}
                                 onChange={(e) => handleFieldChange("subtitle", e.target.value)}
                                 disabled={mode === "view"}
+                                placeholder="e.g., English, Spanish, French"
                             />
                         </Grid>
-                    </>
-                );
-
-            case "lp":
-                return (
-                    <>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Artist"
-                                value={product.artist || ""}
-                                onChange={(e) => handleFieldChange("artist", e.target.value)}
-                                disabled={mode === "view"}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Record Label"
-                                value={product.recordLabel || ""}
-                                onChange={(e) => handleFieldChange("recordLabel", e.target.value)}
-                                disabled={mode === "view"}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Vinyl Size"
-                                value={product.vinylSize || ""}
-                                onChange={(e) => handleFieldChange("vinylSize", e.target.value)}
-                                disabled={mode === "view"}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="RPM"
-                                value={product.rpm || ""}
-                                onChange={(e) => handleFieldChange("rpm", e.target.value)}
-                                disabled={mode === "view"}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Music Type"
-                                value={product.musicType || ""}
-                                onChange={(e) => handleFieldChange("musicType", e.target.value)}
-                                disabled={mode === "view"}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12}>
                             <TextField
                                 fullWidth
                                 label="Release Date"
@@ -358,17 +442,6 @@ const ProductEditDialog = ({
                                 onChange={(e) => handleFieldChange("releaseDate", e.target.value)}
                                 disabled={mode === "view"}
                                 InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Tracklist"
-                                multiline
-                                rows={3}
-                                value={product.tracklist || ""}
-                                onChange={(e) => handleFieldChange("tracklist", e.target.value)}
-                                disabled={mode === "view"}
                             />
                         </Grid>
                     </>
@@ -428,6 +501,7 @@ const ProductEditDialog = ({
                             helperText={errors.title}
                             disabled={mode === "view"}
                             required
+                            placeholder="Enter product title"
                         />
                     </Grid>
 
@@ -444,7 +518,6 @@ const ProductEditDialog = ({
                                 <MenuItem value="book">Book</MenuItem>
                                 <MenuItem value="cd">CD</MenuItem>
                                 <MenuItem value="dvd">DVD</MenuItem>
-                                <MenuItem value="lp">LP (Vinyl)</MenuItem>
                             </Select>
                         </FormControl>
                     </Grid>
@@ -458,6 +531,7 @@ const ProductEditDialog = ({
                             value={product.description}
                             onChange={(e) => handleFieldChange("description", e.target.value)}
                             disabled={mode === "view"}
+                            placeholder="Enter product description"
                         />
                     </Grid>
 
@@ -467,11 +541,13 @@ const ProductEditDialog = ({
                             label="Price (VND) *"
                             type="number"
                             value={product.price}
-                            onChange={(e) => handleFieldChange("price", parseFloat(e.target.value) || 0)}
+                            onChange={(e) => handleNumberChange("price", e.target.value)}
                             error={!!errors.price}
                             helperText={errors.price}
                             disabled={mode === "view"}
                             required
+                            inputProps={{ min: 0, step: 0.01 }}
+                            placeholder="0.00"
                         />
                     </Grid>
 
@@ -481,8 +557,10 @@ const ProductEditDialog = ({
                             label="Value (VND)"
                             type="number"
                             value={product.value}
-                            onChange={(e) => handleFieldChange("value", parseFloat(e.target.value) || 0)}
+                            onChange={(e) => handleNumberChange("value", e.target.value)}
                             disabled={mode === "view"}
+                            inputProps={{ min: 0, step: 0.01 }}
+                            placeholder="0.00"
                         />
                     </Grid>
 
@@ -492,11 +570,13 @@ const ProductEditDialog = ({
                             label="Quantity *"
                             type="number"
                             value={product.quantity}
-                            onChange={(e) => handleFieldChange("quantity", parseInt(e.target.value) || 0)}
+                            onChange={(e) => handleNumberChange("quantity", e.target.value)}
                             error={!!errors.quantity}
                             helperText={errors.quantity}
                             disabled={mode === "view"}
                             required
+                            inputProps={{ min: 0 }}
+                            placeholder="0"
                         />
                     </Grid>
 
@@ -506,8 +586,10 @@ const ProductEditDialog = ({
                             label="Weight (kg)"
                             type="number"
                             value={product.weight}
-                            onChange={(e) => handleFieldChange("weight", parseFloat(e.target.value) || 0)}
+                            onChange={(e) => handleNumberChange("weight", e.target.value)}
                             disabled={mode === "view"}
+                            inputProps={{ min: 0, step: 0.01 }}
+                            placeholder="0.00"
                         />
                     </Grid>
 
@@ -518,6 +600,7 @@ const ProductEditDialog = ({
                             value={product.dimensions}
                             onChange={(e) => handleFieldChange("dimensions", e.target.value)}
                             disabled={mode === "view"}
+                            placeholder="e.g., 20x13x3 cm"
                         />
                     </Grid>
 
@@ -528,6 +611,7 @@ const ProductEditDialog = ({
                             value={product.barcode}
                             onChange={(e) => handleFieldChange("barcode", e.target.value)}
                             disabled={mode === "view"}
+                            placeholder="e.g., 9781234567890"
                         />
                     </Grid>
 
@@ -538,6 +622,32 @@ const ProductEditDialog = ({
                             value={product.imageURL}
                             onChange={(e) => handleFieldChange("imageURL", e.target.value)}
                             disabled={mode === "view"}
+                            placeholder="https://example.com/image.jpg"
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Warehouse Entry Date"
+                            type="date"
+                            value={product.warehouseEntryDate ? new Date(product.warehouseEntryDate).toISOString().split("T")[0] : ""}
+                            onChange={(e) => handleFieldChange("warehouseEntryDate", e.target.value)}
+                            disabled={mode === "view"}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={product.eligible || false}
+                                    onChange={(e) => handleFieldChange("eligible", e.target.checked)}
+                                    disabled={mode === "view"}
+                                />
+                            }
+                            label="Eligible for Rush Delivery"
                         />
                     </Grid>
 

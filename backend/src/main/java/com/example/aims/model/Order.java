@@ -3,37 +3,12 @@ package com.example.aims.model;
 import jakarta.persistence.*;
 import com.example.aims.common.OrderStatus;
 
-// Functional Cohesion – All methods and fields are related to the single
-// responsibility: managing an order
-// SRP respected – The class handles only order-related logic
-
-// ✅ SOLID Principles Evaluation for Order class
-
-// ✅ SRP – Single Responsibility Principle:
-// The class is focused solely on Order-related data and basic status logic. No
-// unrelated logic is embedded.
-
-// ✅ OCP – Open/Closed Principle:
-// The status check and change logic is embedded directly. Adding new statuses
-// requires modifying existing methods.
-
-// ✅ LSP – Liskov Substitution Principle:
-// No inheritance used, so the principle is not violated.
-
-// ✅ ISP – Interface Segregation Principle:
-// No interface is implemented, but if one is added in future, ensure it is
-// segregated based on purpose (e.g., ReadOnlyOrder, StatusChangeable).
-// ➤ ISP is currently not applicable, but should be kept in mind for future
-// extensions.
-
-// ❌ DIP – Dependency Inversion Principle:
-// This entity class depends directly on `Users` (another entity), which is
-// acceptable for data model layer.
-// However, if business logic becomes more complex, consider using services for
-// decision-making logic instead of embedding it here.
-// ➤ Slight DIP violation risk if logic grows. Keep data and logic
-// responsibilities separate.
-
+/**
+ * Entity class for Order
+ * After refactoring:
+ * - Follows SRP by only handling order data storage
+ * - Status management is delegated to OrderStatusManager
+ */
 @Entity
 @Table(name = "Orders")
 public class Order {
@@ -60,8 +35,12 @@ public class Order {
     @Column(name = "rejected_reason")
     private String rejectedReason;
 
+    @Transient
+    private OrderStatusManager statusManager;
+
     // Constructors
     public Order() {
+        this.statusManager = new OrderStatusManager(this);
     }
 
     public Order(String orderID, OrderStatus status, Double totalAmount, 
@@ -71,6 +50,7 @@ public class Order {
         this.totalAmount = totalAmount;
         this.deliveryInfo = deliveryInfo;
         this.rejectedReason = rejectedReason;
+        this.statusManager = new OrderStatusManager(this);
     }
 
     // Getters and Setters
@@ -106,29 +86,24 @@ public class Order {
         this.deliveryInfo = deliveryInfo;
     }
 
-
     public String getRejectedReason() {
         return rejectedReason;
     }
 
-    public void setRejectedReason(String rejectedReason) {
+    void setRejectedReason(String rejectedReason) {
         this.rejectedReason = rejectedReason;
     }
 
-    // Business methods
+    // Status management methods now delegate to OrderStatusManager
+    public void approveOrder() {
+        statusManager.approve();
+    }
+
+    public void rejectOrder(String reason) {
+        statusManager.reject(reason);
+    }
+
     public OrderStatus checkOrderStatus() {
-        return this.status;
-    }
-
-    public void changeRejectOrder() {
-        this.status = OrderStatus.REJECTED;
-    }
-
-    public void changeApproveOrder() {
-        this.status = OrderStatus.APPROVED;
-    }
-
-    public void updateRejectedReason(String reason) {
-        this.rejectedReason = reason;
+        return statusManager.getCurrentStatus();
     }
 }

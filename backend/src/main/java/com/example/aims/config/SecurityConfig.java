@@ -65,7 +65,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        // Public API endpoints - MUST come first to take precedence
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/cart/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/user/add").permitAll()
@@ -75,7 +77,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/check-inventory/**").permitAll()
                         .requestMatchers("/api/create-order/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
-                        .requestMatchers("/api/user/**").authenticated()
+                        .requestMatchers("/api/manager/**").authenticated()
+                        .requestMatchers("/api/orders/**").permitAll()
+                        
+                        // Static resources
                         .requestMatchers(
                                 "/", "/index.html", "/favicon.ico", "/manifest.json",
                                 "/logo192.png", "/logo512.png", "/static/**")
@@ -83,6 +88,11 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**", "/v3/**", "/webjars/**",
                                 "/swagger-ui*/*swagger-initializer.js", "/swagger-ui*/**")
                         .permitAll()
+                        
+                        // User endpoints require authentication
+                        .requestMatchers("/api/user/**").authenticated()
+                        
+                        // Any other request requires authentication - this comes LAST
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());

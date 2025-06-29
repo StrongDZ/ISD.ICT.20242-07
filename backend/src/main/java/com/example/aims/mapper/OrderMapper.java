@@ -8,6 +8,7 @@ import com.example.aims.dto.order.OrderInfoDTO;
 import com.example.aims.dto.order.PaymentOrderResponseFromReturnDTO;
 import com.example.aims.dto.order.PaymentOrderRequestDTO;
 import com.example.aims.model.Order;
+import com.example.aims.dto.order.OrderManagementResponseDTO;
 
 @Component
 public class OrderMapper {
@@ -111,5 +112,15 @@ public class OrderMapper {
      */
     public OrderDTO toDTO(Order order) {
         return toOrderDTO(order);
+    }
+
+    public OrderManagementResponseDTO toManagementResponseDTO(Order order) {
+        if (order == null) return null;
+        return new OrderManagementResponseDTO(
+            order.getOrderID(),
+            order.getStatus(),
+            null, // message có thể set sau tuỳ logic
+            true // success mặc định true, có thể điều chỉnh nếu cần
+        );
     }
 }

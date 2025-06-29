@@ -33,6 +33,7 @@ public class ViewProductController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the list of products", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
+    
     @GetMapping
     public ResponseEntity<?> getAllProducts(
             @RequestParam(required = false) Integer page,
@@ -77,11 +78,6 @@ public class ViewProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @Operation(summary = "Get products by category", description = "Retrieves products by their category with optional pagination")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved the products", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/category/{category}")
     public ResponseEntity<?> getProductsByCategory(
             @Parameter(description = "Category of products to be retrieved (e.g., book, cd, dvd)", required = true) @PathVariable String category,
@@ -96,11 +92,6 @@ public class ViewProductController {
         }
     }
 
-    @Operation(summary = "Search products", description = "Searches for products by keyword in title with optional pagination")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved the products", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDTO.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/search")
     public ResponseEntity<?> searchProducts(
             @Parameter(description = "Keyword to search in product titles", required = true) @RequestParam String keyword,

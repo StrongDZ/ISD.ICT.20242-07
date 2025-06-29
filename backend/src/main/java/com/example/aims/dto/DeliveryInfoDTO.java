@@ -43,11 +43,11 @@ public class DeliveryInfoDTO {
         this.addressDetail = addressDetail;
     }
 
-    // ⚠️ Ambiguous constructor: seems unused and includes hardcoded-looking values.
-    // ❌ Consider removing or renaming for clarity, as it reduces cohesion.
-    public DeliveryInfoDTO(String haNoi, String baDinh, String s, String number) {
-        // Missing implementation — this appears to be a stub or mistake
-    }
+    // // ⚠️ Ambiguous constructor: seems unused and includes hardcoded-looking values.
+    // // ❌ Consider removing or renaming for clarity, as it reduces cohesion.
+    // public DeliveryInfoDTO(String haNoi, String baDinh, String s, String number) {
+    //     // Missing implementation — this appears to be a stub or mistake
+    // }
 
     // ✅ Getter for city
     public String getCity() {

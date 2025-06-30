@@ -25,8 +25,5 @@ public class DeliveryInfo {
     // Additional rush delivery information
     private String deliveryTime;
     private String specialInstructions;
-    private String contactPerson;
-    private String contactPhone;
-    private String buildingAccess;
-    
+
 }

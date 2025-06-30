@@ -385,36 +385,6 @@ const DeliveryForm = ({ deliveryInfo, onDeliveryInfoChange, errors = {} }) => {
                                         helperText="Any special delivery instructions (optional)"
                                     />
                                 </Grid>
-
-                                <Grid item xs={12}>
-                                    <TextField
-                                        fullWidth
-                                        label="Contact Person (if different from recipient)"
-                                        value={deliveryInfo.contactPerson || ""}
-                                        onChange={(e) => handleFieldChange("contactPerson", e.target.value)}
-                                        helperText="Name of person to contact during delivery (optional)"
-                                    />
-                                </Grid>
-
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Contact Phone (if different from recipient)"
-                                        value={deliveryInfo.contactPhone || ""}
-                                        onChange={(e) => handleFieldChange("contactPhone", e.target.value)}
-                                        helperText="Phone number for delivery contact (optional)"
-                                    />
-                                </Grid>
-
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Building/Apartment Access"
-                                        value={deliveryInfo.buildingAccess || ""}
-                                        onChange={(e) => handleFieldChange("buildingAccess", e.target.value)}
-                                        helperText="Building code, floor number, etc. (optional)"
-                                    />
-                                </Grid>
                             </Grid>
                         </Grid>
                     )}

@@ -40,9 +40,6 @@ const CheckoutPage = () => {
         isRushOrder: false,
         deliveryTime: "",
         specialInstructions: "",
-        contactPerson: "",
-        contactPhone: "",
-        buildingAccess: "",
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
@@ -172,9 +169,6 @@ const CheckoutPage = () => {
                     isRushOrder: deliveryInfo.isRushOrder,
                     deliveryTime: deliveryInfo.deliveryTime,
                     specialInstructions: deliveryInfo.specialInstructions,
-                    contactPerson: deliveryInfo.contactPerson,
-                    contactPhone: deliveryInfo.contactPhone,
-                    buildingAccess: deliveryInfo.buildingAccess,
                 },
             };
             const createdOrder = await orderService.createOrder(orderData);

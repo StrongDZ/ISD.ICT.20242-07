@@ -134,21 +134,6 @@ const OrderSuccess = ({ order, paymentUrl, onContinueShopping, onViewOrders, onR
                                             <strong>Special Instructions:</strong> {order.deliveryInfo.specialInstructions}
                                         </Typography>
                                     )}
-                                    {order.deliveryInfo.contactPerson && (
-                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
-                                            <strong>Contact Person:</strong> {order.deliveryInfo.contactPerson}
-                                        </Typography>
-                                    )}
-                                    {order.deliveryInfo.contactPhone && (
-                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
-                                            <strong>Contact Phone:</strong> {order.deliveryInfo.contactPhone}
-                                        </Typography>
-                                    )}
-                                    {order.deliveryInfo.buildingAccess && (
-                                        <Typography variant="body2" sx={{ color: "success.dark" }}>
-                                            <strong>Building Access:</strong> {order.deliveryInfo.buildingAccess}
-                                        </Typography>
-                                    )}
                                 </Box>
                             )}
                         </Box>

@@ -18,10 +18,17 @@ import com.example.aims.dto.products.ProductDTO;
 @Service
 public class CalculateFeeService {
 
-    // Hằng số cho phí giao hàng
+    // Hằng số cho phí giao hàng - Khu vực thường
     private static final double INITIAL_DELIVERY_FEE = 30000.0; // 30,000 VND cho 0.5kg đầu tiên
     private static final double EXTRA_DELIVERY_FEE_PER_UNIT = 2500.0; // 2,500 VND cho mỗi 0.5kg tiếp theo
     private static final double WEIGHT_UNIT = 0.5; // Đơn vị trọng lượng (kg)
+    
+    // Hằng số cho phí giao hàng - Nội thành Hà Nội và TP.HCM
+    private static final double INNER_CITY_INITIAL_DELIVERY_FEE = 22000.0; // 22,000 VND cho 3kg đầu tiên
+    private static final double INNER_CITY_WEIGHT_UNIT = 3.0; // Đơn vị trọng lượng cho nội thành (kg)
+    private static final double INNER_CITY_EXTRA_DELIVERY_FEE_PER_UNIT = 2500.0; // 2,500 VND cho mỗi 0.5kg tiếp theo
+    
+    // Các hằng số khác
     private static final double FREE_SHIPPING_THRESHOLD = 100000.0; // Ngưỡng miễn phí giao hàng
     private static final double MAX_FREE_SHIPPING_AMOUNT = 25000.0; // Số tiền miễn phí tối đa
     private static final double RUSH_ORDER_FEE_PER_ITEM = 10000.0; // Phí rush order cho mỗi item
@@ -42,7 +49,7 @@ public class CalculateFeeService {
         double rushSubtotal = calculateRushSubtotal(cartItems);
         
         // Tính phí giao hàng
-        double deliveryFee = calculateDeliveryFee(cartItems, isRushOrder, subtotal);
+        double deliveryFee = calculateDeliveryFee(cartItems, isRushOrder, subtotal, deliveryInfo);
         
         // Tính phí rush order
         double rushOrderFee = calculateRushOrderFee(cartItems);
@@ -74,26 +81,26 @@ public class CalculateFeeService {
     /**
      * Tính phí giao hàng
      */
-    public double calculateDeliveryFee(List<CartItemDTO> cartItems, boolean isRushOrder, double subtotal) {
+    public double calculateDeliveryFee(List<CartItemDTO> cartItems, boolean isRushOrder, double subtotal, DeliveryInfoDTO deliveryInfo) {
         // Nếu là rush order, không áp dụng miễn phí giao hàng
         if (isRushOrder) {
-            return calculateBaseDeliveryFee(cartItems);
+            return calculateBaseDeliveryFee(cartItems, deliveryInfo);
         }
         
         // Kiểm tra điều kiện miễn phí giao hàng (đơn hàng trên 100,000 VND)
         if (subtotal > FREE_SHIPPING_THRESHOLD) {
-            double baseFee = calculateBaseDeliveryFee(cartItems);
+            double baseFee = calculateBaseDeliveryFee(cartItems, deliveryInfo);
             // Miễn phí tối đa 25,000 VND
             return Math.max(0, baseFee - MAX_FREE_SHIPPING_AMOUNT);
         }
         
-        return calculateBaseDeliveryFee(cartItems);
+        return calculateBaseDeliveryFee(cartItems, deliveryInfo);
     }
 
     /**
-     * Tính phí giao hàng cơ bản dựa trên trọng lượng
+     * Tính phí giao hàng cơ bản dựa trên trọng lượng và địa chỉ
      */
-    public double calculateBaseDeliveryFee(List<CartItemDTO> cartItems) {
+    public double calculateBaseDeliveryFee(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
         // Tìm sản phẩm nặng nhất
         double maxWeight = cartItems.stream()
             .mapToDouble(item -> {
@@ -103,17 +110,43 @@ public class CalculateFeeService {
             .max()
             .orElse(0.0);
         
-        return calculateDeliveryFeeByWeight(maxWeight);
+        return calculateDeliveryFeeByWeight(maxWeight, deliveryInfo);
     }
 
     /**
-     * Tính phí giao hàng dựa trên trọng lượng
+     * Tính phí giao hàng dựa trên trọng lượng và địa chỉ
      */
-    public double calculateDeliveryFeeByWeight(double weightInKg) {
+    public double calculateDeliveryFeeByWeight(double weightInKg, DeliveryInfoDTO deliveryInfo) {
         if (weightInKg <= 0) {
             return 0.0; // Không có trọng lượng
         }
         
+        // Kiểm tra xem có phải nội thành Hà Nội hoặc TP.HCM không
+        if (isInnerCity(deliveryInfo)) {
+            return calculateInnerCityDeliveryFee(weightInKg);
+        } else {
+            return calculateRegularDeliveryFee(weightInKg);
+        }
+    }
+
+    /**
+     * Tính phí giao hàng cho nội thành Hà Nội và TP.HCM
+     */
+    private double calculateInnerCityDeliveryFee(double weightInKg) {
+        if (weightInKg <= INNER_CITY_WEIGHT_UNIT) {
+            return INNER_CITY_INITIAL_DELIVERY_FEE;
+        } else {
+            // Tính thêm cho phần vượt quá 3kg
+            double extraWeight = weightInKg - INNER_CITY_WEIGHT_UNIT;
+            int extraUnits = (int) Math.ceil(extraWeight / WEIGHT_UNIT);
+            return INNER_CITY_INITIAL_DELIVERY_FEE + (extraUnits * INNER_CITY_EXTRA_DELIVERY_FEE_PER_UNIT);
+        }
+    }
+
+    /**
+     * Tính phí giao hàng cho khu vực thường
+     */
+    private double calculateRegularDeliveryFee(double weightInKg) {
         if (weightInKg <= WEIGHT_UNIT) {
             return INITIAL_DELIVERY_FEE;
         } else {
@@ -122,6 +155,30 @@ public class CalculateFeeService {
             int extraUnits = (int) Math.ceil(extraWeight / WEIGHT_UNIT);
             return INITIAL_DELIVERY_FEE + (extraUnits * EXTRA_DELIVERY_FEE_PER_UNIT);
         }
+    }
+
+    /**
+     * Kiểm tra xem địa chỉ có phải nội thành Hà Nội hoặc TP.HCM không
+     */
+    private boolean isInnerCity(DeliveryInfoDTO deliveryInfo) {
+        if (deliveryInfo == null || deliveryInfo.getCity() == null) {
+            return false;
+        }
+        
+        String city = deliveryInfo.getCity().trim();
+        
+        // Kiểm tra Hà Nội
+        if (city.equalsIgnoreCase("Hà Nội") || city.equalsIgnoreCase("Hanoi")) {
+            return true;
+        }
+        
+        // Kiểm tra TP.HCM
+        if (city.equalsIgnoreCase("TP.HCM") || city.equalsIgnoreCase("Ho Chi Minh City") || 
+            city.equalsIgnoreCase("Thành phố Hồ Chí Minh")) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**

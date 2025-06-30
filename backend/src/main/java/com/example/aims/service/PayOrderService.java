@@ -129,9 +129,9 @@ public class PayOrderService {
                 System.err.println("Failed to send payment confirmation email: " + e.getMessage());
             }
 
-            return "http://localhost:3001/payment-success?orderId=" + orderID;
+            return "http://localhost:3000/payment-success?orderId=" + orderID;
         } else if (isCancelResponse(responseCode, paymentType)) { // Payment decline/cancel
-            return "http://localhost:3001/payment-decline";
+            return "http://localhost:3000/payment-decline";
         } else { // Payment error
             try {
                 IPaymentErrorMapper errorMapper = errorMapperFactory.getMapper(paymentType);
@@ -139,7 +139,7 @@ public class PayOrderService {
             } catch (PaymentException e) {
                 System.out.println(e.getMessage());
             }
-            return "http://localhost:3001/payment-error";
+            return "http://localhost:3000/payment-error";
         }
     }
 

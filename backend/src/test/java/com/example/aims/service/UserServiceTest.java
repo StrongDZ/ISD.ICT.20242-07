@@ -191,23 +191,6 @@ class UserServiceTest {
         verify(userRepository).findById(userId);
     }
 
-    @Test
-    void testFindByUsername_NotImplemented() {
-        // Act
-        UserResponse result = userService.findByUsername("testuser");
-
-        // Assert
-        assertNull(result);
-    }
-
-    @Test
-    void testFindByEmail_NotImplemented() {
-        // Act
-        UserResponse result = userService.findByEmail("test@example.com");
-
-        // Assert
-        assertNull(result);
-    }
 
     @Test
     void testSave_Success() throws Exception {

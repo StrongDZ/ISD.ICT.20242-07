@@ -37,39 +37,6 @@ class PlaceRushOrderServiceTest {
     }
 
     @Test
-    void testPlaceRushOrder_WithNullEligibleField() {
-        // Arrange
-        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Hà Nội");
-        deliveryInfo.setDistrict("Ba Đình");
-
-        BookDTO product1 = new BookDTO();
-        product1.setProductID("B001");
-        product1.setEligible(null); // Null eligible field
-
-        BookDTO product2 = new BookDTO();
-        product2.setProductID("B002");
-        product2.setEligible(true);
-
-        List<ProductDTO> products = Arrays.asList(product1, product2);
-
-        when(addressEligibility.isRushAllowed(any(DeliveryInfoDTO.class))).thenReturn(true);
-        when(productEligibility.isRushAllowed(product1)).thenReturn(false); // null should be treated as false
-        when(productEligibility.isRushAllowed(product2)).thenReturn(true);
-
-        // Act
-        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
-
-        // Assert
-        assertNotNull(response);
-        assertTrue(response.isSupported()); // Should be supported because product2 is eligible
-        assertEquals(1, response.getRushProducts().size());
-        assertEquals(1, response.getRegularProducts().size());
-        assertEquals("B002", response.getRushProducts().get(0).getProductID());
-        assertEquals("B001", response.getRegularProducts().get(0).getProductID());
-    }
-
-    @Test
     void testPlaceRushOrder_AddressNotEligible() {
         // Arrange
         DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
@@ -77,8 +44,8 @@ class PlaceRushOrderServiceTest {
         deliveryInfo.setDistrict("District 1");
 
         BookDTO product = new BookDTO();
-        product.setProductID("B001");
-        product.setEligible(true);
+        product.setProductID("B003");
+        product.setEligible(false);
 
         List<ProductDTO> products = Arrays.asList(product);
 

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { cartService } from "../services/cartService";
 import { useAuth } from "./AuthContext";
 import { productService } from "../services/productService";
+import { orderService } from "../services/orderService";
 
 const CartContext = createContext();
 
@@ -43,37 +44,50 @@ export const CartProvider = ({ children }) => {
 
     // Stock validation functions
     const validateStock = async (items) => {
-        const invalidItems = [];
+        try {
+            // Use backend inventory check service
+            const response = await orderService.checkInventory(items);
+            console.log("response", response);
+            const insufficientItems = response.insufficientItems;
 
-        for (const item of items) {
-            try {
-                const response = await productService.getProductById(item.productDTO.productID);
-                const latestProduct = response.data || response;
-
-                if (latestProduct.quantity < item.quantity) {
-                    invalidItems.push({
-                        ...item,
-                        availableStock: latestProduct.quantity,
-                        requestedQuantity: item.quantity,
-                    });
-                }
-            } catch (error) {
-                console.error(`Failed to validate stock for product ${item.productDTO.productID}:`, error);
-                invalidItems.push({
-                    ...item,
-                    availableStock: 0,
-                    requestedQuantity: item.quantity,
-                });
+            // If successful (inventory is sufficient)
+            if (response.success === true) {
+                return { isValid: true, invalidItems: [] };
             }
-        }
 
-        if (invalidItems.length > 0) {
-            // Refresh cart items to get updated stock
+            // If response contains inventory issues
+            if (response.success === false && insufficientItems) {
+                console.log("response.insufficientItems", insufficientItems);
+                for (const item of insufficientItems) await updateCartItem(item.productDTO, item.quantity);
+
+                // Map backend response to expected format
+                const invalidItems = insufficientItems.map((item) => ({
+                    ...item,
+                    availableStock: item.availableStock || 0,
+                    requestedQuantity: item.requestedQuantity || item.quantity,
+                }));
+
+                return { isValid: false, invalidItems };
+            }
+
+            // Handle unexpected response format
+            return { isValid: false, invalidItems: [] };
+        } catch (error) {
+            console.error("Failed to validate stock via backend:", error);
+
+            // Fallback to refresh cart items on error
             await loadCartItems();
+
+            // Return all items as potentially invalid on error
+            const invalidItems = items.map((item) => ({
+                ...item,
+                availableStock: 0,
+                requestedQuantity: item.quantity,
+                error: "Không thể kiểm tra tồn kho",
+            }));
+
             return { isValid: false, invalidItems };
         }
-
-        return { isValid: true, invalidItems: [] };
     };
 
     // Selected items management

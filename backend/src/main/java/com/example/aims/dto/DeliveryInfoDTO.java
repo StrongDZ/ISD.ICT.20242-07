@@ -1,6 +1,5 @@
 package com.example.aims.dto;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 /**
  * ✅ This class represents delivery address information used in placing a rush order.
@@ -40,12 +39,6 @@ public class DeliveryInfoDTO {
         this.addressDetail = addressDetail;
     }
 
-    // // ⚠️ Ambiguous constructor: seems unused and includes hardcoded-looking values.
-    // // ❌ Consider removing or renaming for clarity, as it reduces cohesion.
-    // public DeliveryInfoDTO(String haNoi, String baDinh, String s, String number) {
-    //     // Missing implementation — this appears to be a stub or mistake
-    // }
-
     // ✅ Getter for city
     public String getCity() {
         return city;
@@ -74,5 +67,13 @@ public class DeliveryInfoDTO {
     // ✅ Setter for addressDetail
     public void setAddressDetail(String addressDetail) {
         this.addressDetail = addressDetail;
+    }
+
+    public Boolean getIsRushOrder() {
+        return isRushOrder;
+    }
+
+    public void setIsRushOrder(Boolean isRushOrder) {
+        this.isRushOrder = isRushOrder;
     }
 }

@@ -17,15 +17,10 @@ import com.example.aims.model.DeliveryInfo;
 import com.example.aims.model.Order;
 import com.example.aims.model.OrderItem;
 import com.example.aims.model.Product;
-import com.example.aims.repository.CartItemRepository;
 import com.example.aims.repository.DeliveryInfoRepository;
-import com.example.aims.repository.InvoiceRepository;
 import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
-import com.example.aims.repository.PaymentTransactionRepository;
 import com.example.aims.repository.ProductRepository;
-import com.example.aims.repository.UsersRepository;
-import com.example.aims.service.rush.PlaceRushOrderService;
 
 //***Cohesion: low to medium
 // In the case of the PlaceOrderService class:
@@ -79,10 +74,9 @@ public class PlaceOrderService {
     private final CalculateFeeService calculateFeeService;
 
     public PlaceOrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-            DeliveryInfoRepository deliveryInfoRepository, PaymentTransactionRepository paymentTransactionRepository,
-            InvoiceRepository invoiceRepository, UsersRepository userRepository,
-            ProductRepository productRepository, CartItemRepository cartItemRepository,
+            DeliveryInfoRepository deliveryInfoRepository ,
             DeliveryInfoMapper deliveryInfoMapper,
+            ProductRepository productRepository,
             OrderMapper orderMapper,
             CalculateFeeService calculateFeeService) {
         this.orderRepository = orderRepository;
@@ -113,7 +107,6 @@ public class PlaceOrderService {
         // 5. Tính tổng tiền sử dụng CalculateFeeService
         double totalAmount = calculateFeeService.calculateTotalPrice(
             orderRequestDTO.getCartItems(), 
-            deliveryInfo.getIsRushOrder(), 
             orderRequestDTO.getDeliveryInfo()
         );
 

@@ -29,24 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-// Communicational Cohesion – Methods share common data and purpose (processing payments), 
-// but test logic reduces clarity of single-purpose design
-// ❌ SRP violated – Class handles both business logic and testing setup
-// 🔧 Improvement: move test-related code (currentOrder, currentPaymentTransaction) to a separate test/mock class 
-// to make PayOrderService responsible only for real payment processing
-
-// 🔧 Improvement suggestions:
-// - Extract test logic (e.g. currentOrder, setCurrentOrderForTest) into a separate mock or test utility class
-// - Use proper dependency injection (e.g. repository) to get Order and PaymentTransaction
-//   instead of using instance-level test data
-// - Keep PayOrderService focused only on real payment logic → move test-specific state out
-
-// ✅ SOLID Evaluation Summary:
-// - ✅ SRP violated: test-related logic should be extracted
-// - ❌ OCP violated: payment logic is hardcoded, not extendable (suggest strategy pattern)
-// - ✅ LSP respected: no inheritance misuse
-// - ✅ ISP acceptable now, but keep in mind if adding interfaces later
-// - ❌ DIP violated: depends directly on concrete classes; should rely on interfaces
 @Service
 public class PayOrderService {
 

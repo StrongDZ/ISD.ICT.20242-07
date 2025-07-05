@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class PaymentSystemFactory {
 
-    private final Map<String, IPaymentSystem> paymentSystems;
+    private Map<String, IPaymentSystem> paymentSystems;
 
     /**
      * Constructor that automatically discovers and maps all IPaymentSystem

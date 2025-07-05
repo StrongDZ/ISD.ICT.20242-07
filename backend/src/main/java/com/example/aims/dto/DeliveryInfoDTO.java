@@ -29,8 +29,8 @@ public class DeliveryInfoDTO {
     private String deliveryTime;           // Preferred delivery time for rush orders
     private String specialInstructions;    // Special delivery instructions
 
-    // ✅ Default constructor — required for serialization frameworks like Jackson
-    public DeliveryInfoDTO() {}
+    
+   public DeliveryInfoDTO() {}
 
     // ✅ Parameterized constructor for convenience
     public DeliveryInfoDTO(String city, String district, String addressDetail) {
@@ -39,41 +39,42 @@ public class DeliveryInfoDTO {
         this.addressDetail = addressDetail;
     }
 
-    // ✅ Getter for city
-    public String getCity() {
-        return city;
-    }
+//     // ✅ Getter for city
+//     public String getCity() {
+//         return city;
+//     }
 
-    // ✅ Getter for district
-    public String getDistrict() {
-        return district;
-    }
+//     // ✅ Getter for district
+//     public String getDistrict() {
+//         return district;
+//     }
 
-    // ✅ Getter for addressDetail
-    public String getAddressDetail() {
-        return addressDetail;
-    }
+//     // ✅ Getter for addressDetail
+//     public String getAddressDetail() {
+//         return addressDetail;
+//     }
 
-    // ✅ Setter for city
-    public void setCity(String city) {
-        this.city = city;
-    }
+//     // ✅ Setter for city
+//     public void setCity(String city) {
+//         this.city = city;
+//     }
 
-    // ✅ Setter for district
-    public void setDistrict(String district) {
-        this.district = district;
-    }
+//     // ✅ Setter for district
+//     public void setDistrict(String district) {
+//         this.district = district;
+//     }
 
-    // ✅ Setter for addressDetail
-    public void setAddressDetail(String addressDetail) {
-        this.addressDetail = addressDetail;
-    }
+//     // ✅ Setter for addressDetail
+//     public void setAddressDetail(String addressDetail) {
+//         this.addressDetail = addressDetail;
+//     }
 
-    public Boolean getIsRushOrder() {
-        return isRushOrder;
-    }
+//     public Boolean getIsRushOrder() {
+//         return isRushOrder;
+//     }
 
-    public void setIsRushOrder(Boolean isRushOrder) {
-        this.isRushOrder = isRushOrder;
-    }
+//     public void setIsRushOrder(Boolean isRushOrder) {
+//         this.isRushOrder = isRushOrder;
+//     }
+// }
 }

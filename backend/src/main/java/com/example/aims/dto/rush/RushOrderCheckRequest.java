@@ -35,20 +35,6 @@ public class RushOrderCheckRequest {
      */
     private List<ProductDTO> products;
 
-    // Manual getters and setters to ensure compatibility
-    public DeliveryInfoDTO getDeliveryInfo() {
-        return deliveryInfo;
-    }
-
-    public void setDeliveryInfo(DeliveryInfoDTO deliveryInfo) {
-        this.deliveryInfo = deliveryInfo;
-    }
-
-    public List<ProductDTO> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<ProductDTO> products) {
-        this.products = products;
-    }
+    // ✅ Lombok @Data automatically generates all getters and setters
+    // No need for manual getter/setter methods
 } 

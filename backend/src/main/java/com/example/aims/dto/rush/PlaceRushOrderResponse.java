@@ -1,6 +1,7 @@
 package com.example.aims.dto.rush;
 
 import com.example.aims.dto.products.ProductDTO;
+import lombok.Data;
 import java.util.List;
 
 /**
@@ -19,6 +20,7 @@ import java.util.List;
  * - D (Dependency Inversion Principle):
  *   This class depends on low-level data structures (ProductDTO), which is acceptable for a DTO.
  */
+@Data
 public class PlaceRushOrderResponse {
 
     // ✅ Indicates if rush delivery is supported based on address and product check
@@ -33,43 +35,6 @@ public class PlaceRushOrderResponse {
     // ✅ Products not eligible for rush delivery
     private List<ProductDTO> regularProducts;
 
-    // ✅ Getter for supported
-    public boolean isSupported() {
-        return supported;
-    }
-
-    // ✅ Setter for supported
-    public void setSupported(boolean supported) {
-        this.supported = supported;
-    }
-
-    // ✅ Getter for promptMessage
-    public String getPromptMessage() {
-        return promptMessage;
-    }
-
-    // ✅ Setter for promptMessage
-    public void setPromptMessage(String promptMessage) {
-        this.promptMessage = promptMessage;
-    }
-
-    // ✅ Getter for rush products
-    public List<ProductDTO> getRushProducts() {
-        return rushProducts;
-    }
-
-    // ✅ Setter for rush products
-    public void setRushProducts(List<ProductDTO> rushProducts) {
-        this.rushProducts = rushProducts;
-    }
-
-    // ✅ Getter for regular products
-    public List<ProductDTO> getRegularProducts() {
-        return regularProducts;
-    }
-
-    // ✅ Setter for regular products
-    public void setRegularProducts(List<ProductDTO> regularProducts) {
-        this.regularProducts = regularProducts;
-    }
+    // ✅ Lombok @Data automatically generates all getters and setters
+    // No need for manual getter/setter methods
 }

@@ -83,7 +83,6 @@ public class PayOrderService {
      * @return A redirect URL based on the payment response.
      */
     public String processPayment(Map<String, String> allRequestParams, String paymentType) {
-        // Get response code based on payment type
         String responseCode = getResponseCode(allRequestParams, paymentType);
         String orderID = getOrderId(allRequestParams, paymentType);
 
@@ -119,32 +118,6 @@ public class PayOrderService {
         }
     }
 
-    /**
-     * Processes the payment return from payment gateway by looking up paymentType
-     * from database.
-     * This method is used when paymentType is not available in the callback
-     * parameters.
-     * 
-     * @param allRequestParams The parameters received from the payment gateway.
-     * @param orderId          The order ID to look up paymentType from database.
-     * @return A redirect URL based on the payment response.
-     */
-    public String processPaymentReturn(Map<String, String> allRequestParams, String orderId) {
-        // Try to find existing payment transaction to get paymentType
-        PaymentTransaction existingTransaction = currentPaymentTransaction.findByTransactionId(orderId).orElse(null);
-        String paymentType;
-
-        if (existingTransaction != null && existingTransaction.getPaymentType() != null) {
-            // Use paymentType from existing transaction
-            paymentType = existingTransaction.getPaymentType().toLowerCase();
-        } else {
-
-            throw new IllegalArgumentException(
-                    "Payment transaction not found for order ID: " + orderId);
-        }
-
-        return processPayment(allRequestParams, paymentType);
-    }
 
     /**
      * Gets the response code from payment gateway parameters.

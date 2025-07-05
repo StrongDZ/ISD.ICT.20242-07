@@ -1,5 +1,7 @@
 package com.example.aims.model;
 
+import com.example.aims.exception.BadRequestException;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,5 +35,12 @@ public class CartItem {
     public static class CartItemId implements java.io.Serializable {
         private Integer userID;
         private String productID;
+    }
+
+    public void setQuantity(Integer quantity) {
+        if (quantity <= 0) {
+            throw new BadRequestException("Quantity must be greater than zero");
+        }
+        this.quantity = quantity;
     }
 }

@@ -15,15 +15,10 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderItemRepository;
 import com.example.aims.repository.OrderRepository;
 import com.example.aims.repository.PaymentTransactionRepository;
-
-import lombok.RequiredArgsConstructor;
-
 import com.example.aims.factory.PaymentErrorMapperFactory;
 import com.example.aims.factory.PaymentSystemFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +33,7 @@ public class PayOrderService {
     private final PaymentErrorMapperFactory errorMapperFactory;
     private final EmailService emailService;
     private final PaymentSystemFactory paymentSystemFactory;
-    private final OrderMapper orderMapper; // 🔧 Inject thủ công mapper dạng component
+    private final OrderMapper orderMapper;
 
     @Autowired
     public PayOrderService(
@@ -143,13 +138,9 @@ public class PayOrderService {
             // Use paymentType from existing transaction
             paymentType = existingTransaction.getPaymentType().toLowerCase();
         } else {
-            // Fallback: try to determine paymentType from response parameters
-            // This is a fallback mechanism in case transaction doesn't exist yet
-            if (allRequestParams.containsKey("vnp_ResponseCode")) {
-                paymentType = "vnpay"; // Default to VNPay if VNPay parameters are present
-            } else {
-                paymentType = "momo"; // Default to MoMo otherwise
-            }
+
+            throw new IllegalArgumentException(
+                    "Payment transaction not found for order ID: " + orderId);
         }
 
         return processPayment(allRequestParams, paymentType);
@@ -164,9 +155,8 @@ public class PayOrderService {
                 return params.get("vnp_ResponseCode");
             case "momo":
                 return params.get("vnp_ResponseCode");
-            default:
-                return params.get("vnp_ResponseCode");
         }
+        throw new IllegalArgumentException("Unsupported payment type: " + paymentType);
     }
 
     /**
@@ -178,9 +168,8 @@ public class PayOrderService {
                 return params.get("vnp_TxnRef");
             case "momo":
                 return params.get("vnp_TxnRef");
-            default:
-                return params.get("vnp_TxnRef");
         }
+        throw new IllegalArgumentException("Unsupported payment type: " + paymentType);
     }
 
     /**
@@ -192,9 +181,8 @@ public class PayOrderService {
                 return "00".equals(responseCode);
             case "momo":
                 return "00".equals(responseCode);
-            default:
-                return "00".equals(responseCode);
         }
+        throw new IllegalArgumentException("Unsupported payment type: " + paymentType);
     }
 
     /**
@@ -206,9 +194,8 @@ public class PayOrderService {
                 return "24".equals(responseCode);
             case "momo":
                 return "24".equals(responseCode);
-            default:
-                return "24".equals(responseCode);
         }
+        throw new IllegalArgumentException("Unsupported payment type: " + paymentType);
     }
 
     /**

@@ -32,8 +32,17 @@ import {
     InputAdornment,
     CircularProgress,
     Stack,
+    Checkbox,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemAvatar,
+    Avatar,
+    LinearProgress,
+    Slide,
+    Divider,
 } from "@mui/material";
-import { Add, Edit, Delete, Visibility, Search, FilterList, Save, Cancel, Warning, Clear } from "@mui/icons-material";
+import { Add, Edit, Delete, Visibility, Search, FilterList, Save, Cancel, Warning, Clear, SelectAll, ClearAll, CheckCircle } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { productService } from "../../services/productService";
@@ -59,7 +68,12 @@ const ProductManagementPage = () => {
     const [editDialog, setEditDialog] = useState({ open: false, product: null, mode: "view" });
     const [detailDialog, setDetailDialog] = useState({ open: false, product: null });
     const [deleteDialog, setDeleteDialog] = useState({ open: false, product: null });
+    const [bulkDeleteDialog, setBulkDeleteDialog] = useState({ open: false, products: [] });
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    
+    // Bulk operations states
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteProgress, setDeleteProgress] = useState(0);
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -67,6 +81,8 @@ const ProductManagementPage = () => {
         category: "",
         stockStatus: "",
     });
+
+    const [selectedProducts, setSelectedProducts] = useState([]);
 
     const categories = [
         { value: "", label: "All Categories" },
@@ -94,12 +110,21 @@ const ProductManagementPage = () => {
             let response;
             const backendPage = currentPage - 1; // Convert to 0-based pagination for backend
 
+            const params = {};
             if (filters.search) {
-                response = await productService.searchProducts(filters.search, backendPage, pageSize);
-            } else if (filters.category) {
-                response = await productService.getProductsByCategory(filters.category, backendPage, pageSize);
-            } else {
-                response = await productService.getAllProducts(backendPage, pageSize);
+                params.keyword = filters.search;
+            }
+            if (filters.category) {
+                params.category = filters.category;
+            }
+            
+            try {
+                // Try paginated API first
+                response = await productService.fetchProducts(params, backendPage, pageSize);
+            } catch (paginatedError) {
+                console.warn("Paginated API failed, falling back to non-paginated:", paginatedError);
+                // Fallback to non-paginated API like Dashboard
+                response = await productService.getAllProductsNoPagination();
             }
 
             let productList = [];
@@ -314,15 +339,92 @@ const ProductManagementPage = () => {
         setCurrentPage(1);
     };
 
+    const handleSelectProduct = (product, checked) => {
+        if (checked) {
+            setSelectedProducts(prev => [...prev, product]);
+        } else {
+            setSelectedProducts(prev => prev.filter(p => p.productID !== product.productID));
+        }
+    };
+    const handleSelectAll = (checked) => {
+        if (checked) {
+            setSelectedProducts([...filteredProducts]);
+        } else {
+            setSelectedProducts([]);
+        }
+    };
+
+    const handleClearSelection = () => {
+        setSelectedProducts([]);
+    };
+
+    const handleSelectByFilter = (filterType) => {
+        let productsToSelect = [];
+        switch (filterType) {
+            case 'low-stock':
+                productsToSelect = filteredProducts.filter(p => p.quantity > 0 && p.quantity <= 5);
+                break;
+            case 'out-of-stock':
+                productsToSelect = filteredProducts.filter(p => p.quantity === 0);
+                break;
+            default:
+                productsToSelect = [];
+        }
+        setSelectedProducts(productsToSelect);
+    };
+
+    const handleOpenBulkDeleteDialog = () => {
+        setBulkDeleteDialog({ open: true, products: selectedProducts });
+    };
+
+    const handleBulkDelete = async () => {
+        try {
+            setIsDeleting(true);
+            setDeleteProgress(0);
+            
+            const productIds = selectedProducts.map(p => p.productID);
+            const totalProducts = productIds.length;
+            
+            // Simulate progress for better UX
+            for (let i = 0; i <= totalProducts; i++) {
+                setDeleteProgress((i / totalProducts) * 100);
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for visual feedback
+            }
+            
+            await productService.deleteProducts(productIds);
+            
+            setSnackbar({ 
+                open: true, 
+                message: `✅ Successfully deleted ${totalProducts} products!`, 
+                severity: "success" 
+            });
+            
+            setSelectedProducts([]);
+            setBulkDeleteDialog({ open: false, products: [] });
+            await loadProducts();
+        } catch (error) {
+            setSnackbar({ 
+                open: true, 
+                message: `❌ Failed to delete products: ${error.message}`, 
+                severity: "error" 
+            });
+        } finally {
+            setIsDeleting(false);
+            setDeleteProgress(0);
+        }
+    };
+
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
                 <Typography variant="h4" component="h1" fontWeight="bold">
                     Product Management
                 </Typography>
-                <Button variant="contained" startIcon={<Add />} onClick={handleAdd}>
-                    Add Product
-                </Button>
+                <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button variant="contained" startIcon={<Add />} onClick={handleAdd}>
+                        Add Product
+                    </Button>
+                </Box>
             </Box>
 
             {/* Statistics Cards */}
@@ -441,6 +543,13 @@ const ProductManagementPage = () => {
                         <Table>
                             <TableHead>
                                 <TableRow>
+                                    <TableCell padding="checkbox">
+                                        <Checkbox
+                                            checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                                            indeterminate={selectedProducts.length > 0 && selectedProducts.length < filteredProducts.length}
+                                            onChange={(e) => handleSelectAll(e.target.checked)}
+                                        />
+                                    </TableCell>
                                     <TableCell>Image</TableCell>
                                     <TableCell>Title</TableCell>
                                     <TableCell>Category</TableCell>
@@ -451,8 +560,26 @@ const ProductManagementPage = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {filteredProducts.map((product) => (
-                                    <TableRow key={product.productID} hover>
+                                {filteredProducts.map((product) => {
+                                    const isSelected = selectedProducts.some(p => p.productID === product.productID);
+                                    return (
+                                        <TableRow 
+                                            key={product.productID} 
+                                            hover 
+                                            selected={isSelected}
+                                            sx={{ 
+                                                backgroundColor: isSelected ? 'rgba(25, 118, 210, 0.08)' : 'inherit',
+                                                '&:hover': {
+                                                    backgroundColor: isSelected ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                                                }
+                                            }}
+                                        >
+                                            <TableCell padding="checkbox">
+                                                <Checkbox
+                                                    checked={isSelected}
+                                                    onChange={(e) => handleSelectProduct(product, e.target.checked)}
+                                                />
+                                            </TableCell>
                                         <TableCell>
                                             <Box
                                                 component="img"
@@ -491,9 +618,10 @@ const ProductManagementPage = () => {
                                             <IconButton size="small" onClick={() => setDeleteDialog({ open: true, product })} color="error">
                                                 <Delete />
                                             </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                                                                    </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -551,6 +679,172 @@ const ProductManagementPage = () => {
                     </DialogActions>
                 </Dialog>
             )}
+
+            {/* Batch Operations Panel */}
+            <Slide direction="up" in={selectedProducts.length > 0} mountOnEnter unmountOnExit>
+                <Paper
+                    elevation={8}
+                    sx={{
+                        position: 'fixed',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 1300,
+                        borderRadius: '16px 16px 0 0',
+                        backgroundColor: 'background.paper',
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
+                    }}
+                >
+                    <Box sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <CheckCircle color="primary" />
+                                <Typography variant="h6" fontWeight="bold">
+                                    {selectedProducts.length} Product{selectedProducts.length > 1 ? 's' : ''} Selected
+                                </Typography>
+                            </Box>
+                            <IconButton onClick={handleClearSelection} size="small">
+                                <Clear />
+                            </IconButton>
+                        </Box>
+                        
+                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                            <Button
+                                variant="outlined"
+                                startIcon={<SelectAll />}
+                                onClick={() => handleSelectAll(true)}
+                                size="small"
+                                disabled={selectedProducts.length === filteredProducts.length}
+                            >
+                                Select All ({filteredProducts.length})
+                            </Button>
+                            
+                            <Button
+                                variant="outlined"
+                                startIcon={<ClearAll />}
+                                onClick={handleClearSelection}
+                                size="small"
+                            >
+                                Clear Selection
+                            </Button>
+                            
+                            <Divider orientation="vertical" flexItem />
+                            
+                            <Button
+                                variant="outlined"
+                                onClick={() => handleSelectByFilter('low-stock')}
+                                size="small"
+                                color="warning"
+                            >
+                                Select Low Stock
+                            </Button>
+                            
+                            <Button
+                                variant="outlined"
+                                onClick={() => handleSelectByFilter('out-of-stock')}
+                                size="small"
+                                color="error"
+                            >
+                                Select Out of Stock
+                            </Button>
+                            
+                            <Box sx={{ flexGrow: 1 }} />
+                            
+                            <Button
+                                variant="contained"
+                                color="error"
+                                startIcon={<Delete />}
+                                onClick={handleOpenBulkDeleteDialog}
+                                disabled={selectedProducts.length === 0 || selectedProducts.length > 10}
+                                size="large"
+                            >
+                                {selectedProducts.length > 10 
+                                    ? `Cannot Delete (Max 10)` 
+                                    : `Delete Selected (${selectedProducts.length})`
+                                }
+                            </Button>
+                        </Box>
+                        
+                        {selectedProducts.length > 10 && (
+                            <Alert severity="warning" sx={{ mt: 2 }}>
+                                You can only delete up to 10 products at once. Please reduce your selection.
+                            </Alert>
+                        )}
+                    </Box>
+                </Paper>
+            </Slide>
+
+            {/* Bulk Delete Confirmation Dialog */}
+            <Dialog 
+                open={bulkDeleteDialog.open} 
+                onClose={() => setBulkDeleteDialog({ open: false, products: [] })}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Warning color="error" />
+                    Confirm Bulk Delete
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                        Are you sure you want to delete the following {bulkDeleteDialog.products.length} product{bulkDeleteDialog.products.length > 1 ? 's' : ''}? 
+                        This action cannot be undone.
+                    </Typography>
+                    
+                    {isDeleting && (
+                        <Box sx={{ mb: 2 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                Deleting products... {Math.round(deleteProgress)}%
+                            </Typography>
+                            <LinearProgress variant="determinate" value={deleteProgress} />
+                        </Box>
+                    )}
+                    
+                    <Paper variant="outlined" sx={{ maxHeight: 300, overflow: 'auto' }}>
+                        <List dense>
+                            {bulkDeleteDialog.products.map((product, index) => (
+                                <ListItem key={product.productID} divider={index < bulkDeleteDialog.products.length - 1}>
+                                    <ListItemAvatar>
+                                        <Avatar
+                                            src={product.imageURL}
+                                            alt={product.title}
+                                            variant="rounded"
+                                            sx={{ width: 40, height: 40 }}
+                                        />
+                                    </ListItemAvatar>
+                                    <ListItemText
+                                        primary={product.title}
+                                        secondary={`ID: ${product.productID} | ${product.category?.toUpperCase()} | Stock: ${product.quantity}`}
+                                    />
+                                    <Chip
+                                        label={getStockStatus(product.quantity).label}
+                                        color={getStockStatus(product.quantity).color}
+                                        size="small"
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Paper>
+                </DialogContent>
+                <DialogActions>
+                    <Button 
+                        onClick={() => setBulkDeleteDialog({ open: false, products: [] })}
+                        disabled={isDeleting}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        onClick={handleBulkDelete} 
+                        color="error" 
+                        variant="contained"
+                        disabled={isDeleting}
+                        startIcon={isDeleting ? <CircularProgress size={20} /> : <Delete />}
+                    >
+                        {isDeleting ? 'Deleting...' : 'Delete All'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Snackbar */}
             <Snackbar

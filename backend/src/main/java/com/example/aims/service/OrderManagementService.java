@@ -36,8 +36,7 @@ public class OrderManagementService implements IOrderManagementService {
     
     // List of statuses that are eligible for management operations
     private static final List<OrderStatus> MANAGEABLE_STATUSES = Arrays.asList(
-        OrderStatus.PENDING,
-        OrderStatus.PENDING_APPROVAL
+        OrderStatus.PENDING
     );
 
     @Autowired

@@ -1,10 +1,35 @@
 import api from "./api";
 
 export const productService = {
-    // Get all products with pagination
-    getAllProducts: async (page = 0, size = 20) => {
+    // Fetch products with filtering and pagination
+    fetchProducts: async (params = {}, page = 0, size = 20) => {
         try {
-            const response = await api.get(`/products?page=${page}&size=${size}`);
+            const queryParams = new URLSearchParams();
+            
+            // Add pagination parameters
+            queryParams.append('page', page);
+            queryParams.append('size', size);
+            
+            // Add filter parameters
+            // Handle both 'search' and 'keyword' for compatibility
+            const searchTerm = params.search || params.keyword;
+            if (searchTerm) {
+                queryParams.append('keyword', searchTerm);
+            }
+            if (params.category && params.category !== 'all') {
+                queryParams.append('category', params.category);
+            }
+            if (params.minPrice) {
+                queryParams.append('minPrice', params.minPrice);
+            }
+            if (params.maxPrice) {
+                queryParams.append('maxPrice', params.maxPrice);
+            }
+            if (params.sortBy) {
+                queryParams.append('sortBy', params.sortBy);
+            }
+            
+            const response = await api.get(`/products?${queryParams.toString()}`);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to fetch products");
@@ -28,26 +53,6 @@ export const productService = {
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to fetch product");
-        }
-    },
-
-    // Get products by category with pagination
-    getProductsByCategory: async (category, page = 0, size = 20) => {
-        try {
-            const response = await api.get(`/products/category/${category}?page=${page}&size=${size}`);
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to fetch products by category");
-        }
-    },
-
-    // Search products with pagination
-    searchProducts: async (keyword, page = 0, size = 20) => {
-        try {
-            const response = await api.get(`/products/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`);
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to search products");
         }
     },
 
@@ -78,6 +83,16 @@ export const productService = {
             return true;
         } catch (error) {
             throw new Error(error.response?.data?.message || "Failed to delete product");
+        }
+    },
+
+    // Delete multiple products (Manager only)
+    deleteProducts: async (productIds) => {
+        try {
+            await api.delete("/manager/products/bulk", { data: { productIds } });
+            return true;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || "Failed to delete products");
         }
     },
 
@@ -536,27 +551,5 @@ export const productService = {
                 rushEligible: false,
             },
         ];
-    },
-
-
-
-    // Unified fetch with filters & pagination
-    fetchProducts: async (filters = {}, page = 0, size = 20) => {
-        try {
-            const params = new URLSearchParams();
-            params.append("page", page);
-            params.append("size", size);
-
-            if (filters.search) params.append("keyword", filters.search);
-            if (filters.category && filters.category !== "all") params.append("category", filters.category);
-            if (filters.minPrice) params.append("minPrice", filters.minPrice);
-            if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
-            if (filters.sortBy) params.append("sortBy", filters.sortBy);
-
-            const response = await api.get(`/products?${params.toString()}`);
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to fetch products");
-        }
     },
 };

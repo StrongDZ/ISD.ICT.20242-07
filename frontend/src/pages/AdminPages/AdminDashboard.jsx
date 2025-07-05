@@ -86,14 +86,13 @@ const AdminDashboard = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
+            case "PENDING":
                 return "warning";
-            case "PROCESSING":
-                return "info";
-            case "SHIPPING":
-                return "primary";
-            case "DELIVERED":
+            case "APPROVED":
                 return "success";
+            case "REJECTED":
+            case "CANCELLED":
+                return "error";
             default:
                 return "default";
         }
@@ -127,7 +126,7 @@ const AdminDashboard = () => {
     const recentActivities = [
         { icon: <PersonAdd />, text: "New user registered: jane_doe", time: "2 hours ago", type: "info" },
         { icon: <ShoppingCart />, text: "Order ORDER_005 requires approval", time: "3 hours ago", type: "warning" },
-        { icon: <CheckCircle />, text: "Order ORDER_004 delivered successfully", time: "5 hours ago", type: "success" },
+        { icon: <CheckCircle />, text: "Order ORDER_004 approved successfully", time: "5 hours ago", type: "success" },
         { icon: <Warning />, text: "Low stock alert for 3 products", time: "6 hours ago", type: "warning" },
         { icon: <Info />, text: "System backup completed", time: "1 day ago", type: "info" },
     ];
@@ -352,7 +351,7 @@ const AdminDashboard = () => {
                                     </TableHead>
                                     <TableBody>
                                         {orders
-                                            .filter((order) => order.status === "PENDING_APPROVAL")
+                                            .filter((order) => order.status === "PENDING")
                                             .map((order) => (
                                                 <TableRow key={order.orderID}>
                                                     <TableCell>
@@ -384,7 +383,7 @@ const AdminDashboard = () => {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                            {orders.filter((order) => order.status === "PENDING_APPROVAL").length === 0 && (
+                            {orders.filter((order) => order.status === "PENDING").length === 0 && (
                                 <Box sx={{ textAlign: "center", py: 4 }}>
                                     <Typography color="text.secondary">No orders requiring approval at the moment.</Typography>
                                 </Box>

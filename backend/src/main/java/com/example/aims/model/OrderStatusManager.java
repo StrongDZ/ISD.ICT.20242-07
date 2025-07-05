@@ -42,13 +42,16 @@ public class OrderStatusManager {
 
         switch (current) {
             case PENDING:
-                // From PENDING can go to APPROVED or REJECTED
-                return next == OrderStatus.APPROVED || next == OrderStatus.REJECTED;
+                // From PENDING can go to APPROVED, REJECTED, or CANCELLED
+                return next == OrderStatus.APPROVED || next == OrderStatus.REJECTED || next == OrderStatus.CANCELLED;
             case APPROVED:
                 // From APPROVED cannot change status
                 return false;
             case REJECTED:
                 // From REJECTED cannot change status
+                return false;
+            case CANCELLED:
+                // From CANCELLED cannot change status
                 return false;
             default:
                 return false;

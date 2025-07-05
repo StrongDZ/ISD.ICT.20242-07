@@ -3,6 +3,7 @@ package com.example.aims.controller;
 import com.example.aims.dto.products.ProductDTO;
 import com.example.aims.service.products.ProductService;
 import com.example.aims.security.UserDetailsImpl;
+import com.example.aims.dto.BulkDeleteRequestDTO;
 
 
 import jakarta.validation.Valid;
@@ -42,6 +43,12 @@ public class ManagerController {
     @DeleteMapping("/products/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
         productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/products/bulk")
+    public ResponseEntity<Void> deleteProducts(@Valid @RequestBody BulkDeleteRequestDTO request) {
+        productService.deleteProducts(request.getProductIds());
         return ResponseEntity.noContent().build();
     }
 }

@@ -68,7 +68,18 @@ const ProductsPage = () => {
             setLoading(true);
             setError(null);
 
-            const response = await productService.fetchProducts(filters, page, pageSize);
+            // Get current filters from URL params to ensure we always use the latest values
+            const currentFilters = {
+                category: searchParams.get("category") || "all",
+                sortBy: searchParams.get("sortBy") || "",
+                minPrice: searchParams.get("minPrice") || "",
+                maxPrice: searchParams.get("maxPrice") || "",
+                search: searchParams.get("search") || "",
+            };
+
+            console.log("Loading products with filters:", currentFilters, "page:", page);
+
+            const response = await productService.fetchProducts(currentFilters, page, pageSize);
 
             if (response.content) {
                 // Paginated response from backend
@@ -166,9 +177,9 @@ const ProductsPage = () => {
         const pageFromURL = parseInt(searchParams.get("page")) || 1;
         setCurrentPage(pageFromURL);
         loadProducts(pageFromURL - 1); // Convert to 0-based for backend
-    }, [filters, currentPage]);
+    }, [searchParams]); // Only depend on searchParams to avoid circular dependencies
 
-    // Update filters from URL params on mount
+    // Update filters from URL params when searchParams change
     useEffect(() => {
         const filtersFromURL = {
             category: searchParams.get("category") || "all",
@@ -178,7 +189,7 @@ const ProductsPage = () => {
             search: searchParams.get("search") || "",
         };
         setFilters(filtersFromURL);
-    }, []);
+    }, [searchParams]);
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>

@@ -24,7 +24,7 @@ const HomePage = () => {
             // Try to get paginated response first, fallback to non-paginated
             let products = [];
 
-            const response = await productService.getAllProducts(0, 8);
+            const response = await productService.fetchProducts({}, 0, 8);
             products = response.content || response;
 
             setFeaturedProducts(products);

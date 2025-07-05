@@ -3,276 +3,219 @@ package com.example.aims.service;
 import com.example.aims.dto.products.BookDTO;
 import com.example.aims.dto.products.CdDTO;
 import com.example.aims.dto.products.DvdDTO;
-import com.example.aims.dto.products.ProductDTO;
-import com.example.aims.factory.ProductFactory;
 import com.example.aims.service.products.ProductServiceImpl;
-import com.example.aims.strategy.impl.BookStrategy;
-import com.example.aims.strategy.impl.CdStrategy;
-import com.example.aims.strategy.impl.DvdStrategy;
-import com.example.aims.repository.ProductRepository;
-import com.example.aims.model.Book;
-import com.example.aims.model.CD;
-import com.example.aims.model.DVD;
-import com.example.aims.model.Product;
-import com.example.aims.common.ProductType;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
 public class SearchProductTest {
 
-    @Mock
-    private ProductFactory productFactory;
-
-    @Mock
-    private ProductRepository productRepository;
-
-    @Mock
-    private BookStrategy bookStrategy;
-
-    @Mock
-    private CdStrategy cdStrategy;
-
-    @Mock
-    private DvdStrategy dvdStrategy;
-
-    @InjectMocks
+    @Autowired
     private ProductServiceImpl productService;
-
-    @BeforeEach
-    public void setUp() {
-        // Setup default behavior for ProductFactory
-        lenient().when(productFactory.getStrategy("book")).thenReturn(bookStrategy);
-        lenient().when(productFactory.getStrategy("cd")).thenReturn(cdStrategy);
-        lenient().when(productFactory.getStrategy("dvd")).thenReturn(dvdStrategy);
-    }
 
     @Test
     void testSearchProducts_ReturnsMatchingProducts() {
-        // Given
-        String keyword = "test";
+        // Given - Create and save test products to database
+        BookDTO testBook = createTestBookDTO();
+        testBook.setProductID("BK-TEST-001");
+        testBook.setTitle("Test Book for Search");
 
-        // Create mock products that would be returned by repository
-        Book mockBook = new Book();
-        mockBook.setProductID("BK-001");
-        mockBook.setCategory(ProductType.book);
-        mockBook.setTitle("Test Book");
+        CdDTO testCD = createTestCdDTO();
+        testCD.setProductID("CD-TEST-001");
+        testCD.setTitle("Test Album for Search");
 
-        CD mockCD = new CD();
-        mockCD.setProductID("CD-001");
-        mockCD.setCategory(ProductType.cd);
-        mockCD.setTitle("Test Album");
+        try {
+            productService.createProduct(testBook, 1);
+            productService.createProduct(testCD, 1);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
-        // Mock repository to return products matching the search
-        when(productRepository.findByTitleContainingIgnoreCase(keyword))
-                .thenReturn(Arrays.asList(mockBook, mockCD));
+        // When - Search for products
+        var result = productService.getFilteredProducts("Test", null, null, null, null, 0, 20);
 
-        // Mock strategies to return DTOs
-        BookDTO bookDTO = createTestBookDTO();
-        bookDTO.setProductID("BK-001");
-        bookDTO.setTitle("Test Book");
-
-        CdDTO cdDTO = createTestCdDTO();
-        cdDTO.setProductID("CD-001");
-        cdDTO.setTitle("Test Album");
-
-        when(bookStrategy.getProductById("BK-001")).thenReturn(bookDTO);
-        when(cdStrategy.getProductById("CD-001")).thenReturn(cdDTO);
-
-        // When
-        List<ProductDTO> result = productService.searchProducts(keyword);
-
-        // Then
+        // Then - Verify results contain our test products
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertTrue(result.getContent().size() >= 2, "Should return at least 2 test products");
 
-        verify(productRepository).findByTitleContainingIgnoreCase(keyword);
-        verify(bookStrategy).getProductById("BK-001");
-        verify(cdStrategy).getProductById("CD-001");
+        // Check that our test products are in the results
+        boolean foundBook = result.getContent().stream()
+                .anyMatch(p -> p.getTitle().contains("Test Book"));
+        boolean foundCD = result.getContent().stream()
+                .anyMatch(p -> p.getTitle().contains("Test Album"));
+
+        assertTrue(foundBook, "Test book should be found in search results");
+        assertTrue(foundCD, "Test CD should be found in search results");
     }
 
     @Test
     void testSearchProducts_NoMatchingProducts_ReturnsEmptyList() {
-        // Given
-        String keyword = "nonexistent";
-
-        // Mock repository to return empty list
-        when(productRepository.findByTitleContainingIgnoreCase(keyword))
-                .thenReturn(Arrays.asList());
+        // Given - Search for non-existent keyword
+        String keyword = "NONEXISTENTPRODUCTKEYWORD12345";
 
         // When
-        List<ProductDTO> result = productService.searchProducts(keyword);
+        var result = productService.getFilteredProducts(keyword, null, null, null, null, 0, 20);
 
         // Then
         assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        verify(productRepository).findByTitleContainingIgnoreCase(keyword);
-        verify(bookStrategy, never()).getProductById(anyString());
-        verify(cdStrategy, never()).getProductById(anyString());
-        verify(dvdStrategy, never()).getProductById(anyString());
+        assertTrue(result.getContent().isEmpty(), "Should return empty list for non-existent keyword");
     }
 
     @Test
     void testSearchProducts_WithPagination_ReturnsPagedResults() {
-        // Given
-        String keyword = "test";
-        int page = 0;
-        int size = 10;
-        Pageable pageable = PageRequest.of(page, size);
+        // Given - Create multiple test products
+        for (int i = 1; i <= 5; i++) {
+            BookDTO testBook = createTestBookDTO();
+            testBook.setProductID("BK-PAGE-" + String.format("%03d", i));
+            testBook.setTitle("Pagination Test Book " + i);
 
-        // Create mock products
-        Book mockBook = new Book();
-        mockBook.setProductID("BK-001");
-        mockBook.setCategory(ProductType.book);
-        mockBook.setTitle("Test Book");
+            try {
+                productService.createProduct(testBook, 1);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
 
-        CD mockCD = new CD();
-        mockCD.setProductID("CD-001");
-        mockCD.setCategory(ProductType.cd);
-        mockCD.setTitle("Test Album");
+        // When - Search with pagination
+        var result = productService.getFilteredProducts("Pagination", null, null, null, null, 0, 3);
 
-        // Create page with products
-        Page<Product> productPage = new PageImpl<>(
-                Arrays.asList(mockBook, mockCD),
-                pageable,
-                2);
-
-        // Mock repository to return paged results
-        when(productRepository.findByTitleContainingIgnoreCase(keyword, pageable))
-                .thenReturn(productPage);
-
-        // Mock strategies to return DTOs
-        BookDTO bookDTO = createTestBookDTO();
-        bookDTO.setProductID("BK-001");
-        bookDTO.setTitle("Test Book");
-
-        CdDTO cdDTO = createTestCdDTO();
-        cdDTO.setProductID("CD-001");
-        cdDTO.setTitle("Test Album");
-
-        when(bookStrategy.getProductById("BK-001")).thenReturn(bookDTO);
-        when(cdStrategy.getProductById("CD-001")).thenReturn(cdDTO);
-
-        // When
-        var result = productService.searchProducts(keyword, page, size);
-
-        // Then
+        // Then - Verify pagination works
         assertNotNull(result);
-        assertEquals(2, result.getContent().size());
-        assertEquals(0, result.getPage());
-        assertEquals(10, result.getSize());
-        assertEquals(2, result.getTotalElements());
-        assertTrue(result.isFirst());
-        assertTrue(result.isLast());
-
-        verify(productRepository).findByTitleContainingIgnoreCase(keyword, pageable);
-        verify(bookStrategy).getProductById("BK-001");
-        verify(cdStrategy).getProductById("CD-001");
+        assertEquals(3, result.getSize(), "Page size should be 3");
+        assertEquals(0, result.getPage(), "Should be first page");
+        assertTrue(result.getTotalElements() >= 5, "Should have at least 5 total elements");
+        assertTrue(result.getContent().size() <= 3, "Should return at most 3 items per page");
     }
 
     @Test
     void testSearchProducts_MixedProductTypes_ReturnsCorrectDTOs() {
-        // Given
-        String keyword = "programming";
+        // Given - Create products of different types
+        BookDTO testBook = createTestBookDTO();
+        testBook.setProductID("BK-MIXED-001");
+        testBook.setTitle("Programming Book Mixed Test");
 
-        // Create mock products of different types
-        Book mockBook = new Book();
-        mockBook.setProductID("BK-001");
-        mockBook.setCategory(ProductType.book);
-        mockBook.setTitle("Programming Book");
+        DvdDTO testDVD = createTestDvdDTO();
+        testDVD.setProductID("DVD-MIXED-001");
+        testDVD.setTitle("Programming Tutorial Mixed Test");
 
-        DVD mockDVD = new DVD();
-        mockDVD.setProductID("DVD-001");
-        mockDVD.setCategory(ProductType.dvd);
-        mockDVD.setTitle("Programming Tutorial");
+        try {
+            productService.createProduct(testBook, 1);
+            productService.createProduct(testDVD, 1);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
-        // Mock repository to return mixed products
-        when(productRepository.findByTitleContainingIgnoreCase(keyword))
-                .thenReturn(Arrays.asList(mockBook, mockDVD));
+        // When - Search for programming products
+        var result = productService.getFilteredProducts("Programming", null, null, null, null, 0, 20);
 
-        // Mock strategies to return appropriate DTOs
-        BookDTO bookDTO = createTestBookDTO();
-        bookDTO.setProductID("BK-001");
-        bookDTO.setTitle("Programming Book");
-
-        DvdDTO dvdDTO = createTestDvdDTO();
-        dvdDTO.setProductID("DVD-001");
-        dvdDTO.setTitle("Programming Tutorial");
-
-        when(bookStrategy.getProductById("BK-001")).thenReturn(bookDTO);
-        when(dvdStrategy.getProductById("DVD-001")).thenReturn(dvdDTO);
-
-        // When
-        List<ProductDTO> result = productService.searchProducts(keyword);
-
-        // Then
+        // Then - Verify we get mixed product types
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertTrue(result.getContent().size() >= 2, "Should return at least 2 products");
 
-        // Verify we got the correct types
-        assertTrue(result.stream().anyMatch(p -> p instanceof BookDTO));
-        assertTrue(result.stream().anyMatch(p -> p instanceof DvdDTO));
+        // Check that we have both book and DVD types
+        boolean hasBook = result.getContent().stream()
+                .anyMatch(p -> p instanceof BookDTO && p.getTitle().contains("Programming"));
+        boolean hasDVD = result.getContent().stream()
+                .anyMatch(p -> p instanceof DvdDTO && p.getTitle().contains("Programming"));
 
-        // Verify the titles match
-        assertTrue(result.stream().anyMatch(p -> p.getTitle().contains("Programming")));
-
-        verify(productRepository).findByTitleContainingIgnoreCase(keyword);
-        verify(bookStrategy).getProductById("BK-001");
-        verify(dvdStrategy).getProductById("DVD-001");
-        verify(cdStrategy, never()).getProductById(anyString());
+        assertTrue(hasBook, "Should contain BookDTO");
+        assertTrue(hasDVD, "Should contain DvdDTO");
     }
 
     @Test
     void testSearchProducts_CaseInsensitiveSearch() {
-        // Given
-        String keyword = "TEST";
+        // Given - Create test product
+        BookDTO testBook = createTestBookDTO();
+        testBook.setProductID("BK-CASE-001");
+        testBook.setTitle("Case Insensitive Test Book");
+        System.out.println("Creating test book: " + testBook.getTitle());
+        try {
+            productService.createProduct(testBook, 1);
+            System.out.println("Successfully created test book");
+        } catch (Exception e) {
+            System.out.println("Error creating test book: " + e.getMessage());
+            e.printStackTrace();
+            fail("Error creating test book: " + e.getMessage());
+        }
 
-        // Create mock product
-        Book mockBook = new Book();
-        mockBook.setProductID("BK-001");
-        mockBook.setCategory(ProductType.book);
-        mockBook.setTitle("Test Book");
+        // When - Search with different cases
+        var result1 = productService.getFilteredProducts("CASE", null, null, null, null, 0, 20);
+        var result2 = productService.getFilteredProducts("case", null, null, null, null, 0, 20);
+        var result3 = productService.getFilteredProducts("Case", null, null, null, null, 0, 20);
 
-        // Mock repository to return product (case insensitive search)
-        when(productRepository.findByTitleContainingIgnoreCase(keyword))
-                .thenReturn(Arrays.asList(mockBook));
+        // Debug: Print results
+        System.out.println("Result1 size: " + result1.getContent().size());
+        result1.getContent().forEach(p -> System.out.println("Result1 product: " + p.getProductID() + " - " + p.getTitle()));
+        
+        System.out.println("Result2 size: " + result2.getContent().size());
+        result2.getContent().forEach(p -> System.out.println("Result2 product: " + p.getProductID() + " - " + p.getTitle()));
+        
+        System.out.println("Result3 size: " + result3.getContent().size());
+        result3.getContent().forEach(p -> System.out.println("Result3 product: " + p.getProductID() + " - " + p.getTitle()));
 
-        // Mock strategy to return DTO
-        BookDTO bookDTO = createTestBookDTO();
-        bookDTO.setProductID("BK-001");
-        bookDTO.setTitle("Test Book");
+        // Then - Verify case insensitive search works
+        assertNotNull(result1);
+        assertNotNull(result2);
+        assertNotNull(result3);
 
-        when(bookStrategy.getProductById("BK-001")).thenReturn(bookDTO);
+        // All searches should return the same product
+        boolean foundInResult1 = result1.getContent().stream()
+                .anyMatch(p -> p.getTitle().equals("Case Insensitive Test Book"));
+        boolean foundInResult2 = result2.getContent().stream()
+                .anyMatch(p -> p.getTitle().equals("Case Insensitive Test Book"));
+        boolean foundInResult3 = result3.getContent().stream()
+                .anyMatch(p -> p.getTitle().equals("Case Insensitive Test Book"));
 
-        // When
-        List<ProductDTO> result = productService.searchProducts(keyword);
+        assertTrue(foundInResult1, "Should find product with uppercase search");
+        assertTrue(foundInResult2, "Should find product with lowercase search");
+        assertTrue(foundInResult3, "Should find product with mixed case search");
+    }
 
-        // Then
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("Test Book", result.get(0).getTitle());
+    @Test
+    void testSearchProducts_WithCategoryFilter() {
+        // Given - Create products of different categories
+        BookDTO testBook = createTestBookDTO();
+        testBook.setProductID("BK-CAT-001");
+        testBook.setTitle("Category Test Book");
 
-        verify(productRepository).findByTitleContainingIgnoreCase(keyword);
-        verify(bookStrategy).getProductById("BK-001");
+        CdDTO testCD = createTestCdDTO();
+        testCD.setProductID("CD-CAT-001");
+        testCD.setTitle("Category Test CD");
+
+        try {
+            productService.createProduct(testBook, 1);
+            productService.createProduct(testCD, 1);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        // When - Search with category filter
+        var bookResult = productService.getFilteredProducts("Category", "book", null, null, null, 0, 20);
+        var cdResult = productService.getFilteredProducts("Category", "cd", null, null, null, 0, 20);
+
+        // Then - Verify category filtering works
+        assertNotNull(bookResult);
+        assertNotNull(cdResult);
+
+        // Book result should only contain books
+        boolean bookResultHasOnlyBooks = bookResult.getContent().stream()
+                .allMatch(p -> p instanceof BookDTO);
+        assertTrue(bookResultHasOnlyBooks, "Book filter should only return books");
+
+        // CD result should only contain CDs
+        boolean cdResultHasOnlyCDs = cdResult.getContent().stream()
+                .allMatch(p -> p instanceof CdDTO);
+        assertTrue(cdResultHasOnlyCDs, "CD filter should only return CDs");
     }
 
     // --- Helper Methods ---
@@ -282,6 +225,7 @@ public class SearchProductTest {
         bookDTO.setCategory("book");
         bookDTO.setPrice(150000.0);
         bookDTO.setValue(120000.0);
+        bookDTO.setQuantity(10);
         bookDTO.setDescription("A comprehensive Java programming book");
         bookDTO.setAuthors("Robert Martin");
         bookDTO.setPublisher("Prentice Hall");
@@ -290,6 +234,12 @@ public class SearchProductTest {
         bookDTO.setGenre("Programming");
         bookDTO.setCoverType("Hardcover");
         bookDTO.setPubDate(new Date());
+        bookDTO.setWeight(0.8);
+        bookDTO.setDimensions("18.5 x 23.4 x 2.8 cm");
+        bookDTO.setBarcode("9780132350884");
+        bookDTO.setWarehouseEntryDate(new Date());
+        bookDTO.setImageURL("https://via.placeholder.com/300x400/0066cc/ffffff?text=Test+Book");
+        bookDTO.setEligible(true);
         return bookDTO;
     }
 
@@ -299,12 +249,19 @@ public class SearchProductTest {
         cdDTO.setCategory("cd");
         cdDTO.setPrice(100000.0);
         cdDTO.setValue(80000.0);
+        cdDTO.setQuantity(15);
         cdDTO.setDescription("Best of Queen");
         cdDTO.setArtist("Queen");
         cdDTO.setRecordLabel("EMI");
         cdDTO.setMusicType("Rock");
         cdDTO.setTracklist("Bohemian Rhapsody, Don't Stop Me Now");
         cdDTO.setReleaseDate(new Date());
+        cdDTO.setWeight(0.1);
+        cdDTO.setDimensions("12.5 x 12.5 x 0.1 cm");
+        cdDTO.setBarcode("1234567890123");
+        cdDTO.setWarehouseEntryDate(new Date());
+        cdDTO.setImageURL("https://via.placeholder.com/300x300/cc6600/ffffff?text=Test+CD");
+        cdDTO.setEligible(true);
         return cdDTO;
     }
 
@@ -314,19 +271,22 @@ public class SearchProductTest {
         dvdDTO.setCategory("dvd");
         dvdDTO.setPrice(200000.0);
         dvdDTO.setValue(150000.0);
+        dvdDTO.setQuantity(8);
         dvdDTO.setDescription("Marvel superhero movie");
         dvdDTO.setDirector("Russo Brothers");
         dvdDTO.setStudio("Marvel Studios");
         dvdDTO.setRuntime("120 minutes");
+        dvdDTO.setLanguage("English");
+        dvdDTO.setGenre("Action");
         dvdDTO.setDiscType("Blu-ray");
         dvdDTO.setSubtitle("English, Vietnamese");
+        dvdDTO.setReleaseDate(new Date());
+        dvdDTO.setWeight(0.2);
+        dvdDTO.setDimensions("13.5 x 19.0 x 1.5 cm");
+        dvdDTO.setBarcode("9876543210987");
+        dvdDTO.setWarehouseEntryDate(new Date());
+        dvdDTO.setImageURL("https://via.placeholder.com/300x400/FF6347/ffffff?text=Test+DVD");
+        dvdDTO.setEligible(true);
         return dvdDTO;
-    }
-
-    private Product createProduct(String title, double price) {
-        Book p = new Book();
-        p.setTitle(title);
-        p.setPrice(price);
-        return p;
     }
 }

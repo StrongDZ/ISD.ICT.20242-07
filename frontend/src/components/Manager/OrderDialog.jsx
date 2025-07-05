@@ -34,14 +34,11 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
+            case "PENDING":
                 return "warning";
-            case "PROCESSING":
-                return "info";
-            case "SHIPPING":
-                return "primary";
-            case "DELIVERED":
+            case "APPROVED":
                 return "success";
+            case "REJECTED":
             case "CANCELLED":
                 return "error";
             default:
@@ -51,14 +48,12 @@ const OrderDialog = ({ open, onClose, order, mode = "view" }) => {
 
     const getStatusDisplayName = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
-                return "Pending Approval";
-            case "PROCESSING":
-                return "Processing";
-            case "SHIPPING":
-                return "Shipping";
-            case "DELIVERED":
-                return "Delivered";
+            case "PENDING":
+                return "Pending";
+            case "APPROVED":
+                return "Approved";
+            case "REJECTED":
+                return "Rejected";
             case "CANCELLED":
                 return "Cancelled";
             default:

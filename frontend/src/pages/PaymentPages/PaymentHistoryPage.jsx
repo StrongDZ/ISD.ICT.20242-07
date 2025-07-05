@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
     Box, Typography, Grid, Card, CardContent, Avatar, Divider, CircularProgress,
-    Container, Alert, Button, List, ListItem, ListItemText
+    Container, Alert, Button, List, ListItem, ListItemText,
+    Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
 } from "@mui/material";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -26,6 +27,7 @@ const PaymentHistory = () => {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [cancelledNotice, setCancelledNotice] = useState("");
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // NEW
 
     const API_BASE = "http://localhost:8080/api/payments";
 
@@ -73,7 +75,7 @@ const PaymentHistory = () => {
         }
 
         try {
-            var res = await axios.get(
+            const res = await axios.get(
                 `http://localhost:8080/api/cancel-order?orderId=${orderId}&transactionId=${transactionId}&paymentType=${paymentType}`,
                 {
                     headers: {
@@ -85,7 +87,6 @@ const PaymentHistory = () => {
 
             if (isCancelledNow === true) {
                 setSuccessMessage("✅ Order has been canceled. A refund will be issued to your account shortly.");
-                // Optionally: update local order state
                 setOrder(prev => ({ ...prev, status: "CANCELLED" }));
             } else {
                 setCancelledNotice("⚠️ This order has been APPROVED/REJECTED before.");
@@ -111,14 +112,8 @@ const PaymentHistory = () => {
                 🧾 Order & Payment Details
             </Typography>
 
-            {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-            )}
-
-            {cancelledNotice && (
-                <Alert severity="warning" sx={{ mb: 3 }}>{cancelledNotice}</Alert>
-            )}
-
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {cancelledNotice && <Alert severity="warning" sx={{ mb: 3 }}>{cancelledNotice}</Alert>}
             {successMessage && (
                 <Box sx={{ backgroundColor: "#e8f5e9", p: 3, borderRadius: 2, border: "1px solid #66bb6a", mb: 3 }}>
                     <Typography variant="h6" color="green" align="center">
@@ -160,7 +155,7 @@ const PaymentHistory = () => {
                                     color="error"
                                     fullWidth
                                     sx={{ mt: 2 }}
-                                    onClick={handleCancelOrder}
+                                    onClick={() => setOpenConfirmDialog(true)} // Open confirm dialog
                                 >
                                     Cancel Order
                                 </Button>
@@ -215,6 +210,34 @@ const PaymentHistory = () => {
                     </Card>
                 </Grid>
             </Grid>
+
+            {/* Confirm Cancel Dialog */}
+            <Dialog
+                open={openConfirmDialog}
+                onClose={() => setOpenConfirmDialog(false)}
+            >
+                <DialogTitle>Confirm Cancellation</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to cancel this order? This action cannot be undone and may trigger a refund.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenConfirmDialog(false)} color="primary">
+                        No, Keep Order
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            setOpenConfirmDialog(false);
+                            handleCancelOrder();
+                        }}
+                        color="error"
+                        variant="contained"
+                    >
+                        Yes, Cancel Order
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };

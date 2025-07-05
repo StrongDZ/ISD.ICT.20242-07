@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 public class CalculateFeeService {
 
     private DeliveryFeeProperties deliveryFeeProperties;
+    private static final double VAT_RATE = 1.1; // 10% VAT
+
 
     public CalculateFeeService(DeliveryFeeProperties deliveryFeeProperties) {
         this.deliveryFeeProperties=deliveryFeeProperties;
@@ -31,7 +33,7 @@ public class CalculateFeeService {
      */
     public double calculateTotalPrice(List<CartItemDTO> cartItems, DeliveryInfoDTO deliveryInfo) {
         // 1. Tính tổng giá trị của tất cả sản phẩm trong giỏ hàng.
-        double totalSubtotal = calculateSubtotalForItems(cartItems);
+        double totalSubtotal = calculateSubtotalForItems(cartItems) * VAT_RATE;
 
         // 2. Tính tất cả các loại phí vận chuyển (cả thường và hỏa tốc).
         DeliveryFeeResponseDTO shippingFees = calculateAllShippingFees(cartItems, deliveryInfo);
@@ -98,7 +100,6 @@ public class CalculateFeeService {
         return new DeliveryFeeResponseDTO(regularFee, totalRushFee);
     }
 
-    // --- CÁC HÀM HELPER ---
 
     private double calculateRegularDeliveryFee(List<CartItemDTO> regularItems, double regularSubtotal, DeliveryInfoDTO deliveryInfo) {
         if (regularItems == null || regularItems.isEmpty()) {
@@ -145,7 +146,6 @@ public class CalculateFeeService {
                 .sum();
     }
     
-    // (Các hàm helper tính phí theo cân nặng và khu vực giữ nguyên)
 
     private boolean isRushItem(CartItemDTO item) {
         return item != null && item.getProductDTO() != null && Boolean.TRUE.equals(item.getProductDTO().getEligible());
@@ -171,7 +171,7 @@ public class CalculateFeeService {
     private boolean isInnerCity(DeliveryInfoDTO deliveryInfo) {
         if (deliveryInfo == null || deliveryInfo.getCity() == null) return false;
         String city = deliveryInfo.getCity().trim().toLowerCase();
-        return city.equals("hà nội") || city.equals("hanoi") || city.equals("tp.hcm") || city.equals("ho chi minh city") || city.equals("thành phố hồ chí minh");
+        return city.equals("hà nội") || city.equals("hồ chí minh");
     }
 
     private double calculateInnerCityDeliveryFee(double weightInKg) {

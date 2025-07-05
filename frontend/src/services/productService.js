@@ -12,7 +12,7 @@ export const productService = {
             
             // Add filter parameters
             // Handle both 'search' and 'keyword' for compatibility
-            const searchTerm = params.search || params.keyword;
+            const searchTerm = params.search;
             if (searchTerm) {
                 queryParams.append('keyword', searchTerm);
             }

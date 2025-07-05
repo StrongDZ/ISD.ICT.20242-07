@@ -112,7 +112,7 @@ const ProductManagementPage = () => {
 
             const params = {};
             if (filters.search) {
-                params.keyword = filters.search;
+                params.search = filters.search;
             }
             if (filters.category) {
                 params.category = filters.category;

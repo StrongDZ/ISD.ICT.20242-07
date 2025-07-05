@@ -3,30 +3,15 @@ package com.example.aims.service;
 import com.example.aims.dto.products.BookDTO;
 import com.example.aims.dto.products.CdDTO;
 import com.example.aims.dto.products.DvdDTO;
-import com.example.aims.dto.products.ProductDTO;
-import com.example.aims.factory.ProductFactory;
 import com.example.aims.service.products.ProductServiceImpl;
-import com.example.aims.strategy.impl.BookStrategy;
-import com.example.aims.strategy.impl.CdStrategy;
-import com.example.aims.strategy.impl.DvdStrategy;
-import com.example.aims.repository.ProductRepository;
-import com.example.aims.model.Book;
-import com.example.aims.model.CD;
-import com.example.aims.model.DVD;
-import com.example.aims.model.Product;
-import com.example.aims.common.ProductType;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,13 +22,6 @@ public class SearchProductTest {
 
     @Autowired
     private ProductServiceImpl productService;
-
-    @Autowired
-    private ProductFactory productFactory;
-
-    @Autowired
-    private ProductRepository productRepository;
-
 
     @Test
     void testSearchProducts_ReturnsMatchingProducts() {

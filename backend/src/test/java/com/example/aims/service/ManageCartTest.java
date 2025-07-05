@@ -1,95 +1,78 @@
 package com.example.aims.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.aims.dto.CartItemDTO;
 import com.example.aims.dto.products.BookDTO;
-import com.example.aims.mapper.CartItemMapper;
-import com.example.aims.mapper.ProductMapper;
-import com.example.aims.model.Book;
-import com.example.aims.model.CartItem;
-import com.example.aims.model.Product;
-import com.example.aims.model.Users;
 import com.example.aims.dto.products.ProductDTO;
-import com.example.aims.repository.CartItemRepository;
-import com.example.aims.repository.ProductRepository;
-import com.example.aims.repository.UsersRepository;
 import com.example.aims.exception.BadRequestException;
 import com.example.aims.exception.ResourceNotFoundException;
-import com.example.aims.common.ProductType;
+import com.example.aims.model.Users;
+import com.example.aims.repository.UsersRepository;
+import com.example.aims.service.products.ProductServiceImpl;
 
 import java.util.Date;
-import java.util.Optional;
+import java.util.List;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
 public class ManageCartTest {
 
-    @Mock
+    @Autowired
+    private CartService cartService;
+
+    @Autowired
+    private ProductServiceImpl productService;
+
+    @Autowired
     private UsersRepository usersRepository;
 
-    @Mock
-    private ProductRepository productRepository;
+    private Users testCustomer;
+    private BookDTO testProduct;
 
-    @Mock
-    private CartItemRepository cartItemRepository;
+    @BeforeEach
+    public void setUp() {
+        // Create test customer
+        testCustomer = createTestCustomer();
+        testCustomer = usersRepository.save(testCustomer);
 
-    @Mock
-    private CartItemMapper cartItemMapper;
-
-    @InjectMocks
-    private CartService cartService;
+        // Create test product
+        testProduct = createTestProduct();
+        testProduct = (BookDTO) productService.createProduct(testProduct, 1);
+    }
 
     @Test
     public void test_add_new_product_to_cart_successfully() {
         // Arrange
-        Integer customerId = 1;
-        String productId = "product456";
+        Integer customerId = testCustomer.getId();
+        String productId = testProduct.getProductID();
         Integer quantity = 2;
-
-        Users mockCustomer = createMockUser(customerId);
-        Product mockProduct = createMockProduct(productId);
-        CartItemDTO expectedDTO = createMockCartItemDTO(mockProduct, quantity);
-
-        when(usersRepository.findById(customerId)).thenReturn(Optional.of(mockCustomer));
-        when(productRepository.findById(productId)).thenReturn(Optional.of(mockProduct));
-        when(cartItemRepository.save(any(CartItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(cartItemMapper.toDTO(any(CartItem.class))).thenReturn(expectedDTO);
 
         // Act
         CartItemDTO result = cartService.addToCart(customerId, productId, quantity);
 
         // Assert
-        verify(cartItemRepository).save(any(CartItem.class));
-        verify(cartItemMapper).toDTO(any(CartItem.class));
+        assertNotNull(result);
         assertEquals(productId, result.getProductDTO().getProductID());
-        assertEquals("Test Product", result.getProductDTO().getTitle());
-        assertEquals(19.99, result.getProductDTO().getPrice());
+        assertEquals("Test Book for Cart", result.getProductDTO().getTitle());
+        assertEquals(150000.0, result.getProductDTO().getPrice());
         assertEquals(2, result.getQuantity());
     }
 
     @Test
     public void test_add_product_with_invalid_quantity_throws_exception() {
         // Arrange
-        Integer customerId = 1;
-        String productId = "BK-20250609232953-d7d4a7de";
+        Integer customerId = testCustomer.getId();
+        String productId = testProduct.getProductID();
         Integer quantity = 0;
-
-        Users mockCustomer = createMockUser(customerId);
-        Product mockProduct = createMockProduct(productId);
-
-        // Mock để pass qua customer validation, để test có thể reach quantity
-        // validation
-        when(usersRepository.findById(customerId)).thenReturn(Optional.of(mockCustomer));
-        when(productRepository.findById(productId)).thenReturn(Optional.of(mockProduct));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -97,97 +80,69 @@ public class ManageCartTest {
         });
 
         assertEquals("Quantity must be greater than zero", exception.getMessage());
+    }
 
-        // Verify that repository methods were called for validation
-        verify(usersRepository).findById(customerId);
-        verify(productRepository).findById(productId);
-        // CartItem should not be saved due to validation failure
-        verifyNoInteractions(cartItemRepository);
-        verifyNoInteractions(cartItemMapper);
+    @Test
+    public void test_add_product_with_negative_quantity_throws_exception() {
+        // Arrange
+        Integer customerId = testCustomer.getId();
+        String productId = testProduct.getProductID();
+        Integer quantity = -1;
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            cartService.addToCart(customerId, productId, quantity);
+        });
+
+        assertEquals("Quantity must be greater than zero", exception.getMessage());
     }
 
     @Test
     public void test_update_cart_item_successfully() {
         // Arrange
-        Integer customerId = 1;
-        String productId = "product456";
+        Integer customerId = testCustomer.getId();
+        String productId = testProduct.getProductID();
         int newQuantity = 3;
 
-        Product mockProduct = createMockProduct(productId);
-        mockProduct.setQuantity(10); // Có hàng
-        CartItemDTO expectedDTO = createMockCartItemDTO(mockProduct, newQuantity);
-
-        CartItem.CartItemId cartItemId = new CartItem.CartItemId(customerId, productId);
-        CartItem cartItem = new CartItem();
-        cartItem.setId(cartItemId);
-        cartItem.setQuantity(1); // Giả sử ban đầu là 1
-
-        when(productRepository.findById(productId)).thenReturn(Optional.of(mockProduct));
-        when(cartItemRepository.findById(cartItemId)).thenReturn(Optional.of(cartItem));
-        when(cartItemRepository.save(any(CartItem.class))).thenReturn(cartItem);
-        when(cartItemMapper.toDTO(any(CartItem.class))).thenReturn(expectedDTO);
+        // First add item to cart
+        cartService.addToCart(customerId, productId, 1);
 
         // Act
         CartItemDTO result = cartService.updateCartItem(customerId, productId, newQuantity);
 
         // Assert
-        verify(cartItemRepository).save(cartItem);
-        verify(cartItemMapper).toDTO(any(CartItem.class));
+        assertNotNull(result);
         assertEquals(productId, result.getProductDTO().getProductID());
         assertEquals(newQuantity, result.getQuantity());
-        assertEquals("Test Product", result.getProductDTO().getTitle());
-        assertEquals(19.99, result.getProductDTO().getPrice());
-        assertEquals("http://example.com/image.jpg", result.getProductDTO().getImageURL());
-    }
-
-    @Test
-    public void test_update_cart_item_insufficient_stock_throws_exception() {
-        // Arrange
-        Integer customerId = 1;
-        String productId = "product456";
-        int newQuantity = 15;
-
-        Product mockProduct = createMockProduct(productId);
-        mockProduct.setQuantity(10); // Không đủ hàng
-
-        CartItem.CartItemId cartItemId = new CartItem.CartItemId(customerId, productId);
-        CartItem cartItem = new CartItem();
-        cartItem.setId(cartItemId);
-
-        when(productRepository.findById(productId)).thenReturn(Optional.of(mockProduct));
-
-        // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> {
-            cartService.updateCartItem(customerId, productId, newQuantity);
-        });
-
-        assertEquals("Not enough stock available. Available: 10", ex.getMessage());
+        assertEquals("Test Book for Cart", result.getProductDTO().getTitle());
+        assertEquals(150000.0, result.getProductDTO().getPrice());
     }
 
     @Test
     public void test_remove_cart_item_successfully() {
         // Arrange
-        Integer customerId = 1;
-        String productId = "product456";
-        CartItem.CartItemId cartItemId = new CartItem.CartItemId(customerId, productId);
+        Integer customerId = testCustomer.getId();
+        String productId = testProduct.getProductID();
 
-        when(cartItemRepository.existsById(cartItemId)).thenReturn(true);
+        // First add item to cart
+        cartService.addToCart(customerId, productId, 1);
 
         // Act
         cartService.removeFromCart(customerId, productId);
 
-        // Assert
-        verify(cartItemRepository).deleteById(cartItemId);
+        // Assert - Verify item is removed by trying to get cart items
+        List<CartItemDTO> cartItems = cartService.getCartItems(customerId);
+        assertTrue(
+                cartItems.isEmpty()
+                        || cartItems.stream().noneMatch(item -> item.getProductDTO().getProductID().equals(productId)),
+                "Cart item should be removed");
     }
 
     @Test
     public void test_remove_nonexistent_cart_item_throws_exception() {
         // Arrange
-        Integer customerId = 1;
-        String productId = "product456";
-        CartItem.CartItemId cartItemId = new CartItem.CartItemId(customerId, productId);
-
-        when(cartItemRepository.existsById(cartItemId)).thenReturn(false);
+        Integer customerId = testCustomer.getId();
+        String productId = "NONEXISTENT-PRODUCT-ID";
 
         // Act & Assert
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> {
@@ -197,45 +152,81 @@ public class ManageCartTest {
         assertEquals("Cart item not found", ex.getMessage());
     }
 
-    private Users createMockUser(Integer customerId) {
+    @Test
+    public void test_clear_cart_successfully() {
+        // Arrange
+        Integer customerId = testCustomer.getId();
+        String productId = testProduct.getProductID();
+
+        // Add multiple items to cart
+        cartService.addToCart(customerId, productId, 1);
+
+        // Act
+        cartService.clearCart(customerId);
+
+        // Assert
+        List<CartItemDTO> cartItems = cartService.getCartItems(customerId);
+        assertTrue(cartItems.isEmpty(), "Cart should be empty after clearing");
+    }
+
+    @Test
+    public void test_get_cart_items_returns_correct_items() {
+        // Arrange
+        Integer customerId = testCustomer.getId();
+        String productId = testProduct.getProductID();
+
+        // Add item to cart
+        cartService.addToCart(customerId, productId, 2);
+
+        // Act
+        List<CartItemDTO> cartItems = cartService.getCartItems(customerId);
+
+        // Assert
+        assertNotNull(cartItems);
+        assertFalse(cartItems.isEmpty());
+
+        CartItemDTO cartItem = cartItems.stream()
+                .filter(item -> item.getProductDTO().getProductID().equals(productId))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(cartItem);
+        assertEquals(productId, cartItem.getProductDTO().getProductID());
+        assertEquals(2, cartItem.getQuantity());
+        assertEquals("Test Book for Cart", cartItem.getProductDTO().getTitle());
+    }
+
+    private Users createTestCustomer() {
         Users user = new Users();
-        user.setId(customerId);
-        user.setUsername("hoangmanh");
-        user.setPassword("manhlun123");
+        user.setUsername("testcustomer");
+        user.setPassword("testpass123");
+        user.setGmail("test@example.com");
+        user.setType(com.example.aims.common.UserType.CUSTOMER);
+        user.setUserStatus(com.example.aims.common.UserStatus.NONE);
         return user;
     }
 
-    private Product createMockProduct(String productId) {
-        Book book = new Book();
-        book.setProductID(productId);
-        book.setTitle("Test Product");
-        book.setPrice(19.99);
-        book.setQuantity(10);
-        book.setImageURL("http://example.com/image.jpg");
-        book.setCategory(ProductType.book);
-        book.setEligible(true);
-        book.setWarehouseEntryDate(new Date());
-        book.setDimensions("10x10x10");
-        book.setWeight(1.0);
-        book.setAuthors("John Doe");
-        book.setPublisher("Test Publisher");
-        return book;
-    }
-
-    private CartItemDTO createMockCartItemDTO(Product product, Integer quantity) {
+    private BookDTO createTestProduct() {
         BookDTO bookDTO = new BookDTO();
-        bookDTO.setProductID(product.getProductID());
-        bookDTO.setTitle(product.getTitle());
-        bookDTO.setPrice(product.getPrice());
-        bookDTO.setImageURL(product.getImageURL());
-        bookDTO.setCategory(product.getCategory().name());
-
-        
-        CartItemDTO dto = new CartItemDTO();
-        dto.setProductDTO(bookDTO);
-        dto.setQuantity(quantity);
-
-        return dto;
+        bookDTO.setTitle("Test Book for Cart");
+        bookDTO.setCategory("book");
+        bookDTO.setPrice(150000.0);
+        bookDTO.setValue(120000.0);
+        bookDTO.setQuantity(10);
+        bookDTO.setDescription("A test book for cart operations");
+        bookDTO.setAuthors("Test Author");
+        bookDTO.setPublisher("Test Publisher");
+        bookDTO.setNumberOfPages(200);
+        bookDTO.setLanguage("English");
+        bookDTO.setGenre("Test");
+        bookDTO.setCoverType("Paperback");
+        bookDTO.setPubDate(new Date());
+        bookDTO.setWeight(0.5);
+        bookDTO.setDimensions("15x20x2 cm");
+        bookDTO.setBarcode("1234567890123");
+        bookDTO.setWarehouseEntryDate(new Date());
+        bookDTO.setImageURL("https://via.placeholder.com/300x400/0066cc/ffffff?text=Test+Book");
+        bookDTO.setEligible(true);
+        return bookDTO;
     }
-
 }

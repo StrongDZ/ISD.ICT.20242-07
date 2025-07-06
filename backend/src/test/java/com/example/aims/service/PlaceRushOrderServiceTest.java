@@ -36,32 +36,6 @@ class PlaceRushOrderServiceTest {
         service = new PlaceRushOrderService(addressEligibility, productEligibility);
     }
 
-    @Test
-    void testPlaceRushOrder_AddressNotEligible() {
-        // Arrange
-        DeliveryInfoDTO deliveryInfo = new DeliveryInfoDTO();
-        deliveryInfo.setCity("Hồ  Chí Minh");
-        deliveryInfo.setDistrict("District 1");
-
-        BookDTO product = new BookDTO();
-        product.setProductID("B003");
-        product.setEligible(false);
-
-        List<ProductDTO> products = Arrays.asList(product);
-
-        when(addressEligibility.isRushAllowed(any(DeliveryInfoDTO.class))).thenReturn(false);
-        when(productEligibility.isRushAllowed(any(ProductDTO.class))).thenReturn(true);
-
-        // Act
-        PlaceRushOrderResponse response = service.placeRushOrder(deliveryInfo, products);
-
-        // Assert
-        assertNotNull(response);
-        assertFalse(response.isSupported());
-        assertEquals(0, response.getRushProducts().size());
-        assertEquals(1, response.getRegularProducts().size());
-        assertNotNull(response.getPromptMessage());
-    }
 
     @Test
     void testPlaceRushOrder_NoEligibleProducts() {

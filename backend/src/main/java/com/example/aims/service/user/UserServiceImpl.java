@@ -145,6 +145,15 @@ public class UserServiceImpl implements UserService {
         Users user = getUserEntityById(id);
         user.setUserStatus(UserStatus.BLOCKED);
         userRepository.save(user);
+        
+        try {
+            String subject = "Your account has been blocked";
+            String body = "Dear " + user.getUsername() + ",\n\nYour account has been blocked by the administrator.\n\nIf you believe this is an error or have any questions, please contact support.\n\nBest regards,\nAdministration Team";
+            emailService.send(user.getGmail(), subject, body);
+        } catch (Exception e) {
+            // Log email sending failure but don't stop the blocking process
+            System.err.println("Failed to send account blocking email to " + user.getGmail() + ": " + e.getMessage());
+        }
     }
 
     private Users getUserEntityById(Integer id) {

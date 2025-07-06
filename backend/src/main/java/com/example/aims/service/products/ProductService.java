@@ -31,11 +31,5 @@ public interface ProductService {
 
     void deleteProduct(String productId);
 
-    List<ProductDTO> searchProducts(String query);
-
-    PagedResponse<ProductDTO> searchProducts(String query, int page, int size);
-
-    List<ProductDTO> getProductsByCategory(String category);
-
-    PagedResponse<ProductDTO> getProductsByCategory(String category, int page, int size);
+    void deleteProducts(List<String> productIds);
 }

@@ -34,6 +34,7 @@ import {
     Pending,
     Block,
     HourglassEmpty,
+    Cancel,
 } from "@mui/icons-material";
 import OrderDialog from "../../components/Manager/OrderDialog";
 import RejectOrderDialog from "../../components/Manager/RejectOrderDialog";
@@ -94,14 +95,11 @@ const OrderManagementPage = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
+            case "PENDING":
                 return "warning";
-            case "PROCESSING":
-                return "info";
-            case "SHIPPING":
-                return "primary";
-            case "DELIVERED":
+            case "APPROVED":
                 return "success";
+            case "REJECTED":
             case "CANCELLED":
                 return "error";
             default:
@@ -111,14 +109,12 @@ const OrderManagementPage = () => {
 
     const getStatusDisplayName = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
-                return "Pending Approval";
-            case "PROCESSING":
-                return "Processing";
-            case "SHIPPING":
-                return "Shipping";
-            case "DELIVERED":
-                return "Delivered";
+            case "PENDING":
+                return "Pending";
+            case "APPROVED":
+                return "Approved";
+            case "REJECTED":
+                return "Rejected";
             case "CANCELLED":
                 return "Cancelled";
             default:
@@ -128,14 +124,13 @@ const OrderManagementPage = () => {
 
     const getStatusIcon = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
+            case "PENDING":
                 return <Warning />;
-            case "PROCESSING":
-                return <Receipt />;
-            case "SHIPPING":
-                return <LocalShipping />;
-            case "DELIVERED":
+            case "APPROVED":
                 return <CheckCircle />;
+            case "REJECTED":
+            case "CANCELLED":
+                return <Cancel />;
             default:
                 return <Receipt />;
         }
@@ -148,10 +143,10 @@ const OrderManagementPage = () => {
         // Filter by tab
         switch (currentTab) {
             case 0: // Pending Orders
-                filtered = filtered.filter((order) => order.status === "PENDING" || order.status === "PENDING_APPROVAL");
+                filtered = filtered.filter((order) => order.status === "PENDING");
                 break;
             case 1: // Processing Orders
-                filtered = filtered.filter((order) => ["PROCESSING", "SHIPPING", "DELIVERED", "APPROVED"].includes(order.status));
+                filtered = filtered.filter((order) => order.status === "APPROVED");
                 break;
             case 2: // Rejected Orders
                 filtered = filtered.filter((order) => order.status === "CANCELLED" || order.status === "REJECTED");
@@ -266,8 +261,8 @@ const OrderManagementPage = () => {
 
     // Statistics for each tab
     const orderStats = {
-        pending: orders.filter((o) => o.status === "PENDING" || o.status === "PENDING_APPROVAL").length,
-        processing: orders.filter((o) => ["PROCESSING", "SHIPPING", "DELIVERED", "APPROVED"].includes(o.status)).length,
+        pending: orders.filter((o) => o.status === "PENDING").length,
+        processing: orders.filter((o) => o.status === "APPROVED").length,
         rejected: orders.filter((o) => o.status === "CANCELLED" || o.status === "REJECTED").length,
         total: orders.length,
     };
@@ -413,7 +408,7 @@ const OrderManagementPage = () => {
                                 {orderStats.processing}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                Processing Orders
+                                Approved Orders
                             </Typography>
                         </CardContent>
                     </Card>
@@ -451,7 +446,7 @@ const OrderManagementPage = () => {
                                     <HourglassEmpty />
                                 </Badge>
                             }
-                            label="Processing Orders"
+                                                            label="Approved Orders"
                             sx={{ minHeight: 72 }}
                         />
                         <Tab

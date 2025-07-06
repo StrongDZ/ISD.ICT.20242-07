@@ -4,16 +4,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.aims.common.OrderStatus;
+import com.example.aims.dto.transaction.TransactionResponseDTO;
+import com.example.aims.factory.PaymentSystemFactory;
+import com.example.aims.mapper.TransactionMapper;
 import com.example.aims.model.Order;
+import com.example.aims.model.PaymentTransaction;
 import com.example.aims.repository.OrderRepository;
+import com.example.aims.repository.PaymentTransactionRepository;
 
 @Service
 public class CancelOrderService {
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private PaymentTransactionRepository paymentTransactionRepository;
+    @Autowired
+    private TransactionMapper tr;
+    @Autowired
+    private PaymentSystemFactory paymentSystemFactory;
 
-    public CancelOrderService(OrderRepository orderRepository) {
+    public CancelOrderService(OrderRepository orderRepository,
+            PaymentTransactionRepository paymentTransactionRepository, TransactionMapper tr,
+            PaymentSystemFactory paymentSystemFactory) {
         this.orderRepository = orderRepository;
+        this.paymentTransactionRepository = paymentTransactionRepository;
+        this.tr = tr;
+        this.paymentSystemFactory = paymentSystemFactory;
     }
 
     /**
@@ -28,6 +44,13 @@ public class CancelOrderService {
     public OrderStatus cancelOrder(String orderId, String transactionId, String paymentType) {
         Order order = orderRepository.findByOrderID(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        PaymentTransaction transaction = paymentTransactionRepository.findByTransactionId(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Payment transaction not found for transaction Id: " + transactionId));
+        TransactionResponseDTO transactionResponse = tr.toTransactionResponseDTO(transaction);
+        String refundInfo = paymentSystemFactory
+                .getPaymentSystem(paymentType)
+                .getRefundInfo(transactionResponse);
         if (order.getStatus() == OrderStatus.CANCELLED) {
             return order.getStatus();
         } else if (order.getStatus() == OrderStatus.APPROVED || order.getStatus() == OrderStatus.REJECTED) {

@@ -76,8 +76,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/cancel-order/**").permitAll()
                         .requestMatchers("/api/place-order/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
-                        .requestMatchers("/api/manager/**").authenticated()
                         .requestMatchers("/api/orders/**").permitAll()
+                        .requestMatchers("/api/manager/**").authenticated()
                         
                         // Static resources
                         .requestMatchers(

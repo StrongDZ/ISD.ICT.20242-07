@@ -71,7 +71,7 @@ const ManagerDashboard = () => {
             // Calculate statistics
             const lowStockCount = productsData.filter((p) => (p.quantity || 0) <= 5).length;
             const pendingOrdersCount = ordersData.filter((o) => 
-                o.status === "PENDING_APPROVAL" || o.status === "PENDING"
+                o.status === "PENDING"
             ).length;
 
             setStats({
@@ -92,7 +92,7 @@ const ManagerDashboard = () => {
             setOrders(mockOrders.slice(0, 5));
             
             const lowStockCount = mockProducts.filter((p) => p.quantity <= 5).length;
-            const pendingOrdersCount = mockOrders.filter((o) => o.status === "PENDING_APPROVAL").length;
+            const pendingOrdersCount = mockOrders.filter((o) => o.status === "PENDING").length;
 
             setStats({
                 totalProducts: mockProducts.length,
@@ -113,15 +113,9 @@ const ManagerDashboard = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
             case "PENDING":
                 return "warning";
-            case "PROCESSING":
-                return "info";
-            case "SHIPPING":
-                return "primary";
-            case "DELIVERED":
-            case "COMPLETED":
+            case "APPROVED":
                 return "success";
             case "REJECTED":
             case "CANCELLED":
@@ -133,18 +127,10 @@ const ManagerDashboard = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case "PENDING_APPROVAL":
-                return "PENDING APPROVAL";
             case "PENDING":
                 return "PENDING";
-            case "PROCESSING":
-                return "PROCESSING";
-            case "SHIPPING":
-                return "SHIPPING";
-            case "DELIVERED":
-                return "DELIVERED";
-            case "COMPLETED":
-                return "COMPLETED";
+            case "APPROVED":
+                return "APPROVED";
             case "REJECTED":
                 return "REJECTED";
             case "CANCELLED":

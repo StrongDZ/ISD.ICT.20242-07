@@ -87,82 +87,73 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDTO> searchProducts(String query) {
-        List<Product> products = productRepository.findByTitleContainingIgnoreCase(query);
-        return products.stream()
-                .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
-                    return strategy.getProductById(product.getProductID());
-                })
-                .collect(Collectors.toList());
+    public void deleteProducts(List<String> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            throw new IllegalArgumentException("Product IDs list cannot be null or empty");
+        }
+        if (productIds.size() > 10) {
+            throw new IllegalArgumentException("Cannot delete more than 10 products at once");
+        }
+        for (String productId : productIds) {
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
+            strategy.deleteProduct(productId);
+        }
     }
 
-    @Override
-    public PagedResponse<ProductDTO> searchProducts(String query, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Product> productPage = productRepository.findByTitleContainingIgnoreCase(query, pageable);
 
-        List<ProductDTO> productDTOs = productPage.getContent().stream()
-                .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
-                    return strategy.getProductById(product.getProductID());
-                })
-                .collect(Collectors.toList());
-
-        return new PagedResponse<>(
-                productDTOs,
-                productPage.getNumber(),
-                productPage.getSize(),
-                productPage.getTotalElements());
-    }
-
-    @Override
-    public List<ProductDTO> getProductsByCategory(String category) {
-        ProductStrategy strategy = productFactory.getStrategy(category);
-        return strategy.getAllProducts();
-    }
-
-    @Override
-    public PagedResponse<ProductDTO> getProductsByCategory(String category, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        ProductType productType = ProductType.valueOf(category.toLowerCase());
-        Page<Product> productPage = productRepository.findByCategory(productType, pageable);
-
-        List<ProductDTO> productDTOs = productPage.getContent().stream()
-                .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
-                    return strategy.getProductById(product.getProductID());
-                })
-                .collect(Collectors.toList());
-
-        return new PagedResponse<>(
-                productDTOs,
-                productPage.getNumber(),
-                productPage.getSize(),
-                productPage.getTotalElements());
-    }
 
     @Override
     public PagedResponse<ProductDTO> getFilteredProducts(String keyword, String category, Double minPrice,
             Double maxPrice, String sortBy, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, getSort(sortBy));
-        ProductType categoryEnum = null;
-        if (category != null && !category.equalsIgnoreCase("all") && !category.isBlank()) {
-            categoryEnum = ProductType.valueOf(category.toLowerCase());
+        try {
+            log.info("getFilteredProducts called with: keyword={}, category={}, minPrice={}, maxPrice={}, sortBy={}, page={}, size={}", 
+                     keyword, category, minPrice, maxPrice, sortBy, page, size);
+            
+            Pageable pageable = PageRequest.of(page, size, getSort(sortBy));
+            ProductType categoryEnum = null;
+            
+            if (category != null && !category.equalsIgnoreCase("all") && !category.isBlank()) {
+                try {
+                    categoryEnum = ProductType.valueOf(category.toLowerCase());
+                    log.info("Category enum resolved to: {}", categoryEnum);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid category provided: {}, treating as null", category);
+                    categoryEnum = null;
+                }
+            }
+            
+            log.info("Calling repository.searchProducts with categoryEnum: {}", categoryEnum);
+            Page<Product> productPage = productRepository.searchProducts(
+                    (keyword == null || keyword.isBlank()) ? null : keyword,
+                    categoryEnum,
+                    minPrice,
+                    maxPrice,
+                    pageable);
+            
+            log.info("Repository returned {} products", productPage.getContent().size());
+            
+            List<ProductDTO> dtos = productPage.getContent().stream()
+                    .map(product -> {
+                        try {
+                            log.debug("Processing product: {} with category: {}", product.getProductID(), product.getCategory());
+                            ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
+                            return strategy.getProductById(product.getProductID());
+                        } catch (Exception e) {
+                            log.error("Error processing product {}: {}", product.getProductID(), e.getMessage(), e);
+                            throw new RuntimeException("Error processing product " + product.getProductID(), e);
+                        }
+                    })
+                    .collect(Collectors.toList());
+            
+            log.info("Successfully converted {} products to DTOs", dtos.size());
+            return new PagedResponse<>(dtos, page, size, productPage.getTotalElements());
+            
+        } catch (Exception e) {
+            log.error("Error in getFilteredProducts: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to get filtered products: " + e.getMessage(), e);
         }
-        Page<Product> productPage = productRepository.searchProducts(
-                (keyword == null || keyword.isBlank()) ? null : keyword,
-                categoryEnum,
-                minPrice,
-                maxPrice,
-                pageable);
-        List<ProductDTO> dtos = productPage.getContent().stream()
-                .map(product -> {
-                    ProductStrategy strategy = productFactory.getStrategy(product.getCategory().name());
-                    return strategy.getProductById(product.getProductID());
-                })
-                .collect(Collectors.toList());
-        return new PagedResponse<>(dtos, page, size, productPage.getTotalElements());
     }
 
     private Sort getSort(String sortBy) {

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Date;
 import com.example.aims.common.ProductType;
+import com.example.aims.exception.BadRequestException;
 
 @Data
 @NoArgsConstructor
@@ -52,6 +53,13 @@ public abstract class Product {
             throw new com.example.aims.exception.BadRequestException(
                     "Not enough stock available. Available: " + this.quantity);
         }
+    }
+
+    public void setQuantity(Integer quantity) { 
+        if (quantity <= 0) {
+            throw new BadRequestException("Quantity must be greater than zero");
+        }
+        this.quantity = quantity;
     }
 
 }

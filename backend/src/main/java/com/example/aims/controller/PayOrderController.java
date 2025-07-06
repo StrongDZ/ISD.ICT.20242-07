@@ -24,7 +24,7 @@ import org.springframework.web.servlet.view.RedirectView;
 public class PayOrderController {
     @Autowired
     private PayOrderService payOrderService;
-
+    private String paymentType;
     // Test payment request
     // private final IPaymentSystem vnpay = new VNPaySubsystem();
 
@@ -42,6 +42,7 @@ public class PayOrderController {
     public String getPaymentURL(@RequestParam("orderId") String orderId,
             @RequestParam("paymentType") String paymentType) {
         // Call the payment subsystem to get the payment URL
+        this.paymentType = paymentType; // Store the payment type for later use
         return payOrderService.getPaymentURL(orderId, paymentType);
     }
 
@@ -64,8 +65,7 @@ public class PayOrderController {
     @GetMapping("/vnpay-return")
     public RedirectView vnpayReturn(@RequestParam Map<String, String> vnpayResponse) {
         // Lấy orderId từ response để tìm paymentType từ database
-        String orderId = vnpayResponse.get("vnp_TxnRef");
-        String redirectUrl = payOrderService.processPaymentReturn(vnpayResponse, orderId);
+        String redirectUrl = payOrderService.processPayment(vnpayResponse, paymentType);
         return new RedirectView(redirectUrl);
     }
 

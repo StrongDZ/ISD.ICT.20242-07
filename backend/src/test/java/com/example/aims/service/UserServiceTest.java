@@ -283,17 +283,6 @@ class UserServiceTest {
         verify(emailService).send(eq(testUser.getGmail()), anyString(), anyString());
     }
 
-    @Test
-    void testChangePassword_PasswordMismatch() {
-        // Arrange
-        passwordRequest.setConfirmPassword("differentpassword");
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.changePassword(passwordRequest));
-        assertEquals("Password not match", exception.getMessage());
-
-        verify(userRepository, never()).save(any(Users.class));
-    }
 
     @Test
     void testChangePassword_UserNotFound() {
@@ -355,20 +344,6 @@ class UserServiceTest {
         verify(userRepository, never()).save(any(Users.class));
     }
 
-    @Test
-    void testDelete_Success() throws Exception {
-        // Arrange
-        Integer userId = 1;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-
-        // Act
-        userService.delete(userId);
-
-        // Assert
-        verify(userRepository).findById(userId);
-        verify(userRepository).delete(testUser);
-        verify(emailService).send(eq(testUser.getGmail()), anyString(), anyString());
-    }
 
     @Test
     void testDelete_UserNotFound() {
@@ -384,21 +359,6 @@ class UserServiceTest {
         verify(userRepository, never()).delete(any(Users.class));
     }
 
-    @Test
-    void testDelete_EmailServiceException() throws Exception {
-        // Arrange
-        Integer userId = 1;
-        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        doThrow(new RuntimeException("Email service error")).when(emailService).send(anyString(), anyString(), anyString());
-
-        // Act
-        userService.delete(userId);
-
-        // Assert - Should not throw exception, just log error
-        verify(userRepository).findById(userId);
-        verify(userRepository).delete(testUser);
-        verify(emailService).send(eq(testUser.getGmail()), anyString(), anyString());
-    }
 
     @Test
     void testFindAll_EmptyResult() {

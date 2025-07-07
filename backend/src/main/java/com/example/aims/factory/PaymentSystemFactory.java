@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
  * implementations.
  * Follows Factory pattern best practices with Spring integration.
  */
+
 @Component
 public class PaymentSystemFactory {
 
@@ -26,10 +27,7 @@ public class PaymentSystemFactory {
      * @param paymentSystems List of all IPaymentSystem beans injected by Spring
      */
     public PaymentSystemFactory(List<IPaymentSystem> paymentSystems) {
-        this.paymentSystems = paymentSystems.stream()
-                .collect(Collectors.toMap(
-                        IPaymentSystem::getPaymentType,
-                        Function.identity()));
+        this.paymentSystems = paymentSystems.stream().collect(Collectors.toMap(IPaymentSystem::getPaymentType, Function.identity()));
     }
 
     /**
@@ -39,6 +37,7 @@ public class PaymentSystemFactory {
      * @return The payment system implementation
      * @throws IllegalArgumentException if payment type is null or not supported
      */
+    
     public IPaymentSystem getPaymentSystem(String type) {
         if (type == null) {
             throw new IllegalArgumentException("Payment type cannot be null");

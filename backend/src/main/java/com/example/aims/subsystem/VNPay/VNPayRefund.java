@@ -18,7 +18,7 @@ import java.net.URL;
 
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 
-public class VNPayRefundRequest {
+public class VNPayRefund {
     private String getIPAddr() {
         return "192.168.2.14";
     }
@@ -27,7 +27,8 @@ public class VNPayRefundRequest {
      * This method is used to request a refund from VNPay.
      *
      * @param transaction The transaction details for which the refund is requested.
-     * @return A string response from the VNPay API indicating the result of the refund request.
+     * @return A string response from the VNPay API indicating the result of the
+     *         refund request.
      */
     public String requestVNPayRefund(TransactionResponseDTO transaction) {
         Random random = new Random();
@@ -94,5 +95,15 @@ public class VNPayRefundRequest {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    /**
+     * Parses the VNPay refund response.
+     *
+     * @param response The response string from VNPay.
+     * @return The parsed response as a string.
+     */
+    public String parseResponse(String response) {
+        return response;
     }
 }

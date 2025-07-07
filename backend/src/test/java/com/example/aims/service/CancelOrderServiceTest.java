@@ -26,7 +26,7 @@ class CancelOrderServiceTest {
     private PaymentTransactionRepository paymentTransactionRepository;
     private TransactionMapper tr;
     private PaymentSystemFactory paymentSystemFactory;
-    private VNPaySubsystem paymentSystem;
+    private VNPay paymentSystem;
 
     @BeforeEach
     void setUp() {
@@ -34,7 +34,7 @@ class CancelOrderServiceTest {
         paymentTransactionRepository = mock(PaymentTransactionRepository.class);
         tr = mock(TransactionMapper.class);
         paymentSystemFactory = mock(PaymentSystemFactory.class);
-        paymentSystem = mock(VNPaySubsystem.class);
+        paymentSystem = mock(VNPay.class);
 
         cancelOrderService = new CancelOrderService(
                 orderRepository,

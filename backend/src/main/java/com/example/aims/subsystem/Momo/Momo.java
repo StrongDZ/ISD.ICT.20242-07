@@ -11,12 +11,10 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.subsystem.IPaymentSystem;
 
 @Component
-public class MomoSubsystem implements IPaymentSystem {
+public class Momo implements IPaymentSystem {
 
-    private final MomoPayRequest request = new MomoPayRequest();
-    private final MomoPayResponse response = new MomoPayResponse();
-    private final MomoRefundRequest refundRequest = new MomoRefundRequest();
-    private final MomoRefundResponse refundResponse = new MomoRefundResponse();
+    private final MomoPay pay = new MomoPay();
+    private final MomoRefund refund = new MomoRefund();
 
     public String getPaymentUrl(PaymentOrderRequestDTO dto) {
         Double orderTotal = dto.getAmount();
@@ -27,7 +25,7 @@ public class MomoSubsystem implements IPaymentSystem {
         }
         String orderId = dto.getOrderId();
         try {
-            return request.generateUrl(amount, content, orderId);
+            return pay.generateUrl(amount, content, orderId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -37,13 +35,13 @@ public class MomoSubsystem implements IPaymentSystem {
     @Override
     public PaymentTransaction getTransactionInfo(Map<String, String> momoResponse,
             PaymentOrderResponseFromReturnDTO orderDto) {
-        return response.responeParsing(momoResponse, orderDto);
+        return pay.responeParsing(momoResponse, orderDto);
     }
 
     @Override
     public String getRefundInfo(TransactionResponseDTO dto) {
-        String response = refundRequest.requestMomoRefund(dto);
-        return refundResponse.parseResponse(response);
+        String response = refund.requestMomoRefund(dto);
+        return refund.parseResponse(response);
     }
 
     /**

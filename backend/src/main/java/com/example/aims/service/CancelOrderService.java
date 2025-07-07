@@ -51,6 +51,7 @@ public class CancelOrderService {
         String refundInfo = paymentSystemFactory
                 .getPaymentSystem(paymentType)
                 .getRefundInfo(transactionResponse);
+        System.out.println("Refund Info: " + refundInfo);
         if (order.getStatus() == OrderStatus.CANCELLED) {
             return order.getStatus();
         } else if (order.getStatus() == OrderStatus.APPROVED || order.getStatus() == OrderStatus.REJECTED) {

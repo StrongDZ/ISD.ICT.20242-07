@@ -18,7 +18,7 @@ import java.net.URL;
 
 import com.example.aims.dto.transaction.TransactionResponseDTO;
 
-public class MomoRefundRequest {
+public class MomoRefund {
     private String getIPAddr() {
         return "192.168.2.14";
     }
@@ -95,5 +95,9 @@ public class MomoRefundRequest {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    public String parseResponse(String response) {
+        return response;
     }
 }

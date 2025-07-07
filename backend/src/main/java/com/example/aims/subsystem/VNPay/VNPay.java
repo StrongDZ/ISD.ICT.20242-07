@@ -11,12 +11,10 @@ import com.example.aims.model.PaymentTransaction;
 import com.example.aims.subsystem.IPaymentSystem;
 
 @Component
-public class VNPaySubsystem implements IPaymentSystem {
+public class VNPay implements IPaymentSystem {
 
-    private final VNPayPayRequest request = new VNPayPayRequest();
-    private final VNPayPayResponse response = new VNPayPayResponse();
-    private final VNPayRefundRequest refundRequest = new VNPayRefundRequest();
-    private final VNPayRefundResponse refundResponse = new VNPayRefundResponse();
+    private final VNPayPay pay = new VNPayPay();
+    private final VNPayRefund refund = new VNPayRefund();
 
     /**
      * Generates a payment URL for the given order request.
@@ -37,7 +35,7 @@ public class VNPaySubsystem implements IPaymentSystem {
         String orderId = dto.getOrderId();
         // Generate request payment url
         try {
-            return request.generateUrl(amount, content, orderId);
+            return pay.generateUrl(amount, content, orderId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -57,7 +55,7 @@ public class VNPaySubsystem implements IPaymentSystem {
     @Override
     public PaymentTransaction getTransactionInfo(Map<String, String> vnPayResponse,
             PaymentOrderResponseFromReturnDTO orderDto) {
-        return response.responeParsing(vnPayResponse, orderDto);
+        return pay.responeParsing(vnPayResponse, orderDto);
     }
 
     /**
@@ -69,8 +67,8 @@ public class VNPaySubsystem implements IPaymentSystem {
      */
     @Override
     public String getRefundInfo(TransactionResponseDTO dto) {
-        String response = refundRequest.requestVNPayRefund(dto);
-        return refundResponse.parseResponse(response);
+        String response = refund.requestVNPayRefund(dto);
+        return refund.parseResponse(response);
     }
 
     /**

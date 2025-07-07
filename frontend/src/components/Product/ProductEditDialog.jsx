@@ -18,6 +18,7 @@ import {
     Autocomplete,
 } from "@mui/material";
 import { Save, Cancel } from "@mui/icons-material";
+import DailyLimitsInfo from "../Common/DailyLimitsInfo";
 
 const ProductEditDialog = ({
     open,
@@ -484,6 +485,11 @@ const ProductEditDialog = ({
                         </Grid>
                     )}
 
+                    {/* Daily Limits Warning */}
+                    <Grid item xs={12}>
+                        <DailyLimitsInfo mode={mode} />
+                    </Grid>
+
                     {/* Basic Information */}
                     <Grid item xs={12}>
                         <Typography variant="h6" gutterBottom>
@@ -543,7 +549,13 @@ const ProductEditDialog = ({
                             value={product.price}
                             onChange={(e) => handleNumberChange("price", e.target.value)}
                             error={!!errors.price}
-                            helperText={errors.price}
+                            helperText={
+                                errors.price || 
+                                (mode === "edit" && product.value ? 
+                                    `Must be between ${Math.round(product.value * 0.3).toLocaleString()} and ${Math.round(product.value * 1.5).toLocaleString()} VND (30%-150% of value)` : 
+                                    "Enter product price"
+                                )
+                            }
                             disabled={mode === "view"}
                             required
                             inputProps={{ min: 0, step: 0.01 }}
@@ -561,6 +573,7 @@ const ProductEditDialog = ({
                             disabled={mode === "view"}
                             inputProps={{ min: 0, step: 0.01 }}
                             placeholder="0.00"
+                            helperText="Base value for price validation"
                         />
                     </Grid>
 

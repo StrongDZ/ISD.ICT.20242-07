@@ -48,6 +48,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { productService } from "../../services/productService";
 import ProductEditDialog from "../../components/Product/ProductEditDialog";
 import ProductDetailDialog from "../../components/Product/ProductDetailDialog";
+import DailyLimitsInfo from "../../components/Common/DailyLimitsInfo";
 import { getCategoryColor } from "../../utils/getCategoryColor";
 
 const ProductManagementPage = () => {
@@ -471,6 +472,9 @@ const ProductManagementPage = () => {
                 </Grid>
             </Grid>
 
+            {/* Daily Limits Information */}
+            <DailyLimitsInfo mode="management" />
+
             {/* Filters */}
             <Paper sx={{ p: 3, mb: 4 }}>
                 <Grid container spacing={3} alignItems="center">
@@ -791,6 +795,8 @@ const ProductManagementPage = () => {
                         Are you sure you want to delete the following {bulkDeleteDialog.products.length} product{bulkDeleteDialog.products.length > 1 ? 's' : ''}? 
                         This action cannot be undone.
                     </Typography>
+                    
+                    <DailyLimitsInfo mode="delete" />
                     
                     {isDeleting && (
                         <Box sx={{ mb: 2 }}>

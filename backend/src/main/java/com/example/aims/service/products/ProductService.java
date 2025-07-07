@@ -32,4 +32,11 @@ public interface ProductService {
     void deleteProduct(String productId);
 
     void deleteProducts(List<String> productIds);
+    
+    // Price management methods
+    void updateProductPrice(String productId, Double newPrice, Integer managerId, String reason);
+    
+    Integer getDailyPriceChangeCount(String productId);
+    
+    Double getOldPrice(String productId);
 }

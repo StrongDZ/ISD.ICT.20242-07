@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 import java.util.Date;
 import com.example.aims.common.ProductType;
 import com.example.aims.exception.BadRequestException;
@@ -37,6 +39,12 @@ public abstract class Product {
     private Double weight;
     private String imageURL;
     private Boolean eligible;
+    
+    // Price update tracking fields
+    private Double oldPrice;
+    private Integer updateCount = 0;
+    
+    private LocalDate updateAt = LocalDate.now();
 
     /**
      * Validates that there is sufficient stock for the requested quantity.

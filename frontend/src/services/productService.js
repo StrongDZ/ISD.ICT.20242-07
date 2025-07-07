@@ -62,7 +62,14 @@ export const productService = {
             const response = await api.post("/manager/products", productData);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to create product");
+            const errorMessage = error.response?.data?.message || "Failed to create product";
+            
+            // Handle specific error cases
+            if (errorMessage.includes("daily limit") || errorMessage.includes("30 products")) {
+                throw new Error("Daily product creation limit reached. You cannot create more than 30 products per day for security reasons.");
+            }
+            
+            throw new Error(errorMessage);
         }
     },
 
@@ -72,7 +79,26 @@ export const productService = {
             const response = await api.put(`/manager/products/${id}`, productData);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to update product");
+            const errorMessage = error.response?.data?.message || "Failed to update product";
+            
+            // Handle specific error cases
+            if (errorMessage.includes("Maximum price changes per day")) {
+                throw new Error("Daily price update limit reached. You can only update product prices up to 2 times per day.");
+            }
+            
+            if (errorMessage.includes("Price") && errorMessage.includes("below minimum")) {
+                throw new Error("Price is too low. Product price must be at least 30% of the product value.");
+            }
+            
+            if (errorMessage.includes("Price") && errorMessage.includes("above maximum")) {
+                throw new Error("Price is too high. Product price cannot exceed 150% of the product value.");
+            }
+            
+            if (errorMessage.includes("daily limit") || errorMessage.includes("30 products")) {
+                throw new Error("Daily product update limit reached. You cannot update more than 30 products per day for security reasons.");
+            }
+            
+            throw new Error(errorMessage);
         }
     },
 
@@ -82,7 +108,14 @@ export const productService = {
             await api.delete(`/manager/products/${id}`);
             return true;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to delete product");
+            const errorMessage = error.response?.data?.message || "Failed to delete product";
+            
+            // Handle specific error cases
+            if (errorMessage.includes("daily limit") || errorMessage.includes("30 products")) {
+                throw new Error("Daily product deletion limit reached. You cannot delete more than 30 products per day for security reasons.");
+            }
+            
+            throw new Error(errorMessage);
         }
     },
 
@@ -92,7 +125,22 @@ export const productService = {
             await api.delete("/manager/products/bulk", { data: { productIds } });
             return true;
         } catch (error) {
-            throw new Error(error.response?.data?.message || "Failed to delete products");
+            const errorMessage = error.response?.data?.message || "Failed to delete products";
+            
+            // Handle specific error cases
+            if (errorMessage.includes("more than 10 products")) {
+                throw new Error("Cannot delete more than 10 products at once. Please select fewer products and try again.");
+            }
+            
+            if (errorMessage.includes("daily limit") || errorMessage.includes("30 products")) {
+                throw new Error("Daily product deletion limit reached. You cannot delete more than 30 products per day for security reasons.");
+            }
+            
+            if (errorMessage.includes("empty") || errorMessage.includes("null")) {
+                throw new Error("Please select at least one product to delete.");
+            }
+            
+            throw new Error(errorMessage);
         }
     },
 

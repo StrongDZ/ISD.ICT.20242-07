@@ -1,0 +1,122 @@
+@startuml
+' ==== CONTROLLER ====
+class ManagerController <<RestController>> {
+  +createProduct(ProductDTO, UserDetailsImpl)
+  +updateProduct(String, ProductDTO)
+  +deleteProduct(String)
+  +deleteProducts(BulkDeleteRequestDTO)
+}
+
+' ==== SERVICE ====
+interface ProductService <<Service>>
+class ProductServiceImpl <<Service>>
+class ManagerActivityService <<Service>>
+
+ProductService <|.. ProductServiceImpl
+ManagerController --> ProductService
+ProductServiceImpl --> ManagerActivityService
+
+' ==== FACTORY & STRATEGY ====
+class ProductFactory <<Component>>
+interface ProductStrategy
+class BookStrategy <<Component>>
+class CdStrategy <<Component>>
+class DvdStrategy <<Component>>
+
+ProductStrategy <|.. BookStrategy
+ProductStrategy <|.. CdStrategy
+ProductStrategy <|.. DvdStrategy
+ProductFactory --> ProductStrategy
+ProductServiceImpl --> ProductFactory
+
+' ==== REPOSITORY ====
+interface ProductRepository <<Repository>>
+interface BookRepository <<Repository>>
+interface CDRepository <<Repository>>
+interface DVDRepository <<Repository>>
+interface ManagerActivityRepository <<Repository>>
+
+ProductServiceImpl --> ProductRepository
+BookStrategy --> BookRepository
+CdStrategy --> CDRepository
+DvdStrategy --> DVDRepository
+ManagerActivityService --> ManagerActivityRepository
+
+' ==== MAPPER ====
+interface BookMapper
+interface CdMapper
+interface DvdMapper
+
+BookStrategy --> BookMapper
+CdStrategy --> CdMapper
+DvdStrategy --> DvdMapper
+
+' ==== MODEL & DTO ====
+abstract class Product <<Entity>> {
+  -String productID
+  -ProductType category
+  -String title
+  -Double price
+  -Double value
+  -Integer updateCount
+  -LocalDate updateAt
+  -Double oldPrice
+  ...
+}
+class Book
+class CD
+class DVD
+Product <|-- Book
+Product <|-- CD
+Product <|-- DVD
+
+abstract class ProductDTO {
+  -String productID
+  -String category
+  -String title
+  -Double price
+  -Double value
+  -Integer updateCount
+  -LocalDate updateAt
+  -Double oldPrice
+  ...
+}
+class BookDTO
+class CdDTO
+class DvdDTO
+ProductDTO <|-- BookDTO
+ProductDTO <|-- CdDTO
+ProductDTO <|-- DvdDTO
+
+class ManagerActivity <<Entity>>
+ManagerActivityRepository --> ManagerActivity
+
+class BulkDeleteRequestDTO
+class DailyLimitsResponseDTO
+
+ManagerController --> BulkDeleteRequestDTO
+ManagerController --> DailyLimitsResponseDTO
+
+' ==== EXCEPTION ====
+class ManagerDailyLimitException
+class PriceChangeException
+class ResourceNotFoundException
+class ApiExceptionHandler <<ControllerAdvice>>
+
+ProductServiceImpl ..> ManagerDailyLimitException
+ProductServiceImpl ..> PriceChangeException
+ProductServiceImpl ..> ResourceNotFoundException
+ManagerController ..> ApiExceptionHandler
+
+' ==== SECURITY ====
+class UserDetailsImpl
+ManagerController --> UserDetailsImpl
+
+BookMapper ..> Book
+BookMapper ..> BookDTO
+CdMapper ..> CD
+CdMapper ..> CdDTO
+DvdMapper ..> DVD
+DvdMapper ..> DvdDTO
+
+@enduml 

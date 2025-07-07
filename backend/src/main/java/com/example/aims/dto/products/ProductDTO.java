@@ -30,6 +30,11 @@ public abstract class ProductDTO {
     private String imageURL;
     private Boolean eligible;
 
+    // Price update tracking fields
+    private Double oldPrice;
+    private Integer updateCount;
+    private java.time.LocalDateTime updateAt;
+
     // Manual getter and setter for eligible to ensure compatibility
     public Boolean getEligible() {
         return eligible;

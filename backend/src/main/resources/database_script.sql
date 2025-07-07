@@ -114,3 +114,21 @@ CREATE TABLE Invoice (
     productPriceIncludingVAT DOUBLE PRECISION,
     deliveryFee DOUBLE PRECISION
 );
+
+-- Create manager_activity table for tracking daily limits
+CREATE TABLE IF NOT EXISTS manager_activity (
+    id BIGSERIAL PRIMARY KEY,
+    activity_date DATE NOT NULL UNIQUE,
+    update_count INTEGER NOT NULL DEFAULT 0,
+    delete_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add price tracking columns to Product table
+ALTER TABLE Product ADD COLUMN IF NOT EXISTS old_price DECIMAL(10,2);
+ALTER TABLE Product ADD COLUMN IF NOT EXISTS update_count INTEGER DEFAULT 0;
+ALTER TABLE Product ADD COLUMN IF NOT EXISTS update_at DATE;
+
+-- Create index for better performance
+CREATE INDEX IF NOT EXISTS idx_manager_activity_date ON manager_activity(activity_date);
